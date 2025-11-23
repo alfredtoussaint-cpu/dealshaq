@@ -31,13 +31,31 @@ export default function RetailerPostItem({ user, onLogout }) {
     category: '',
     subcategory: '',
     regular_price: '',
-    deal_price: '',
+    discount_level: '1',
     quantity: '',
     barcode: '',
     weight: '',
     image_url: '',
     is_taxable: true,
   });
+
+  // Calculate discounts based on selected level
+  const getDiscountInfo = () => {
+    const level = parseInt(formData.discount_level);
+    const discountMap = {
+      1: { drlp: 60, consumer: 50 },
+      2: { drlp: 75, consumer: 60 },
+      3: { drlp: 90, consumer: 75 },
+    };
+    return discountMap[level] || { drlp: 0, consumer: 0 };
+  };
+
+  const calculateDealPrice = () => {
+    if (!formData.regular_price) return '0.00';
+    const price = parseFloat(formData.regular_price);
+    const discountInfo = getDiscountInfo();
+    return (price * (1 - discountInfo.consumer / 100)).toFixed(2);
+  };
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
