@@ -113,6 +113,44 @@ export default function AdminDashboard({ user, onLogout }) {
               </Card>
             </div>
 
+            {/* Discount Model Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Discount Model Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-xs text-gray-600">Level 1</p>
+                      <p className="text-lg font-bold text-blue-600" data-testid="level-1-count">
+                        {discountLevelStats['Level 1'] || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">60% → 50%</p>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <p className="text-xs text-gray-600">Level 2</p>
+                      <p className="text-lg font-bold text-purple-600" data-testid="level-2-count">
+                        {discountLevelStats['Level 2'] || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">75% → 60%</p>
+                    </div>
+                    <div className="p-3 bg-pink-50 rounded-lg border border-pink-200">
+                      <p className="text-xs text-gray-600">Level 3</p>
+                      <p className="text-lg font-bold text-pink-600" data-testid="level-3-count">
+                        {discountLevelStats['Level 3'] || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">90% → 75%</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 pt-2 border-t">
+                    <p>Format: DRLP Discount → Consumer Discount</p>
+                    <p className="text-gray-400 mt-1">Level 0 (15% → 0%) is inactive in Version 1.0</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Revenue & Charity */}
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
