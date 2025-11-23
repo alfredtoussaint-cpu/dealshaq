@@ -64,10 +64,10 @@ export default function Landing() {
                 <Store className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Retailer
+                Retailer (DRLP)
               </h3>
               <p className="text-gray-600 mb-6">
-                Post deals, manage inventory, and engage with customers
+                Initiate sales by posting RSHDs. We match and notify interested local consumers.
               </p>
               <Button
                 data-testid="retailer-launch-btn"
