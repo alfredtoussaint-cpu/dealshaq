@@ -85,7 +85,7 @@ export default function RetailerPostItem({ user, onLogout }) {
       await rshd.create({
         ...formData,
         regular_price: parseFloat(formData.regular_price),
-        deal_price: parseFloat(formData.deal_price),
+        discount_level: parseInt(formData.discount_level),
         quantity: parseInt(formData.quantity),
         weight: formData.weight ? parseFloat(formData.weight) : null,
       });
