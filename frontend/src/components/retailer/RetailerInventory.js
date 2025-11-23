@@ -72,7 +72,10 @@ export default function RetailerInventory({ user, onLogout }) {
                       <CardTitle className="text-lg line-clamp-1">{item.name}</CardTitle>
                       <Badge variant="outline" className="mt-2">{item.category}</Badge>
                     </div>
-                    <Badge className="bg-red-500">{item.discount_percent}% OFF</Badge>
+                    <div className="space-x-1">
+                      <Badge className="bg-blue-500 text-xs">L{item.discount_level}</Badge>
+                      <Badge className="bg-red-500 text-xs">{item.consumer_discount_percent}% OFF</Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
