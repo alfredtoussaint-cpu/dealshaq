@@ -254,6 +254,37 @@ def calculate_charity_contributions(net_proceed: float) -> Dict[str, float]:
     drlp_share = round(net_proceed * 0.0045, 2)
     return {"dac_share": dac_share, "drlp_share": drlp_share}
 
+def calculate_discount_mapping(discount_level: int, regular_price: float) -> Dict[str, float]:
+    """
+    Calculate discount percentages and final price based on DealShaq discount model
+    
+    Discount Levels:
+    - Level 1: DRLP → DealShaq: 60%, Consumer sees: 50% off
+    - Level 2: DRLP → DealShaq: 75%, Consumer sees: 60% off
+    - Level 3: DRLP → DealShaq: 90%, Consumer sees: 75% off
+    - Level 0: INACTIVE (15% → 0%)
+    """
+    # Discount mapping: {level: (drlp_discount, consumer_discount)}
+    discount_map = {
+        1: (60.0, 50.0),
+        2: (75.0, 60.0),
+        3: (90.0, 75.0),
+    }
+    
+    if discount_level not in discount_map:
+        raise ValueError(f"Invalid discount level {discount_level}. Only levels 1-3 are supported in Version 1.0")
+    
+    drlp_discount, consumer_discount = discount_map[discount_level]
+    
+    # Calculate final consumer price
+    deal_price = round(regular_price * (1 - consumer_discount / 100), 2)
+    
+    return {
+        "drlp_discount_percent": drlp_discount,
+        "consumer_discount_percent": consumer_discount,
+        "deal_price": deal_price
+    }
+
 # ===== API ROUTES =====
 
 # Health Check
