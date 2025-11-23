@@ -161,7 +161,7 @@ export default function ConsumerBrowse({ user, onLogout }) {
                     <ShoppingBag className="w-20 h-20 text-emerald-400" />
                   )}
                   <Badge className="absolute top-3 right-3 bg-red-500 text-white font-bold">
-                    {deal.discount_percent}% OFF
+                    {deal.consumer_discount_percent}% OFF
                   </Badge>
                 </div>
                 <CardContent className="p-4">
