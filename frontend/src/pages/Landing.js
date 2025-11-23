@@ -40,10 +40,10 @@ export default function Landing() {
                 <ShoppingCart className="w-8 h-8 text-emerald-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Consumer
+                Consumer (DAC)
               </h3>
               <p className="text-gray-600 mb-6">
-                Browse deals, save on groceries, and support local charities
+                Set your favorites and area. Get notified when local retailers post matching deals.
               </p>
               <Button
                 data-testid="consumer-launch-btn"
