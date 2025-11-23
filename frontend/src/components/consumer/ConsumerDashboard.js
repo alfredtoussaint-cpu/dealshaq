@@ -135,7 +135,7 @@ export default function ConsumerDashboard({ user, onLogout }) {
                       )}
                     </div>
                     <div className="p-4">
-                      <Badge className="mb-2 bg-red-500">{deal.discount_percent}% OFF</Badge>
+                      <Badge className="mb-2 bg-red-500">{deal.consumer_discount_percent}% OFF</Badge>
                       <h3 className="font-bold text-gray-900 mb-1">{deal.name}</h3>
                       <p className="text-sm text-gray-600 mb-2">{deal.drlp_name}</p>
                       <div className="flex items-center space-x-2">
