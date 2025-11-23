@@ -659,6 +659,14 @@ async def get_all_users(current_user: Dict = Depends(get_current_user)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(10000)
     return users
 
+@api_router.get("/admin/items")
+async def get_all_items(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    items = await db.rshd_items.find({}, {"_id": 0}).to_list(10000)
+    return items
+
 # Include router
 app.include_router(api_router)
 
