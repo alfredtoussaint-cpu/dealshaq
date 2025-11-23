@@ -75,4 +75,5 @@ export const drlp = {
 export const admin = {
   stats: () => api.get('/admin/stats'),
   users: () => api.get('/admin/users'),
+  items: () => api.get('/admin/items'),
 };
