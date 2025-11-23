@@ -1,15 +1,18 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+from passlib.context import CryptContext
+import jwt
+import stripe
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,54 +22,599 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# JWT Configuration
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
-# Create a router with the /api prefix
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Stripe configuration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51QntqsH7xN6aWpSELUaZn6UFVdJZCLJ4HoCuWSXw3nQxZQ7HS9LvzvN9Fvx0OyLRQD1hl9x7RJNAk0aOY2QCvjKE00TJnKQSAT')
+
+# Security
+security = HTTPBearer()
+
+# Create the main app
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+# ===== MODELS =====
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+# Auth Models
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    role: str  # DAC, DRLP, Admin
+    charity_id: Optional[str] = None
+    location: Optional[Dict[str, Any]] = None
+    shopping_radius: Optional[float] = 5.0  # miles
 
-# Add your routes to the router instead of directly to app
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: Dict[str, Any]
+
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    charity_id: Optional[str] = None
+    location: Optional[Dict[str, Any]] = None
+    shopping_radius: Optional[float] = 5.0
+    notification_prefs: Optional[Dict[str, bool]] = {"email": True, "push": True, "sms": False}
+    created_at: str
+
+# Charity Models
+class CharityCreate(BaseModel):
+    name: str
+    description: str
+    logo_url: Optional[str] = None
+
+class Charity(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    logo_url: Optional[str] = None
+
+# DRLP Location Models
+class DRLPLocationCreate(BaseModel):
+    name: str
+    address: str
+    coordinates: Dict[str, float]  # {lat, lng}
+    charity_id: str
+    operating_hours: Optional[str] = "9 AM - 9 PM"
+
+class DRLPLocation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    name: str
+    address: str
+    coordinates: Dict[str, float]
+    charity_id: str
+    operating_hours: str
+
+# RSHD Item Models
+class RSHDItemCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    category: str
+    subcategory: str
+    regular_price: float
+    deal_price: float
+    quantity: int
+    barcode: Optional[str] = ""
+    weight: Optional[float] = None
+    image_url: Optional[str] = ""
+    is_taxable: bool = True
+
+class RSHDItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    drlp_id: str
+    drlp_name: str
+    drlp_address: str
+    name: str
+    description: str
+    category: str
+    subcategory: str
+    regular_price: float
+    deal_price: float
+    discount_percent: float
+    quantity: int
+    barcode: str
+    weight: Optional[float] = None
+    image_url: str
+    is_taxable: bool
+    posted_at: str
+    status: str = "available"
+
+# Favorite Models
+class FavoriteCreate(BaseModel):
+    category: str
+    subcategory: Optional[str] = None
+
+class Favorite(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    dac_id: str
+    category: str
+    subcategory: Optional[str] = None
+
+# Order Models
+class OrderItem(BaseModel):
+    rshd_id: str
+    name: str
+    price: float
+    quantity: int
+
+class OrderCreate(BaseModel):
+    items: List[OrderItem]
+    delivery_method: str  # delivery or pickup
+    delivery_address: Optional[str] = None
+    pickup_time: Optional[str] = None
+    charity_roundup: Optional[float] = 0.0
+    payment_method_id: str
+
+class Order(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    dac_id: str
+    dac_name: str
+    drlp_id: str
+    drlp_name: str
+    items: List[OrderItem]
+    subtotal: float
+    tax: float
+    delivery_fee: float
+    charity_dac: float
+    charity_drlp: float
+    charity_roundup: float
+    total: float
+    delivery_method: str
+    delivery_address: Optional[str] = None
+    pickup_time: Optional[str] = None
+    status: str = "pending"
+    payment_intent_id: Optional[str] = None
+    created_at: str
+
+# Notification Models
+class Notification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    dac_id: str
+    rshd_id: str
+    message: str
+    read: bool = False
+    created_at: str
+
+# ===== HELPER FUNCTIONS =====
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+def calculate_tax(subtotal: float, is_taxable: bool = True) -> float:
+    """Mock tax calculation - 8% for taxable items"""
+    if not is_taxable:
+        return 0.0
+    return round(subtotal * 0.08, 2)
+
+def calculate_delivery_fee(delivery_method: str) -> float:
+    """Mock delivery fee calculation"""
+    if delivery_method == "delivery":
+        return 5.99
+    return 0.0
+
+def calculate_charity_contributions(net_proceed: float) -> Dict[str, float]:
+    """Calculate charity contributions: 0.45% each for DAC and DRLP"""
+    dac_share = round(net_proceed * 0.0045, 2)
+    drlp_share = round(net_proceed * 0.0045, 2)
+    return {"dac_share": dac_share, "drlp_share": drlp_share}
+
+# ===== API ROUTES =====
+
+# Health Check
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "DealShaq API is running"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
+# ===== AUTH ROUTES =====
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
+@api_router.post("/auth/register", response_model=Token)
+async def register(user_data: UserCreate):
+    # Check if user exists
+    existing = await db.users.find_one({"email": user_data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
+    user_dict = user_data.model_dump()
+    user_dict["id"] = str(uuid.uuid4())
+    user_dict["password_hash"] = hash_password(user_data.password)
+    user_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    user_dict["notification_prefs"] = {"email": True, "push": True, "sms": False}
+    del user_dict["password"]
     
-    return status_checks
+    await db.users.insert_one(user_dict)
+    
+    access_token = create_access_token(data={"sub": user_dict["id"]})
+    
+    user_response = {k: v for k, v in user_dict.items() if k != "password_hash"}
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user_response
+    }
 
-# Include the router in the main app
+@api_router.post("/auth/login", response_model=Token)
+async def login(credentials: UserLogin):
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user or not verify_password(credentials.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    access_token = create_access_token(data={"sub": user["id"]})
+    
+    user_response = {k: v for k, v in user.items() if k != "password_hash"}
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user_response
+    }
+
+@api_router.get("/auth/me", response_model=User)
+async def get_me(current_user: Dict = Depends(get_current_user)):
+    return current_user
+
+# ===== CHARITY ROUTES =====
+
+@api_router.post("/charities", response_model=Charity)
+async def create_charity(charity_data: CharityCreate, current_user: Dict = Depends(get_current_user)):
+    charity_dict = charity_data.model_dump()
+    charity_dict["id"] = str(uuid.uuid4())
+    
+    await db.charities.insert_one(charity_dict)
+    return charity_dict
+
+@api_router.get("/charities", response_model=List[Charity])
+async def get_charities():
+    charities = await db.charities.find({}, {"_id": 0}).to_list(1000)
+    return charities
+
+# ===== DRLP LOCATION ROUTES =====
+
+@api_router.post("/drlp/locations", response_model=DRLPLocation)
+async def create_drlp_location(location_data: DRLPLocationCreate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can create locations")
+    
+    location_dict = location_data.model_dump()
+    location_dict["id"] = str(uuid.uuid4())
+    location_dict["user_id"] = current_user["id"]
+    
+    await db.drlp_locations.insert_one(location_dict)
+    return location_dict
+
+@api_router.get("/drlp/locations", response_model=List[DRLPLocation])
+async def get_drlp_locations():
+    locations = await db.drlp_locations.find({}, {"_id": 0}).to_list(1000)
+    return locations
+
+@api_router.get("/drlp/my-location", response_model=DRLPLocation)
+async def get_my_drlp_location(current_user: Dict = Depends(get_current_user)):
+    location = await db.drlp_locations.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return location
+
+# ===== RSHD ITEM ROUTES =====
+
+@api_router.post("/rshd/items", response_model=RSHDItem)
+async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can post items")
+    
+    # Get DRLP location
+    location = await db.drlp_locations.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    if not location:
+        raise HTTPException(status_code=404, detail="DRLP location not found")
+    
+    item_dict = item_data.model_dump()
+    item_dict["id"] = str(uuid.uuid4())
+    item_dict["drlp_id"] = current_user["id"]
+    item_dict["drlp_name"] = location["name"]
+    item_dict["drlp_address"] = location["address"]
+    item_dict["discount_percent"] = round(((item_data.regular_price - item_data.deal_price) / item_data.regular_price) * 100, 1)
+    item_dict["posted_at"] = datetime.now(timezone.utc).isoformat()
+    item_dict["status"] = "available"
+    
+    await db.rshd_items.insert_one(item_dict)
+    
+    # Create notifications for matching DACs
+    await create_matching_notifications(item_dict)
+    
+    return item_dict
+
+async def create_matching_notifications(item: Dict):
+    """Match RSHD with DAC favorites and create notifications"""
+    # Find DACs with matching favorites
+    matching_favorites = await db.favorites.find({
+        "$or": [
+            {"category": item["category"], "subcategory": item["subcategory"]},
+            {"category": item["category"], "subcategory": None}
+        ]
+    }, {"_id": 0}).to_list(1000)
+    
+    dac_ids = list(set([fav["dac_id"] for fav in matching_favorites]))
+    
+    for dac_id in dac_ids:
+        notification = {
+            "id": str(uuid.uuid4()),
+            "dac_id": dac_id,
+            "rshd_id": item["id"],
+            "message": f"New deal on {item['name']} - {item['discount_percent']}% off at {item['drlp_name']}!",
+            "read": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.notifications.insert_one(notification)
+
+@api_router.get("/rshd/items", response_model=List[RSHDItem])
+async def get_rshd_items(category: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
+    query = {"status": "available", "quantity": {"$gt": 0}}
+    if category:
+        query["category"] = category
+    
+    items = await db.rshd_items.find(query, {"_id": 0}).sort("posted_at", -1).to_list(1000)
+    return items
+
+@api_router.get("/rshd/my-items", response_model=List[RSHDItem])
+async def get_my_rshd_items(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can view their items")
+    
+    items = await db.rshd_items.find({"drlp_id": current_user["id"]}, {"_id": 0}).sort("posted_at", -1).to_list(1000)
+    return items
+
+@api_router.put("/rshd/items/{item_id}")
+async def update_rshd_item(item_id: str, update_data: Dict, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can update items")
+    
+    result = await db.rshd_items.update_one(
+        {"id": item_id, "drlp_id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    return {"message": "Item updated successfully"}
+
+@api_router.delete("/rshd/items/{item_id}")
+async def delete_rshd_item(item_id: str, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can delete items")
+    
+    result = await db.rshd_items.delete_one({"id": item_id, "drlp_id": current_user["id"]})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    return {"message": "Item deleted successfully"}
+
+# ===== FAVORITE ROUTES =====
+
+@api_router.post("/favorites", response_model=Favorite)
+async def create_favorite(favorite_data: FavoriteCreate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can create favorites")
+    
+    favorite_dict = favorite_data.model_dump()
+    favorite_dict["id"] = str(uuid.uuid4())
+    favorite_dict["dac_id"] = current_user["id"]
+    
+    await db.favorites.insert_one(favorite_dict)
+    return favorite_dict
+
+@api_router.get("/favorites", response_model=List[Favorite])
+async def get_favorites(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can view favorites")
+    
+    favorites = await db.favorites.find({"dac_id": current_user["id"]}, {"_id": 0}).to_list(1000)
+    return favorites
+
+@api_router.delete("/favorites/{favorite_id}")
+async def delete_favorite(favorite_id: str, current_user: Dict = Depends(get_current_user)):
+    result = await db.favorites.delete_one({"id": favorite_id, "dac_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Favorite not found")
+    return {"message": "Favorite removed"}
+
+# ===== NOTIFICATION ROUTES =====
+
+@api_router.get("/notifications", response_model=List[Notification])
+async def get_notifications(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can view notifications")
+    
+    notifications = await db.notifications.find({"dac_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return notifications
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: Dict = Depends(get_current_user)):
+    result = await db.notifications.update_one(
+        {"id": notification_id, "dac_id": current_user["id"]},
+        {"$set": {"read": True}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification marked as read"}
+
+# ===== ORDER ROUTES =====
+
+@api_router.post("/orders", response_model=Order)
+async def create_order(order_data: OrderCreate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can create orders")
+    
+    # Calculate totals
+    subtotal = sum(item.price * item.quantity for item in order_data.items)
+    
+    # Get first item's DRLP info
+    first_item = await db.rshd_items.find_one({"id": order_data.items[0].rshd_id}, {"_id": 0})
+    if not first_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    tax = calculate_tax(subtotal, first_item.get("is_taxable", True))
+    delivery_fee = calculate_delivery_fee(order_data.delivery_method)
+    
+    # Calculate charity contributions
+    net_proceed = subtotal + tax + delivery_fee - 0  # Assuming full amount to DealShaq
+    charity_contrib = calculate_charity_contributions(net_proceed)
+    
+    total = subtotal + tax + delivery_fee + order_data.charity_roundup
+    
+    # Process Stripe payment
+    try:
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(total * 100),  # Convert to cents
+            currency="usd",
+            payment_method=order_data.payment_method_id,
+            confirm=True,
+            automatic_payment_methods={
+                "enabled": True,
+                "allow_redirects": "never"
+            }
+        )
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=f"Payment failed: {str(e)}")
+    
+    order_dict = {
+        "id": str(uuid.uuid4()),
+        "dac_id": current_user["id"],
+        "dac_name": current_user["name"],
+        "drlp_id": first_item["drlp_id"],
+        "drlp_name": first_item["drlp_name"],
+        "items": [item.model_dump() for item in order_data.items],
+        "subtotal": subtotal,
+        "tax": tax,
+        "delivery_fee": delivery_fee,
+        "charity_dac": charity_contrib["dac_share"],
+        "charity_drlp": charity_contrib["drlp_share"],
+        "charity_roundup": order_data.charity_roundup,
+        "total": total,
+        "delivery_method": order_data.delivery_method,
+        "delivery_address": order_data.delivery_address,
+        "pickup_time": order_data.pickup_time,
+        "status": "confirmed",
+        "payment_intent_id": payment_intent.id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.orders.insert_one(order_dict)
+    
+    # Update item quantities
+    for item in order_data.items:
+        await db.rshd_items.update_one(
+            {"id": item.rshd_id},
+            {"$inc": {"quantity": -item.quantity}}
+        )
+    
+    return order_dict
+
+@api_router.get("/orders", response_model=List[Order])
+async def get_orders(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] == "DAC":
+        orders = await db.orders.find({"dac_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    elif current_user["role"] == "DRLP":
+        orders = await db.orders.find({"drlp_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    else:  # Admin
+        orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    return orders
+
+# ===== ADMIN ROUTES =====
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    total_dacs = await db.users.count_documents({"role": "DAC"})
+    total_drlps = await db.users.count_documents({"role": "DRLP"})
+    total_orders = await db.orders.count_documents({})
+    total_items = await db.rshd_items.count_documents({"status": "available"})
+    
+    # Calculate total revenue and charity contributions
+    orders = await db.orders.find({}, {"_id": 0}).to_list(10000)
+    total_revenue = sum(order["total"] for order in orders)
+    total_charity_dac = sum(order["charity_dac"] for order in orders)
+    total_charity_drlp = sum(order["charity_drlp"] for order in orders)
+    total_charity_roundup = sum(order["charity_roundup"] for order in orders)
+    
+    return {
+        "total_dacs": total_dacs,
+        "total_drlps": total_drlps,
+        "total_orders": total_orders,
+        "total_items": total_items,
+        "total_revenue": round(total_revenue, 2),
+        "total_charity_dac": round(total_charity_dac, 2),
+        "total_charity_drlp": round(total_charity_drlp, 2),
+        "total_charity_roundup": round(total_charity_roundup, 2),
+        "total_charity": round(total_charity_dac + total_charity_drlp + total_charity_roundup, 2)
+    }
+
+@api_router.get("/admin/users")
+async def get_all_users(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(10000)
+    return users
+
+# Include router
 app.include_router(api_router)
 
 app.add_middleware(
@@ -76,13 +624,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
