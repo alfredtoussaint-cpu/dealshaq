@@ -115,7 +115,7 @@ class RSHDItemCreate(BaseModel):
     category: str
     subcategory: str
     regular_price: float
-    deal_price: float
+    discount_level: int  # 1, 2, or 3 only
     quantity: int
     barcode: Optional[str] = ""
     weight: Optional[float] = None
@@ -133,8 +133,10 @@ class RSHDItem(BaseModel):
     category: str
     subcategory: str
     regular_price: float
-    deal_price: float
-    discount_percent: float
+    drlp_discount_percent: float  # Discount DRLP gives to DealShaq
+    consumer_discount_percent: float  # Discount consumer sees
+    deal_price: float  # Final price consumer pays
+    discount_level: int  # 1, 2, or 3
     quantity: int
     barcode: str
     weight: Optional[float] = None
