@@ -106,19 +106,19 @@ export default function Landing() {
           {/* Features Section */}
           <div className="mt-20 grid md:grid-cols-3 gap-8 text-left">
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-emerald-600">💰</div>
-              <h4 className="text-xl font-bold text-gray-900">Save Big</h4>
-              <p className="text-gray-600">Get steep discounts on quality groceries from local retailers</p>
+              <div className="text-3xl font-bold text-emerald-600">🎯</div>
+              <h4 className="text-xl font-bold text-gray-900">Supply-Initiated</h4>
+              <p className="text-gray-600">Retailers post urgent RSHDs that must move fast. You get notified only if it matches your interests.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl font-bold text-emerald-600">🗺️</div>
+              <h4 className="text-xl font-bold text-gray-900">Geography + Preference</h4>
+              <p className="text-gray-600">Set your shopping area and favorites. We match local deals to your DACFI-List automatically.</p>
             </div>
             <div className="space-y-2">
               <div className="text-3xl font-bold text-emerald-600">❤️</div>
-              <h4 className="text-xl font-bold text-gray-900">Give Back</h4>
-              <p className="text-gray-600">Every purchase contributes to your chosen charity</p>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-emerald-600">🔔</div>
-              <h4 className="text-xl font-bold text-gray-900">Stay Notified</h4>
-              <p className="text-gray-600">Get alerts when deals match your favorites</p>
+              <h4 className="text-xl font-bold text-gray-900">Charity Impact</h4>
+              <p className="text-gray-600">Every purchase contributes to local charities (DAC + DRLP shares + optional round-up)</p>
             </div>
           </div>
         </div>
