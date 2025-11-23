@@ -83,9 +83,13 @@ export default function RetailerInventory({ user, onLogout }) {
                     <span className="text-2xl font-bold text-emerald-600">${item.deal_price}</span>
                     <span className="text-sm text-gray-500 line-through">${item.regular_price}</span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 space-y-1">
                     <p>Quantity: {item.quantity}</p>
                     <p>Status: {item.status}</p>
+                    <div className="text-xs border-t pt-2 mt-2">
+                      <p className="text-blue-600">Your discount to DealShaq: {item.drlp_discount_percent}%</p>
+                      <p className="text-emerald-600">Consumer sees: {item.consumer_discount_percent}% OFF</p>
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">Posted: {new Date(item.posted_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex space-x-2">
