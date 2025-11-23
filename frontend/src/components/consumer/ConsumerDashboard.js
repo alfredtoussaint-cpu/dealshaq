@@ -40,7 +40,7 @@ export default function ConsumerDashboard({ user, onLogout }) {
           <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             Welcome back, {user.name}! 👋
           </h2>
-          <p className="text-emerald-50 text-lg">Discover amazing deals from local retailers</p>
+          <p className="text-emerald-50 text-lg">Local retailers are posting deals that match your favorites</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button
               data-testid="dashboard-browse-btn"
