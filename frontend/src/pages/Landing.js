@@ -15,12 +15,18 @@ export default function Landing() {
             DealShaq
           </h1>
           <p className="text-2xl text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Discover Sizzling Hot Deals on Grocery Foods
+            Supply-Initiated Grocery Deals
           </p>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Connect local consumers with retailers offering steep discounts on quality groceries.
-            Every purchase contributes to charity.
+            Retailers post urgent deals on quality items that must move fast. 
+            We match them to local consumers who want them. No searching, just smart notifications.
           </p>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 max-w-2xl mx-auto mt-4">
+            <p className="text-sm text-emerald-800 font-medium">
+              🎯 Unlike Instacart: We're supply-driven, not demand-driven. 
+              Retailers initiate sales → We match to interested consumers → You respond to targeted offers.
+            </p>
+          </div>
 
           {/* App Selection Cards */}
           <div className="grid md:grid-cols-3 gap-6 mt-16">
