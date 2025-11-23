@@ -388,17 +388,29 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
     if current_user["role"] != "DRLP":
         raise HTTPException(status_code=403, detail="Only DRLP users can post items")
     
+    # Validate discount level (only 1-3 allowed in v1.0)
+    if item_data.discount_level not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid discount level. Only levels 1, 2, and 3 are supported in Version 1.0. Level 0 is inactive."
+        )
+    
     # Get DRLP location
     location = await db.drlp_locations.find_one({"user_id": current_user["id"]}, {"_id": 0})
     if not location:
         raise HTTPException(status_code=404, detail="DRLP location not found")
+    
+    # Calculate discount percentages and final price
+    discount_info = calculate_discount_mapping(item_data.discount_level, item_data.regular_price)
     
     item_dict = item_data.model_dump()
     item_dict["id"] = str(uuid.uuid4())
     item_dict["drlp_id"] = current_user["id"]
     item_dict["drlp_name"] = location["name"]
     item_dict["drlp_address"] = location["address"]
-    item_dict["discount_percent"] = round(((item_data.regular_price - item_data.deal_price) / item_data.regular_price) * 100, 1)
+    item_dict["drlp_discount_percent"] = discount_info["drlp_discount_percent"]
+    item_dict["consumer_discount_percent"] = discount_info["consumer_discount_percent"]
+    item_dict["deal_price"] = discount_info["deal_price"]
     item_dict["posted_at"] = datetime.now(timezone.utc).isoformat()
     item_dict["status"] = "available"
     
