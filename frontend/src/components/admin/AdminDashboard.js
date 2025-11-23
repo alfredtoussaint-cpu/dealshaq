@@ -7,22 +7,34 @@ import { toast } from 'sonner';
 
 export default function AdminDashboard({ user, onLogout }) {
   const [stats, setStats] = useState(null);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
+    loadData();
   }, []);
 
-  const loadStats = async () => {
+  const loadData = async () => {
     try {
-      const response = await admin.stats();
-      setStats(response.data);
+      const [statsRes, itemsRes] = await Promise.all([
+        admin.stats(),
+        admin.items(),
+      ]);
+      setStats(statsRes.data);
+      setItems(itemsRes.data);
     } catch (error) {
-      toast.error('Failed to load stats');
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
   };
+
+  // Calculate discount level distribution
+  const discountLevelStats = items.reduce((acc, item) => {
+    const level = `Level ${item.discount_level}`;
+    acc[level] = (acc[level] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <AdminLayout user={user} onLogout={onLogout}>
