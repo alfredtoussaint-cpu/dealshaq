@@ -78,9 +78,9 @@ export default function ConsumerFavorites({ user, onLogout }) {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
-            My Favorites
+            My DACFI-List
           </h1>
-          <p className="text-gray-600 mt-1">Get notified when deals match your favorite categories</p>
+          <p className="text-gray-600 mt-1">Build your favorites inventory list. When retailers post matching RSHDs, you'll be notified.</p>
         </div>
 
         {/* Add Favorite Form */}
