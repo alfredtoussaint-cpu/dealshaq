@@ -207,17 +207,42 @@ export default function RetailerPostItem({ user, onLogout }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="deal_price">Deal Price *</Label>
-                  <Input
-                    id="deal_price"
-                    data-testid="item-deal-price"
-                    type="number"
-                    step="0.01"
-                    placeholder="4.99"
-                    value={formData.deal_price}
-                    onChange={(e) => setFormData({ ...formData, deal_price: e.target.value })}
-                    required
-                  />
+                  <Label htmlFor="discount_level">Discount Level *</Label>
+                  <Select value={formData.discount_level} onValueChange={(value) => setFormData({ ...formData, discount_level: value })}>
+                    <SelectTrigger data-testid="item-discount-level">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Level 1 - You: 60% → Consumer: 50%</SelectItem>
+                      <SelectItem value="2">Level 2 - You: 75% → Consumer: 60%</SelectItem>
+                      <SelectItem value="3">Level 3 - You: 90% → Consumer: 75%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    You discount to DealShaq, consumer sees mapped discount
+                  </p>
+                </div>
+
+                <div className="md:col-span-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">Pricing Preview</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-600">Regular Price:</p>
+                      <p className="font-bold text-gray-900">${formData.regular_price || '0.00'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Consumer Deal Price:</p>
+                      <p className="font-bold text-emerald-600">${calculateDealPrice()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Your Discount to DealShaq:</p>
+                      <p className="font-bold text-blue-600">{getDiscountInfo().drlp}%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Consumer Sees:</p>
+                      <p className="font-bold text-emerald-600">{getDiscountInfo().consumer}% OFF</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
