@@ -41,7 +41,7 @@ export default function RetailerDashboard({ user, onLogout }) {
           <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             Welcome, {user.name}!
           </h2>
-          <p className="text-blue-50 text-lg">Manage your deals and reach more customers</p>
+          <p className="text-blue-50 text-lg">Post RSHDs to initiate sales. We match and notify interested local consumers.</p>
           <Button
             data-testid="post-deal-btn"
             onClick={() => navigate('/retailer/post-item')}
