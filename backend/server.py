@@ -438,7 +438,7 @@ async def create_matching_notifications(item: Dict):
             "id": str(uuid.uuid4()),
             "dac_id": dac_id,
             "rshd_id": item["id"],
-            "message": f"New deal on {item['name']} - {item['discount_percent']}% off at {item['drlp_name']}!",
+            "message": f"New deal on {item['name']} - {item['consumer_discount_percent']}% off at {item['drlp_name']}!",
             "read": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
