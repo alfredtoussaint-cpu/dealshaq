@@ -189,10 +189,11 @@ export default function ConsumerFavorites({ user, onLogout }) {
                 <Heart className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">How Favorites Work</h4>
+                <h4 className="font-bold text-gray-900 mb-1">Supply-Initiated Model</h4>
                 <p className="text-sm text-gray-600">
-                  When retailers post deals in your favorite categories, you'll receive instant notifications.
-                  This helps you never miss out on the best discounts!
+                  DealShaq is supply-driven: Retailers initiate sales by posting RSHDs (urgent items). 
+                  Our backend matches them against your DACFI-List and notifies you only if there's a match. 
+                  No searching, no noise - just targeted offers you care about.
                 </p>
               </div>
             </div>
