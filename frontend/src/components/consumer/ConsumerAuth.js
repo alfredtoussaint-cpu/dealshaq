@@ -18,8 +18,11 @@ export default function ConsumerAuth({ onLogin }) {
     password: '',
     name: '',
     charity_id: '',
-    location: { address: '', lat: 0, lng: 0 },
-    shopping_radius: 5.0,
+    delivery_location: {
+      address: '',
+      coordinates: { lat: 0, lng: 0 }
+    },
+    dacsai_radius: 5.0,
   });
   const [loading, setLoading] = useState(false);
 
