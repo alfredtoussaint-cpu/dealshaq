@@ -30,7 +30,6 @@ export default function RetailerPostItem({ user, onLogout }) {
     name: '',
     description: '',
     category: '',
-    subcategory: '',
     regular_price: '',
     discount_level: '1',
     quantity: '',
@@ -38,7 +37,10 @@ export default function RetailerPostItem({ user, onLogout }) {
     weight: '',
     image_url: '',
     is_taxable: true,
+    attributes: {},
   });
+  const [scanning, setScanning] = useState(false);
+  const [ocrProcessing, setOcrProcessing] = useState(false);
 
   // Calculate discounts based on selected level
   const getDiscountInfo = () => {
@@ -56,6 +58,48 @@ export default function RetailerPostItem({ user, onLogout }) {
     const price = parseFloat(formData.regular_price);
     const discountInfo = getDiscountInfo();
     return (price * (1 - discountInfo.consumer / 100)).toFixed(2);
+  };
+
+  // Mock barcode scan function
+  const handleBarcodeScan = async () => {
+    setScanning(true);
+    // Simulate barcode scanning
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Mock product data (in real implementation, call backend API)
+    const mockProducts = [
+      { name: 'Organic Honeycrisp Apples 5lb', category: 'Fruits', barcode: '012345678901', weight: 5.0 },
+      { name: 'Grass-Fed Ground Beef 1lb', category: 'Meat & Poultry', barcode: '098765432109', weight: 1.0 },
+      { name: 'Greek Yogurt 32oz', category: 'Dairy & Eggs', barcode: '555666777888', weight: 2.0 },
+    ];
+    const product = mockProducts[Math.floor(Math.random() * mockProducts.length)];
+    
+    setFormData({
+      ...formData,
+      name: product.name,
+      category: product.category,
+      barcode: product.barcode,
+      weight: product.weight.toString(),
+    });
+    setScanning(false);
+    toast.success('Barcode scanned! Product info auto-populated');
+  };
+
+  // Mock OCR price scan function
+  const handlePriceScan = async () => {
+    setOcrProcessing(true);
+    // Simulate OCR processing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Mock extracted price (in real implementation, call OCR API)
+    const mockPrice = (Math.random() * 20 + 5).toFixed(2);
+    
+    setFormData({
+      ...formData,
+      regular_price: mockPrice,
+    });
+    setOcrProcessing(false);
+    toast.success(`Price extracted: $${mockPrice}`);
   };
   const [loading, setLoading] = useState(false);
 
