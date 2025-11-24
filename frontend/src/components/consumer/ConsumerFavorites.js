@@ -88,33 +88,15 @@ export default function ConsumerFavorites({ user, onLogout }) {
             <CardDescription>Choose categories to receive deal notifications</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger data-testid="select-category">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={selectedSubcategory}
-                onValueChange={setSelectedSubcategory}
-                disabled={!selectedCategory}
-              >
-                <SelectTrigger data-testid="select-subcategory">
-                  <SelectValue placeholder="Subcategory (Optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All {selectedCategory}</SelectItem>
-                  {selectedCategoryObj?.subcategories.map((sub) => (
-                    <SelectItem key={sub} value={sub}>
-                      {sub}
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
                     </SelectItem>
                   ))}
                 </SelectContent>
