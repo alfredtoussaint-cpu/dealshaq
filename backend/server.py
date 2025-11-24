@@ -143,8 +143,8 @@ class RSHDItem(BaseModel):
     drlp_address: str
     name: str
     description: str
-    category: str
-    subcategory: str
+    category: str  # One of VALID_CATEGORIES
+    subcategory: Optional[str] = ""  # Optional, internal only
     regular_price: float
     drlp_discount_percent: float  # Discount DRLP gives to DealShaq
     consumer_discount_percent: float  # Discount consumer sees
@@ -155,6 +155,7 @@ class RSHDItem(BaseModel):
     weight: Optional[float] = None
     image_url: str
     is_taxable: bool
+    attributes: Optional[Dict[str, Any]] = {}  # organic, gluten-free, etc.
     posted_at: str
     status: str = "available"
 
