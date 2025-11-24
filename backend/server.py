@@ -330,6 +330,20 @@ async def get_categories():
 
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
+    # SECURITY: Block public Admin registration
+    if user_data.role == "Admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin accounts cannot be created through public registration. Contact system administrator."
+        )
+    
+    # Only allow DAC and DRLP registration
+    if user_data.role not in ["DAC", "DRLP"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid role. Only 'DAC' (Consumer) and 'DRLP' (Retailer) registration allowed."
+        )
+    
     # Check if user exists with this email AND role (same email allowed for different roles)
     existing = await db.users.find_one({"email": user_data.email, "role": user_data.role})
     if existing:
