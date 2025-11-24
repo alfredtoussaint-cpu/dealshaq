@@ -19,7 +19,10 @@ export default function AdminAuth({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await auth.login(formData);
+      const response = await auth.login({
+        ...formData,
+        role: 'Admin',  // Filter by Admin role
+      });
       onLogin(response.data.access_token, response.data.user);
       toast.success('Welcome, Admin!');
     } catch (error) {
