@@ -23,7 +23,6 @@ const CATEGORIES = [
 export default function ConsumerFavorites({ user, onLogout }) {
   const [favorites, setFavorites] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSubcategory, setSelectedSubcategory] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
