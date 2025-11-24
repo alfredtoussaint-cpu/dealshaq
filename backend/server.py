@@ -108,12 +108,24 @@ class DRLPLocation(BaseModel):
     charity_id: str
     operating_hours: str
 
+# DealShaq 20-Category Taxonomy
+VALID_CATEGORIES = [
+    "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
+    "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
+    "Snacks & Candy", "Frozen Foods", "Beverages",
+    "Alcoholic Beverages", "Deli & Prepared Foods",
+    "Breakfast & Cereal", "Pasta, Rice & Grains",
+    "Oils, Sauces & Spices", "Baby & Kids",
+    "Health & Nutrition", "Household Essentials",
+    "Personal Care", "Pet Supplies"
+]
+
 # RSHD Item Models
 class RSHDItemCreate(BaseModel):
     name: str
     description: Optional[str] = ""
-    category: str
-    subcategory: str
+    category: str  # Must be one of VALID_CATEGORIES
+    subcategory: Optional[str] = ""  # Optional, internal use only
     regular_price: float
     discount_level: int  # 1, 2, or 3 only
     quantity: int
@@ -121,6 +133,7 @@ class RSHDItemCreate(BaseModel):
     weight: Optional[float] = None
     image_url: Optional[str] = ""
     is_taxable: bool = True
+    attributes: Optional[Dict[str, Any]] = {}  # organic, gluten-free, etc.
 
 class RSHDItem(BaseModel):
     model_config = ConfigDict(extra="ignore")
