@@ -42,6 +42,7 @@ export default function RetailerAuth({ onLogin }) {
         const response = await auth.login({
           email: formData.email,
           password: formData.password,
+          role: 'DRLP',  // Filter by Retailer role
         });
         onLogin(response.data.access_token, response.data.user);
         toast.success('Welcome back!');
