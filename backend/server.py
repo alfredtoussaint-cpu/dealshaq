@@ -319,6 +319,14 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Validate DACSAI radius for DAC users
+    if user_data.role == "DAC" and user_data.dacsai_radius:
+        if not (0.1 <= user_data.dacsai_radius <= 9.9):
+            raise HTTPException(
+                status_code=400,
+                detail="DACSAI radius must be between 0.1 and 9.9 miles"
+            )
+    
     user_dict = user_data.model_dump()
     user_dict["id"] = str(uuid.uuid4())
     user_dict["password_hash"] = hash_password(user_data.password)
@@ -327,6 +335,10 @@ async def register(user_data: UserCreate):
     del user_dict["password"]
     
     await db.users.insert_one(user_dict)
+    
+    # For DAC users, initialize DACDRLP-List (v1.0: simplified, all DRLPs visible)
+    if user_data.role == "DAC":
+        await initialize_dacdrlp_list(user_dict["id"])
     
     access_token = create_access_token(data={"sub": user_dict["id"]})
     
