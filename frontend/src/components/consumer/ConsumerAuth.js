@@ -149,6 +149,39 @@ export default function ConsumerAuth({ onLogin }) {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="delivery-address">Delivery Address</Label>
+                  <Input
+                    id="delivery-address"
+                    data-testid="register-address"
+                    placeholder="123 Main St, City, State ZIP"
+                    value={formData.delivery_location.address}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      delivery_location: { ...formData.delivery_location, address: e.target.value }
+                    })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Used as center for your shopping area</p>
+                </div>
+                <div>
+                  <Label htmlFor="dacsai-radius">Shopping Radius: {formData.dacsai_radius} miles</Label>
+                  <Input
+                    id="dacsai-radius"
+                    data-testid="register-radius"
+                    type="range"
+                    min="0.1"
+                    max="9.9"
+                    step="0.1"
+                    value={formData.dacsai_radius}
+                    onChange={(e) => setFormData({ ...formData, dacsai_radius: parseFloat(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>0.1 mi</span>
+                    <span>9.9 mi</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">DACSAI: Your Shopping Area of Interest</p>
+                </div>
+                <div>
                   <Label htmlFor="charity">Preferred Charity</Label>
                   <Select
                     value={formData.charity_id}
