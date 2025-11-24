@@ -266,6 +266,21 @@ def calculate_charity_contributions(net_proceed: float) -> Dict[str, float]:
     drlp_share = round(net_proceed * 0.0045, 2)
     return {"dac_share": dac_share, "drlp_share": drlp_share}
 
+async def initialize_dacdrlp_list(dac_id: str):
+    """Initialize DACDRLP-List for new DAC
+    
+    V1.0: Simplified - all DRLPs visible to all DACs
+    V2.0: Will use DACSAI radius to filter DRLPs geographically
+    """
+    # For now, create empty DACDRLP-List
+    # In v2.0, this will populate with DRLPs within DACSAI
+    await db.dacdrlp_list.insert_one({
+        "dac_id": dac_id,
+        "retailers": [],  # Will be populated in v2.0 based on DACSAI
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    })
+
 def calculate_discount_mapping(discount_level: int, regular_price: float) -> Dict[str, float]:
     """
     Calculate discount percentages and final price based on DealShaq discount model
