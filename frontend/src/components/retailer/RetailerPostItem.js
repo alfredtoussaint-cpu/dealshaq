@@ -274,11 +274,11 @@ export default function RetailerPostItem({ user, onLogout }) {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <Label htmlFor="name">Item Name *</Label>
+                  <Label htmlFor="name">Item Name * {formData.name && <span className="text-green-600 text-xs">(Auto-populated)</span>}</Label>
                   <Input
                     id="name"
                     data-testid="item-name"
-                    placeholder="Fresh Organic Apples"
+                    placeholder="Will be auto-filled by barcode scan"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
