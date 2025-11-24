@@ -1,0 +1,571 @@
+# DealShaq Consumer (DAC) Onboarding & Data Entry Workflow
+
+## Overview
+Enable DACs to quickly set up their shopping preferences and local retailer relationships for targeted, efficient deal notifications.
+
+## Goals
+1. **Fast Onboarding**: Complete setup in < 5 minutes
+2. **Simple Preferences**: Use 20-category taxonomy for DACFI-List
+3. **Geographic Control**: Define DACSAI (Shopping Area of Interest)
+4. **Retailer Control**: Manage DACDRLP-List (local retailers)
+5. **Targeted Notifications**: Receive only relevant offers
+
+## Workflow Overview
+
+### Phase 1: Account Creation (1-2 minutes)
+**Step 1: Basic Info**
+- Email, password, name
+- Select preferred charity from list
+- Terms of service acceptance
+
+**Step 2: Delivery Location**
+- Enter delivery address
+- Geocode to coordinates (lat/lng)
+- Store as primary delivery location
+- Used as center point for DACSAI
+
+**Step 3: Define DACSAI**
+- Set shopping radius: 0.1 - 9.9 miles
+- Visual map shows radius circle
+- Backend initializes DACDRLP-List with DRLPs inside radius
+- Default: 5.0 miles
+
+### Phase 2: DACFI-List Creation (2-3 minutes)
+**Build Favorite Categories**
+- Select from 20 top-level categories
+- No subcategories (simplified for efficiency)
+- Can select 1-20 categories (recommend 5-10)
+- Visual cards with category icons
+
+**Quick-Add Methods:**
+1. **Category Browser**: Scroll and tap categories
+2. **Barcode Scan**: Scan items at home (maps to category)
+3. **Batch Select**: Check multiple and add all
+
+**Backend Storage:**
+```json
+{
+  "dac_id": "uuid",
+  "dacfi_list": [
+    {"id": "uuid", "category": "Fruits"},
+    {"id": "uuid", "category": "Dairy & Eggs"},
+    {"id": "uuid", "category": "Meat & Poultry"}
+  ]
+}
+```
+
+### Phase 3: DACDRLP-List Management (Ongoing)
+**Initial State:**
+- Auto-populated with all DRLPs within DACSAI
+- Shown on map with pins
+
+**Manual Management:**
+- ✅ **Add DRLP**: Manually add DRLPs outside DACSAI
+- ❌ **Remove DRLP**: Remove DRLPs even if inside DACSAI
+- 🔒 **Overrides Preserved**: 
+  - Removed DRLPs never auto-added back
+  - Manually added DRLPs always kept
+
+**Visual Tools:**
+- **Map View**: Geographic display of DRLPs in list
+- **List View**: Sortable table with distance, name
+- **Radar View**: Live feed of RSHDs from these DRLPs
+
+## Detailed Workflows
+
+### 1. DACSAI (Shopping Area of Interest) Setup
+
+**UI Component:**
+```
+┌─────────────────────────────────────┐
+│  Set Your Shopping Area             │
+├─────────────────────────────────────┤
+│  Delivery Address:                  │
+│  ┌───────────────────────────────┐  │
+│  │ 123 Main St, City, State...  │  │
+│  └───────────────────────────────┘  │
+│                                     │
+│  Shopping Radius: [5.0] miles       │
+│  ├─────○─────────────────────────┤  │
+│  0.1 miles              9.9 miles   │
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │      [Map Preview]          │   │
+│  │   • Your Location (center)  │   │
+│  │   ○ Radius Circle           │   │
+│  │   📍 DRLPs in area          │   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  DRLPs Found: 12                    │
+│  [Continue]                         │
+└─────────────────────────────────────┘
+```
+
+**Validation:**
+- Radius: 0.1 ≤ radius ≤ 9.9 miles
+- Address: Must be valid and geocodable
+- Backend calculates which DRLPs fall within radius
+
+**Backend Logic:**
+```python
+def initialize_dacdrlp_list(dac_id, location, radius):
+    # Get all DRLPs
+    all_drlps = await db.drlp_locations.find().to_list(10000)
+    
+    # Calculate distance for each DRLP
+    dac_coords = location["coordinates"]
+    local_drlps = []
+    
+    for drlp in all_drlps:
+        drlp_coords = drlp["coordinates"]
+        distance = calculate_distance(dac_coords, drlp_coords)
+        
+        if distance <= radius:
+            local_drlps.append({
+                "drlp_id": drlp["user_id"],
+                "drlp_name": drlp["name"],
+                "distance": distance,
+                "auto_added": True  # From DACSAI
+            })
+    
+    # Store DACDRLP-List
+    await db.dacdrlp_list.insert_one({
+        "dac_id": dac_id,
+        "retailers": local_drlps,
+        "dacsai_radius": radius,
+        "dacsai_center": dac_coords
+    })
+```
+
+### 2. DACFI-List Creation
+
+**UI Component:**
+```
+┌─────────────────────────────────────┐
+│  Build Your Favorites List          │
+├─────────────────────────────────────┤
+│  Select categories you care about:  │
+│                                     │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │
+│  │ 🍎  │ │ 🥬  │ │ 🥩  │ │ 🐟  │  │
+│  │Fruit│ │Veg  │ │Meat │ │Sea  │  │
+│  └──✓──┘ └─────┘ └──✓──┘ └─────┘  │
+│                                     │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │
+│  │ 🥛  │ │ 🍞  │ │ 📦  │ │ 🍿  │  │
+│  │Dairy│ │Bread│ │Pantry│ │Snack│  │
+│  └──✓──┘ └─────┘ └─────┘ └─────┘  │
+│                                     │
+│  [Scan Barcode to Add]              │
+│  [Continue]                         │
+│                                     │
+│  Selected: 4 categories             │
+└─────────────────────────────────────┘
+```
+
+**Barcode Scan Flow:**
+1. DAC taps "Scan Barcode"
+2. Camera opens
+3. Scans product barcode
+4. Backend maps to category
+5. Category auto-added to DACFI-List if not present
+
+**Validation:**
+- Category must be in VALID_CATEGORIES (20 only)
+- No duplicates allowed
+- At least 1 category recommended
+
+### 3. DACDRLP-List Management
+
+**Map View:**
+```
+┌─────────────────────────────────────┐
+│  Your Local Retailers               │
+├─────────────────────────────────────┤
+│  ┌─────────────────────────────┐   │
+│  │    [Interactive Map]        │   │
+│  │  🏠 Your Location           │   │
+│  │  ○  5 mile radius           │   │
+│  │  📍 Store A (1.2 mi)        │   │
+│  │  📍 Store B (3.4 mi)        │   │
+│  │  📍 Store C (4.8 mi)        │   │
+│  │  ⭐ Store D (6.2 mi) [Added]│   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  [Add Retailer] [View Radar]       │
+└─────────────────────────────────────┘
+```
+
+**List View:**
+```
+┌─────────────────────────────────────┐
+│  Retailer Name      | Distance      │
+├─────────────────────────────────────┤
+│  📍 Store A         | 1.2 mi  [❌]  │
+│  📍 Store B         | 3.4 mi  [❌]  │
+│  ⭐ Store D (Added) | 6.2 mi  [❌]  │
+└─────────────────────────────────────┘
+```
+
+**Add/Remove Logic:**
+- **Add**: Search nearby stores, manually add to list
+- **Remove**: Click [❌], store removed from DACDRLP-List
+- **Backend Tracking**:
+  - `auto_added: true` - From DACSAI
+  - `manually_added: true` - User added outside DACSAI
+  - `manually_removed: true` - User removed (never re-add)
+
+**Backend Storage:**
+```json
+{
+  "dac_id": "uuid",
+  "retailers": [
+    {
+      "drlp_id": "uuid1",
+      "drlp_name": "Store A",
+      "distance": 1.2,
+      "auto_added": true,
+      "manually_removed": false
+    },
+    {
+      "drlp_id": "uuid2",
+      "drlp_name": "Store D",
+      "distance": 6.2,
+      "manually_added": true,
+      "auto_added": false
+    }
+  ],
+  "dacsai_radius": 5.0,
+  "dacsai_center": {"lat": 40.7128, "lng": -74.0060}
+}
+```
+
+### 4. Radar View (Live RSHD Feed)
+
+**UI Component:**
+```
+┌─────────────────────────────────────┐
+│  Deal Radar - Live Feed             │
+├─────────────────────────────────────┤
+│  🔴 Store A (1.2 mi) - 3 new deals  │
+│  ┌─────────────────────────────┐   │
+│  │ 🍎 Organic Apples - 50% OFF │   │
+│  │ 🥛 Greek Yogurt - 60% OFF   │   │
+│  │ 🥩 Ground Beef - 75% OFF    │   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  🟢 Store B (3.4 mi) - 1 new deal   │
+│  ┌─────────────────────────────┐   │
+│  │ 🍞 Sourdough Bread - 50% OFF│   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  ⚪ Store C (4.8 mi) - No deals     │
+└─────────────────────────────────────┘
+```
+
+**Real-time Updates:**
+- WebSocket connection to backend
+- New RSHDs appear instantly
+- Only shows RSHDs from DRLPs in DACDRLP-List
+- Highlights RSHDs matching DACFI-List
+
+## Notification Flow
+
+### Backend Matching Logic
+
+**When DRLP posts RSHD:**
+```python
+async def dispatch_notifications(rshd, drlp_id):
+    # Step 1: Get DRLPDAC-List (all DACs who consider this DRLP local)
+    drlpdac_list = []
+    
+    # Find all DACs with this DRLP in their DACDRLP-List
+    dacdrlp_lists = await db.dacdrlp_list.find().to_list(10000)
+    
+    for dac_list in dacdrlp_lists:
+        # Check if this DRLP is in DAC's list
+        has_drlp = any(
+            r["drlp_id"] == drlp_id and not r.get("manually_removed", False)
+            for r in dac_list["retailers"]
+        )
+        if has_drlp:
+            drlpdac_list.append(dac_list["dac_id"])
+    
+    # Step 2: Generate DRLPDAC-SNL (Subset Notification List)
+    # Filter to DACs whose DACFI-List matches RSHD category
+    drlpdac_snl = []
+    
+    for dac_id in drlpdac_list:
+        has_category = await db.favorites.find_one({
+            "dac_id": dac_id,
+            "category": rshd["category"]
+        })
+        if has_category:
+            drlpdac_snl.append(dac_id)
+    
+    # Step 3: Send notifications to DACs in SNL
+    for dac_id in drlpdac_snl:
+        await create_notification(dac_id, rshd)
+```
+
+### Notification Delivery
+
+**In-App (v1.0):**
+- Red badge on bell icon
+- Notification list in app
+- Click to view RSHD details
+
+**Push Notification (v2.0):**
+- iOS/Android push
+- "New deal: Organic Apples 50% OFF at Store A"
+
+**Email/SMS (v2.0):**
+- Digest: Daily or weekly summary
+- Instant: For high-priority deals
+
+## Data Models
+
+### User (DAC)
+```json
+{
+  "id": "uuid",
+  "email": "dac@example.com",
+  "name": "John Doe",
+  "role": "DAC",
+  "delivery_location": {
+    "address": "123 Main St, City, State 12345",
+    "coordinates": {"lat": 40.7128, "lng": -74.0060}
+  },
+  "charity_id": "uuid",
+  "notification_prefs": {
+    "push": true,
+    "email": true,
+    "sms": false
+  },
+  "created_at": "2025-01-01T00:00:00Z"
+}
+```
+
+### DACSAI (Embedded in User or Separate Collection)
+```json
+{
+  "dac_id": "uuid",
+  "radius": 5.0,  // miles
+  "center": {"lat": 40.7128, "lng": -74.0060},
+  "updated_at": "2025-01-01T00:00:00Z"
+}
+```
+
+### DACFI-List (Favorites Collection)
+```json
+{
+  "id": "uuid",
+  "dac_id": "uuid",
+  "category": "Fruits",  // One of 20 categories
+  "created_at": "2025-01-01T00:00:00Z"
+}
+```
+
+### DACDRLP-List
+```json
+{
+  "id": "uuid",
+  "dac_id": "uuid",
+  "retailers": [
+    {
+      "drlp_id": "uuid",
+      "drlp_name": "Store A",
+      "distance": 1.2,
+      "auto_added": true,
+      "manually_added": false,
+      "manually_removed": false,
+      "added_at": "2025-01-01T00:00:00Z"
+    }
+  ],
+  "dacsai_radius": 5.0,
+  "dacsai_center": {"lat": 40.7128, "lng": -74.0060},
+  "updated_at": "2025-01-01T00:00:00Z"
+}
+```
+
+## Validation Rules
+
+### DACSAI
+- ✅ Radius: 0.1 ≤ radius ≤ 9.9 miles
+- ✅ Address: Must be valid and geocodable
+- ✅ Coordinates: Required (lat, lng)
+
+### DACFI-List
+- ✅ Category: Must be in VALID_CATEGORIES (20 only)
+- ✅ No duplicates: Each category once only
+- ✅ At least 1 category recommended
+
+### DACDRLP-List
+- ✅ Manual overrides respected (never auto-revert)
+- ✅ Removed DRLPs never re-added automatically
+- ✅ Manually added DRLPs always preserved
+
+## API Endpoints
+
+### Onboarding
+```
+POST /api/dac/onboard
+    - Input: User details, delivery location, DACSAI radius
+    - Output: User created, DACDRLP-List initialized
+
+POST /api/dac/dacsai
+    - Input: Radius, center coordinates
+    - Output: DACDRLP-List updated with DRLPs in radius
+```
+
+### DACFI-List
+```
+POST /api/favorites
+    - Input: Category (1 of 20)
+    - Validation: Category in VALID_CATEGORIES, no duplicates
+
+GET /api/favorites
+    - Output: DAC's full DACFI-List
+
+DELETE /api/favorites/{id}
+    - Remove category from DACFI-List
+
+POST /api/favorites/scan-barcode
+    - Input: Barcode image or string
+    - Output: Category mapped, added to DACFI-List
+```
+
+### DACDRLP-List
+```
+GET /api/dac/retailers
+    - Output: DACDRLP-List for current DAC
+
+POST /api/dac/retailers/add
+    - Input: DRLP ID
+    - Output: DRLP added to DACDRLP-List (manually_added: true)
+
+DELETE /api/dac/retailers/{drlp_id}
+    - Output: DRLP removed (manually_removed: true)
+
+PUT /api/dac/dacsai
+    - Input: New radius
+    - Output: DACDRLP-List updated, preserves manual overrides
+```
+
+### Notifications
+```
+GET /api/notifications
+    - Output: Notifications for current DAC (from DRLPDAC-SNL)
+
+GET /api/radar
+    - Output: Live feed of RSHDs from DRLPs in DACDRLP-List
+```
+
+## UI/UX Best Practices
+
+### Onboarding
+- **Progressive**: One step at a time
+- **Visual**: Maps and icons
+- **Helpful**: Tooltips and examples
+- **Skippable**: Can complete later
+
+### DACFI-List
+- **Simple**: 20 categories, no subcategories
+- **Visual**: Category icons/images
+- **Fast**: Tap to add, tap to remove
+- **Scannable**: Barcode option for convenience
+
+### DACDRLP-List
+- **Map-first**: Geographic visualization
+- **Clear indicators**: Auto vs. manual, removed vs. active
+- **Control**: Easy add/remove
+- **Informative**: Distance, RSHD count per retailer
+
+### Notifications
+- **Relevant**: Only matching categories
+- **Local**: Only from DACDRLP-List retailers
+- **Actionable**: Tap to view deal details
+- **Manageable**: Mark read, delete
+
+## Performance Optimization
+
+### Caching
+- Cache DACDRLP-List in memory (update on change)
+- Cache DACFI-List for fast matching
+- Cache geocoding results (address → coordinates)
+
+### Database Indexes
+- `dacdrlp_list.dac_id` for fast lookup
+- `favorites.dac_id` for matching
+- `favorites.category` for existence checks
+
+### Matching Optimization
+- Pre-filter by DRLPDAC-List (geographic)
+- Then filter by DACFI-List (preference)
+- Batch notification creation
+
+## Testing Scenarios
+
+### Happy Path Onboarding (< 5 minutes)
+1. Register account: 1 min
+2. Set delivery location: 30s
+3. Define DACSAI (5 mi): 30s
+4. Select 5 categories: 2 min
+5. Review DACDRLP-List: 1 min
+**Total: ~5 minutes**
+
+### DACFI-List Management
+1. Add category: < 5s
+2. Scan barcode: < 10s
+3. Remove category: < 3s
+
+### DACDRLP-List Management
+1. View map: < 3s
+2. Add retailer: < 10s
+3. Remove retailer: < 5s
+4. Update DACSAI: < 15s
+
+## Success Metrics
+
+### Onboarding
+- **Target**: 90% completion rate
+- **Time**: < 5 minutes average
+- **Drop-off**: < 10% at any step
+
+### DACFI-List
+- **Target**: Average 5-8 categories per DAC
+- **Adoption**: 95% of DACs create DACFI-List
+- **Maintenance**: 80% update monthly
+
+### DACDRLP-List
+- **Target**: Average 8-12 retailers per DAC
+- **Customization**: 40% make manual changes
+- **Engagement**: 60% use radar view weekly
+
+### Notifications
+- **Relevance**: > 80% match DAC interests
+- **Action**: > 30% click-through rate
+- **Conversion**: > 10% purchase from notification
+
+## Future Enhancements (v2.0+)
+
+### Advanced Preferences
+- Attribute filters (organic, gluten-free)
+- Price thresholds per category
+- Time-of-day preferences
+
+### Smart Features
+- ML-based category recommendations
+- Predictive RSHD alerts
+- Personalized radar sorting
+
+### Integration
+- Calendar sync for pickup scheduling
+- Shopping list import (map to categories)
+- Recipe-to-DACFI mapping
+
+---
+
+**Version**: 1.0  
+**Target Time**: < 5 minutes onboarding  
+**Status**: V1.0 uses simplified DACSAI (all DACs see all DRLPs), full DACDRLP-List in v2.0
