@@ -400,6 +400,13 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
     if current_user["role"] != "DRLP":
         raise HTTPException(status_code=403, detail="Only DRLP users can post items")
     
+    # Validate category (must be one of 20 valid categories)
+    if item_data.category not in VALID_CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"
+        )
+    
     # Validate discount level (only 1-3 allowed in v1.0)
     if item_data.discount_level not in [1, 2, 3]:
         raise HTTPException(
