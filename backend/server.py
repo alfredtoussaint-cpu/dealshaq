@@ -53,8 +53,8 @@ class UserCreate(BaseModel):
     name: str
     role: str  # DAC, DRLP, Admin
     charity_id: Optional[str] = None
-    location: Optional[Dict[str, Any]] = None
-    shopping_radius: Optional[float] = 5.0  # miles
+    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
+    dacsai_radius: Optional[float] = 5.0  # DACSAI: 0.1 - 9.9 miles
 
 class UserLogin(BaseModel):
     email: EmailStr
