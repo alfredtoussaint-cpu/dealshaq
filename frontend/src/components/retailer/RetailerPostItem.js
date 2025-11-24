@@ -143,8 +143,6 @@ export default function RetailerPostItem({ user, onLogout }) {
     }
   };
 
-  const selectedCategoryObj = CATEGORIES.find((c) => c.value === formData.category);
-
   if (!hasLocation) {
     return (
       <RetailerLayout user={user} onLogout={onLogout}>
