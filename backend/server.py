@@ -72,8 +72,8 @@ class User(BaseModel):
     name: str
     role: str
     charity_id: Optional[str] = None
-    location: Optional[Dict[str, Any]] = None
-    shopping_radius: Optional[float] = 5.0
+    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
+    dacsai_radius: Optional[float] = 5.0  # DACSAI: 0.1 - 9.9 miles
     notification_prefs: Optional[Dict[str, bool]] = {"email": True, "push": True, "sms": False}
     created_at: str
 
