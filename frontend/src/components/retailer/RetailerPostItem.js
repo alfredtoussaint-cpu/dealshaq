@@ -127,17 +127,26 @@ export default function RetailerPostItem({ user, onLogout }) {
     setLoading(true);
 
     try {
-      await rshd.create({
-        ...formData,
+      const payload = {
+        name: formData.name,
+        description: formData.description || '',
+        category: formData.category,
+        subcategory: '',  // Optional, not used in matching
         regular_price: parseFloat(formData.regular_price),
         discount_level: parseInt(formData.discount_level),
         quantity: parseInt(formData.quantity),
+        barcode: formData.barcode || '',
         weight: formData.weight ? parseFloat(formData.weight) : null,
-      });
-      toast.success('Deal posted successfully!');
+        image_url: formData.image_url || '',
+        is_taxable: formData.is_taxable,
+        attributes: formData.attributes || {},
+      };
+      
+      await rshd.create(payload);
+      toast.success('RSHD posted successfully! DACs with matching favorites will be notified.');
       navigate('/retailer/inventory');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to post deal');
+      toast.error(error.response?.data?.detail || 'Failed to post RSHD');
     } finally {
       setLoading(false);
     }
