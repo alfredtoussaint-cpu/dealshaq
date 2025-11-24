@@ -48,6 +48,7 @@ export default function ConsumerAuth({ onLogin }) {
         const response = await auth.login({
           email: formData.email,
           password: formData.password,
+          role: 'DAC',  // Filter by Consumer role
         });
         onLogin(response.data.access_token, response.data.user);
         toast.success('Welcome back!');
