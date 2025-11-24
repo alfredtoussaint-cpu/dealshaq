@@ -441,13 +441,16 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
     return item_dict
 
 async def create_matching_notifications(item: Dict):
-    """Match RSHD with DAC favorites and create notifications"""
-    # Find DACs with matching favorites
+    """Match RSHD with DAC favorites and create notifications
+    
+    Matching Logic:
+    - Only matches on top-level category (subcategories ignored)
+    - DAC with "Fruits" in DACFI-List gets notified for ALL fruits RSHDs
+    - Existence-check model: O(n) where n = DACs with this category
+    """
+    # Find DACs with matching category in their DACFI-List
     matching_favorites = await db.favorites.find({
-        "$or": [
-            {"category": item["category"], "subcategory": item["subcategory"]},
-            {"category": item["category"], "subcategory": None}
-        ]
+        "category": item["category"]  # Top-level category only
     }, {"_id": 0}).to_list(1000)
     
     dac_ids = list(set([fav["dac_id"] for fav in matching_favorites]))
