@@ -299,39 +299,20 @@ export default function RetailerPostItem({ user, onLogout }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value, subcategory: '' })}>
+                  <Label htmlFor="category">Category * (Top-level only)</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
                     <SelectTrigger data-testid="item-category">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select from 20 categories" />
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.value}
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="subcategory">Subcategory</Label>
-                  <Select
-                    value={formData.subcategory}
-                    onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
-                    disabled={!formData.category}
-                  >
-                    <SelectTrigger data-testid="item-subcategory">
-                      <SelectValue placeholder="Select subcategory" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedCategoryObj?.subcategories.map((sub) => (
-                        <SelectItem key={sub} value={sub}>
-                          {sub}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">20-category taxonomy for efficient matching</p>
                 </div>
 
                 <div>
