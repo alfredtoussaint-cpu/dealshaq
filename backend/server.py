@@ -59,6 +59,7 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    role: Optional[str] = None  # Optional: filter by role if provided
 
 class Token(BaseModel):
     access_token: str
