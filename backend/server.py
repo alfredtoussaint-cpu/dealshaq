@@ -514,6 +514,21 @@ async def create_favorite(favorite_data: FavoriteCreate, current_user: Dict = De
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can create favorites")
     
+    # Validate category (must be one of 20 valid categories)
+    if favorite_data.category not in VALID_CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"
+        )
+    
+    # Check if already exists
+    existing = await db.favorites.find_one({
+        "dac_id": current_user["id"],
+        "category": favorite_data.category
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Category already in favorites")
+    
     favorite_dict = favorite_data.model_dump()
     favorite_dict["id"] = str(uuid.uuid4())
     favorite_dict["dac_id"] = current_user["id"]
