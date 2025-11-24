@@ -304,6 +304,12 @@ def calculate_discount_mapping(discount_level: int, regular_price: float) -> Dic
 async def root():
     return {"message": "DealShaq API is running"}
 
+# Get valid categories
+@api_router.get("/categories")
+async def get_categories():
+    """Return the 20 valid grocery categories for taxonomy"""
+    return {"categories": VALID_CATEGORIES}
+
 # ===== AUTH ROUTES =====
 
 @api_router.post("/auth/register", response_model=Token)
