@@ -748,6 +748,33 @@ async def get_admin_stats(current_user: Dict = Depends(get_current_user)):
         "total_charity": round(total_charity_dac + total_charity_drlp + total_charity_roundup, 2)
     }
 
+@api_router.post("/admin/create-admin")
+async def create_admin(user_data: UserCreate, current_user: Dict = Depends(get_current_user)):
+    """Create a new Admin account - requires existing Admin authentication"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Only existing Admins can create new Admin accounts")
+    
+    # Force role to Admin
+    user_data.role = "Admin"
+    
+    # Check if admin with this email exists
+    existing = await db.users.find_one({"email": user_data.email, "role": "Admin"})
+    if existing:
+        raise HTTPException(status_code=400, detail="Admin account with this email already exists")
+    
+    user_dict = user_data.model_dump()
+    user_dict["id"] = str(uuid.uuid4())
+    user_dict["password_hash"] = hash_password(user_data.password)
+    user_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    user_dict["notification_prefs"] = {"email": True, "push": True, "sms": False}
+    del user_dict["password"]
+    
+    await db.users.insert_one(user_dict)
+    
+    logger.info(f"New Admin account created by {current_user['email']}: {user_dict['email']}")
+    
+    return {"message": "Admin account created successfully", "email": user_dict["email"]}
+
 @api_router.get("/admin/users")
 async def get_all_users(current_user: Dict = Depends(get_current_user)):
     if current_user["role"] != "Admin":
