@@ -11,15 +11,16 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Package, Camera, Barcode } from 'lucide-react';
 
+// DealShaq 20-Category Taxonomy (Top-level only)
 const CATEGORIES = [
-  { value: 'Produce', subcategories: ['Fruits', 'Vegetables', 'Organic'] },
-  { value: 'Dairy', subcategories: ['Milk', 'Cheese', 'Yogurt'] },
-  { value: 'Meat & Seafood', subcategories: ['Beef', 'Chicken', 'Fish'] },
-  { value: 'Bakery', subcategories: ['Bread', 'Pastries', 'Cakes'] },
-  { value: 'Frozen', subcategories: ['Ice Cream', 'Meals', 'Vegetables'] },
-  { value: 'Pantry', subcategories: ['Pasta', 'Rice', 'Canned Goods'] },
-  { value: 'Beverages', subcategories: ['Juice', 'Soda', 'Water'] },
-  { value: 'Snacks', subcategories: ['Chips', 'Candy', 'Nuts'] },
+  "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
+  "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
+  "Snacks & Candy", "Frozen Foods", "Beverages",
+  "Alcoholic Beverages", "Deli & Prepared Foods",
+  "Breakfast & Cereal", "Pasta, Rice & Grains",
+  "Oils, Sauces & Spices", "Baby & Kids",
+  "Health & Nutrition", "Household Essentials",
+  "Personal Care", "Pet Supplies"
 ];
 
 export default function RetailerPostItem({ user, onLogout }) {
