@@ -49,14 +49,12 @@ export default function ConsumerFavorites({ user, onLogout }) {
     try {
       await favoritesApi.create({
         category: selectedCategory,
-        subcategory: selectedSubcategory || null,
       });
-      toast.success('Favorite added!');
+      toast.success('Category added to your DACFI-List!');
       loadFavorites();
       setSelectedCategory('');
-      setSelectedSubcategory('');
     } catch (error) {
-      toast.error('Failed to add favorite');
+      toast.error(error.response?.data?.detail || 'Failed to add favorite');
     }
   };
 
