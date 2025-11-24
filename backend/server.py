@@ -329,10 +329,10 @@ async def get_categories():
 
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
-    # Check if user exists
-    existing = await db.users.find_one({"email": user_data.email})
+    # Check if user exists with this email AND role (same email allowed for different roles)
+    existing = await db.users.find_one({"email": user_data.email, "role": user_data.role})
     if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail=f"Email already registered as {user_data.role}")
     
     # Validate DACSAI radius for DAC users
     if user_data.role == "DAC" and user_data.dacsai_radius:
