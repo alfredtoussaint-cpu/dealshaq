@@ -150,8 +150,8 @@ export default function ConsumerFavorites({ user, onLogout }) {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1">{fav.category}</h3>
-                    {fav.subcategory && <Badge variant="outline">{fav.subcategory}</Badge>}
+                    <h3 className="font-bold text-gray-900 text-lg">{fav.category}</h3>
+                    <p className="text-xs text-gray-500 mt-1">All items in this category</p>
                   </div>
                 ))}
               </div>
