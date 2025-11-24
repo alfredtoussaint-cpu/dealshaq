@@ -68,8 +68,6 @@ export default function ConsumerFavorites({ user, onLogout }) {
     }
   };
 
-  const selectedCategoryObj = CATEGORIES.find((c) => c.value === selectedCategory);
-
   return (
     <ConsumerLayout user={user} onLogout={onLogout}>
       <div className="space-y-6">
