@@ -69,6 +69,18 @@ export default function ConsumerAuth({ onLogin }) {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    // Mock forgot password - in production, send reset email
+    toast.success('Password reset instructions sent to ' + resetEmail);
+    setShowForgotPassword(false);
+    setResetEmail('');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
