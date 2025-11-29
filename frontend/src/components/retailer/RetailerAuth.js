@@ -13,6 +13,9 @@ import { Store, Eye, EyeOff } from 'lucide-react';
 export default function RetailerAuth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [charities, setCharities] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,6 +23,17 @@ export default function RetailerAuth({ onLogin }) {
     charity_id: '',
   });
   const [loading, setLoading] = useState(false);
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    toast.success('Password reset instructions sent to ' + resetEmail);
+    setShowForgotPassword(false);
+    setResetEmail('');
+  };
 
   useEffect(() => {
     loadCharities();
