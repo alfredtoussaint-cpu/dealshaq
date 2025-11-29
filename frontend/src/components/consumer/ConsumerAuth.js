@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { auth, charities as charitiesApi } from '../../utils/api';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
 
 export default function ConsumerAuth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
