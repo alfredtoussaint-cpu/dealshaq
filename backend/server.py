@@ -13,6 +13,9 @@ from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 import jwt
 import stripe
+import resend
+import secrets
+import hashlib
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
