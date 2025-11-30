@@ -78,6 +78,13 @@ class User(BaseModel):
     notification_prefs: Optional[Dict[str, bool]] = {"email": True, "push": True, "sms": False}
     created_at: str
 
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
 # Charity Models
 class CharityCreate(BaseModel):
     name: str
