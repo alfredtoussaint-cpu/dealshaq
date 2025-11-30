@@ -36,6 +36,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Stripe configuration
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51QntqsH7xN6aWpSELUaZn6UFVdJZCLJ4HoCuWSXw3nQxZQ7HS9LvzvN9Fvx0OyLRQD1hl9x7RJNAk0aOY2QCvjKE00TJnKQSAT')
 
+# Resend configuration
+resend.api_key = os.environ.get('RESEND_API_KEY')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@dealshaq.com')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://dealshaq.com')
+
 # Security
 security = HTTPBearer()
 
