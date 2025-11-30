@@ -220,6 +220,50 @@ export default function RetailerAuth({ onLogin }) {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Forgot Password Modal */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you password reset instructions.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div>
+              <Label htmlFor="reset-email">Email Address</Label>
+              <Input
+                id="reset-email"
+                data-testid="retailer-reset-email"
+                type="email"
+                placeholder="retailer@example.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForgotPassword(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                data-testid="retailer-send-reset-btn"
+                type="submit"
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Send Reset Link
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
