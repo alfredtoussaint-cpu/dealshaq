@@ -427,6 +427,194 @@ async def login(credentials: UserLogin):
 async def get_me(current_user: Dict = Depends(get_current_user)):
     return current_user
 
+@api_router.post("/auth/password-reset/request")
+async def request_password_reset(request: PasswordResetRequest):
+    """Request password reset - sends email with reset link"""
+    success_response = {
+        "message": "If an account exists with this email, a password reset link has been sent.",
+        "status": "success"
+    }
+    
+    try:
+        user = await db.users.find_one({"email": request.email}, {"_id": 0})
+        
+        if not user:
+            return success_response
+        
+        token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        
+        reset_token_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "token_hash": token_hash,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": expires_at.isoformat(),
+            "used": False
+        }
+        
+        await db.password_reset_tokens.insert_one(reset_token_data)
+        
+        reset_link = f"{FRONTEND_URL}/reset-password?token={token}"
+        
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">DealShaq Password Reset</h2>
+                    
+                    <p>Hello,</p>
+                    
+                    <p>We received a request to reset your password for your DealShaq account. If you didn't make this request, you can safely ignore this email.</p>
+                    
+                    <p>To reset your password, click the button below:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_link}" 
+                           style="background-color: #2563eb; color: white; padding: 12px 30px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Reset Password
+                        </a>
+                    </div>
+                    
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 5px;">
+                        <code>{reset_link}</code>
+                    </p>
+                    
+                    <p style="color: #ef4444; font-weight: bold;">
+                        This link will expire in 60 minutes.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                    
+                    <p style="color: #666; font-size: 12px;">
+                        If you have any questions, please contact our support team at support@dealshaq.com
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [request.email],
+            "subject": "Reset Your DealShaq Password",
+            "html": html_content
+        }
+        
+        email_response = resend.Emails.send(params)
+        logger.info(f"Password reset email sent to {request.email}. Email ID: {email_response.get('id')}")
+        
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {str(e)}")
+    
+    return success_response
+
+@api_router.post("/auth/password-reset/confirm")
+async def confirm_password_reset(request: PasswordResetConfirm):
+    """Confirm password reset with token and new password"""
+    
+    if len(request.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+    
+    token_hash = hashlib.sha256(request.token.encode()).hexdigest()
+    
+    token_record = await db.password_reset_tokens.find_one(
+        {"token_hash": token_hash},
+        {"_id": 0}
+    )
+    
+    if not token_record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    
+    if token_record.get("used"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This reset token has already been used"
+        )
+    
+    expires_at = datetime.fromisoformat(token_record["expires_at"])
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token has expired"
+        )
+    
+    user = await db.users.find_one({"id": token_record["user_id"]}, {"_id": 0})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    hashed_password = hash_password(request.new_password)
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password_hash": hashed_password,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    await db.password_reset_tokens.update_one(
+        {"id": token_record["id"]},
+        {"$set": {"used": True}}
+    )
+    
+    try:
+        confirmation_html = """
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #16a34a;">Password Changed Successfully</h2>
+                    
+                    <p>Hello,</p>
+                    
+                    <p>Your DealShaq password has been successfully changed. You can now log in with your new password.</p>
+                    
+                    <p style="color: #ef4444;">
+                        If you didn't make this change, please contact us immediately at support@dealshaq.com
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                    
+                    <p style="color: #666; font-size: 12px;">
+                        Thank you for using DealShaq!
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        confirmation_params = {
+            "from": SENDER_EMAIL,
+            "to": [user["email"]],
+            "subject": "Your DealShaq Password Was Changed",
+            "html": confirmation_html
+        }
+        
+        resend.Emails.send(confirmation_params)
+        logger.info(f"Password confirmation email sent to {user['email']}")
+        
+    except Exception as e:
+        logger.error(f"Error sending confirmation email: {str(e)}")
+    
+    return {
+        "message": "Password has been successfully reset. You can now log in with your new password.",
+        "status": "success"
+    }
+
 # ===== CHARITY ROUTES =====
 
 @api_router.post("/charities", response_model=Charity)
