@@ -76,10 +76,15 @@ export default function ConsumerAuth({ onLogin }) {
       toast.error('Please enter your email address');
       return;
     }
-    // Mock forgot password - in production, send reset email
-    toast.success('Password reset instructions sent to ' + resetEmail);
-    setShowForgotPassword(false);
-    setResetEmail('');
+    
+    try {
+      const response = await auth.requestPasswordReset({ email: resetEmail });
+      toast.success('Password reset instructions sent to ' + resetEmail);
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send reset email');
+    }
   };
 
   return (
