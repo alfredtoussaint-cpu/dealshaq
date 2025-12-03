@@ -88,6 +88,7 @@ class User(BaseModel):
 
 class PasswordResetRequest(BaseModel):
     email: EmailStr
+    role: Optional[str] = None
 
 class PasswordResetConfirm(BaseModel):
     token: str
