@@ -134,7 +134,10 @@ export default function RetailerAuth({ onLogin }) {
                   <button
                     type="button"
                     data-testid="retailer-forgot-password-link"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={() => {
+                      setResetEmail(formData.email);
+                      setShowForgotPassword(true);
+                    }}
                     className="text-sm text-blue-600 hover:text-blue-700 mt-1"
                   >
                     Forgot password?
