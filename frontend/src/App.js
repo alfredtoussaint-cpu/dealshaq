@@ -14,6 +14,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/reset-password" element={<PasswordReset />} />
           <Route path="/consumer/*" element={<ConsumerApp />} />
           <Route path="/retailer/*" element={<RetailerApp />} />
           <Route path="/admin/*" element={<AdminApp />} />
