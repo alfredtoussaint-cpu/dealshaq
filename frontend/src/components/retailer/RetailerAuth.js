@@ -32,7 +32,7 @@ export default function RetailerAuth({ onLogin }) {
     }
     
     try {
-      const response = await auth.requestPasswordReset({ email: resetEmail });
+      const response = await auth.requestPasswordReset({ email: resetEmail, role: 'DRLP' });
       toast.success('Password reset instructions sent to ' + resetEmail);
       setShowForgotPassword(false);
       setResetEmail('');
