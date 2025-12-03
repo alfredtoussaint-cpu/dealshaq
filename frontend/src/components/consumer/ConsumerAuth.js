@@ -140,7 +140,10 @@ export default function ConsumerAuth({ onLogin }) {
                   <button
                     type="button"
                     data-testid="forgot-password-link"
-                    onClick={() => setShowForgotPassword(true)}
+                    onClick={() => {
+                      setResetEmail(formData.email);
+                      setShowForgotPassword(true);
+                    }}
                     className="text-sm text-emerald-600 hover:text-emerald-700 mt-1"
                   >
                     Forgot password?
