@@ -5,6 +5,7 @@ import ConsumerApp from './apps/ConsumerApp';
 import RetailerApp from './apps/RetailerApp';
 import AdminApp from './apps/AdminApp';
 import Landing from './pages/Landing';
+import PasswordReset from './components/PasswordReset';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
