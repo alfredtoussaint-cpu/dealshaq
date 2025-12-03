@@ -39,6 +39,8 @@ export const auth = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   me: () => api.get('/auth/me'),
+  requestPasswordReset: (data) => api.post('/auth/password-reset/request', data),
+  confirmPasswordReset: (data) => api.post('/auth/password-reset/confirm', data),
 };
 
 export const charities = {
