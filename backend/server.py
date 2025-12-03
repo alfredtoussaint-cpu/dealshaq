@@ -437,7 +437,11 @@ async def request_password_reset(request: PasswordResetRequest):
     }
     
     try:
-        user = await db.users.find_one({"email": request.email}, {"_id": 0})
+        query = {"email": request.email}
+        if request.role:
+            query["role"] = request.role
+        
+        user = await db.users.find_one(query, {"_id": 0})
         
         if not user:
             return success_response
