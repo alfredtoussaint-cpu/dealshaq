@@ -191,11 +191,11 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that error toast appears
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Please enter your email address');
+      expect(mockToastError).toHaveBeenCalledWith('Please enter your email address');
     });
 
     // Assert that API was NOT called
-    expect(api.auth.requestPasswordReset).not.toHaveBeenCalled();
+    expect(mockRequestPasswordReset).not.toHaveBeenCalled();
   });
 
   test('should close modal when Cancel button is clicked', async () => {
