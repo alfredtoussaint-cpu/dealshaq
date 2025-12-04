@@ -1,30 +1,27 @@
+// Mock modules BEFORE imports
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
+jest.mock('../utils/api');
+
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+  Toaster: () => null,
+}));
+
+// Now import modules
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import RetailerAuth from '../components/retailer/RetailerAuth';
 import * as api from '../utils/api';
 import { toast } from 'sonner';
-
-// Mock the API module
-jest.mock('../utils/api');
-
-// Mock sonner toast
-jest.mock('sonner', () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
-// Mock useNavigate
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => {
-  const actual = jest.requireActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
 
 describe('RetailerAuth - Forgot Password Flow', () => {
   beforeEach(() => {
