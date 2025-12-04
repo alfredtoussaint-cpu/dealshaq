@@ -43,25 +43,19 @@ import { toast } from 'sonner';
 describe('RetailerAuth - Forgot Password Flow', () => {
   beforeEach(() => {
     // Clear all mocks before each test
-    jest.clearAllMocks();
+    mockNavigate.mockClear();
+    mockRequestPasswordReset.mockClear();
+    mockToastSuccess.mockClear();
+    mockToastError.mockClear();
+    mockCharitiesList.mockClear();
     
-    // Mock API methods
-    api.auth = {
-      register: jest.fn(),
-      login: jest.fn(),
-      requestPasswordReset: jest.fn(),
-    };
-    api.charities = {
-      list: jest.fn().mockResolvedValue({ data: [] }),
-    };
+    // Set default mock implementations
+    mockCharitiesList.mockResolvedValue({ data: [] });
+    mockRequestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
   });
 
   const renderComponent = () => {
-    return render(
-      <BrowserRouter>
-        <RetailerAuth />
-      </BrowserRouter>
-    );
+    return render(<RetailerAuth />);
   };
 
   test('should open forgot password modal when "Forgot password?" link is clicked', async () => {
