@@ -166,7 +166,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that error toast appears
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+      expect(mockToastError).toHaveBeenCalledWith(errorMessage);
     });
 
     // Modal should remain open on error
