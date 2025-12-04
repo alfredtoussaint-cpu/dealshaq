@@ -1,25 +1,42 @@
-// Mock modules BEFORE imports
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import RetailerAuth from '../components/retailer/RetailerAuth';
+
+// Create mocks
 const mockNavigate = jest.fn();
+const mockRequestPasswordReset = jest.fn();
+const mockToastSuccess = jest.fn();
+const mockToastError = jest.fn();
+const mockCharitiesList = jest.fn();
+
+// Mock modules
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
+  BrowserRouter: ({ children }) => <div>{children}</div>,
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../utils/api');
+jest.mock('../utils/api', () => ({
+  auth: {
+    requestPasswordReset: (...args) => mockRequestPasswordReset(...args),
+    register: jest.fn(),
+    login: jest.fn(),
+  },
+  charities: {
+    list: (...args) => mockCharitiesList(...args),
+  },
+}));
 
 jest.mock('sonner', () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn(),
+    success: (...args) => mockToastSuccess(...args),
+    error: (...args) => mockToastError(...args),
   },
   Toaster: () => null,
 }));
 
-// Now import modules
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
-import RetailerAuth from '../components/retailer/RetailerAuth';
+// Import after mocking
 import * as api from '../utils/api';
 import { toast } from 'sonner';
 
