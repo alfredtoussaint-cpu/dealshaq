@@ -187,7 +187,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
     });
 
     // Assert that API was NOT called
-    expect(auth.requestPasswordReset).not.toHaveBeenCalled();
+    expect(api.auth.requestPasswordReset).not.toHaveBeenCalled();
   });
 
   test('should close modal when Cancel button is clicked', async () => {
