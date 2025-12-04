@@ -73,7 +73,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     });
 
     // Check for modal content
-    expect(screen.getByText(/enter your email address and we'll send you a link to reset your password/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter your email address and we'll send you password reset instructions/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
