@@ -133,7 +133,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
   test('should show error toast when password reset request fails', async () => {
     // Mock API error
     const errorMessage = 'Failed to send reset email';
-    auth.requestPasswordReset.mockRejectedValue({
+    api.auth.requestPasswordReset.mockRejectedValue({
       response: { data: { detail: errorMessage } },
     });
 
