@@ -272,7 +272,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Verify that the API was called with role: 'DRLP'
     await waitFor(() => {
-      expect(auth.requestPasswordReset).toHaveBeenCalledWith({
+      expect(api.auth.requestPasswordReset).toHaveBeenCalledWith({
         email: 'retailer@dealshaq.com',
         role: 'DRLP',
       });
