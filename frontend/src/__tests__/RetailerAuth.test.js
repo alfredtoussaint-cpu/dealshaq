@@ -2,20 +2,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import RetailerAuth from '../components/retailer/RetailerAuth';
-import { auth } from '../utils/api';
+import * as api from '../utils/api';
 import { toast } from 'sonner';
 
 // Mock the API module
-jest.mock('../utils/api', () => ({
-  auth: {
-    register: jest.fn(),
-    login: jest.fn(),
-    requestPasswordReset: jest.fn(),
-  },
-  charities: {
-    list: jest.fn(),
-  },
-}));
+jest.mock('../utils/api');
 
 // Mock sonner toast
 jest.mock('sonner', () => ({
@@ -27,10 +18,13 @@ jest.mock('sonner', () => ({
 
 // Mock useNavigate
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
-}));
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 describe('RetailerAuth - Forgot Password Flow', () => {
   beforeEach(() => {
