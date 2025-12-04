@@ -258,7 +258,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
   test('should have correct role (DRLP) in password reset request', async () => {
     // Mock successful API response
-    api.auth.requestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
+    mockRequestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
 
     renderComponent();
 
