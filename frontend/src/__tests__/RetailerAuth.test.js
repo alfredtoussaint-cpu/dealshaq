@@ -113,7 +113,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that API was called with correct data
     await waitFor(() => {
-      expect(auth.requestPasswordReset).toHaveBeenCalledWith({
+      expect(api.auth.requestPasswordReset).toHaveBeenCalledWith({
         email: 'retailer@example.com',
         role: 'DRLP',
       });
