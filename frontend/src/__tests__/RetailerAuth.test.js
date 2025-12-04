@@ -121,7 +121,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that API was called with correct data
     await waitFor(() => {
-      expect(api.auth.requestPasswordReset).toHaveBeenCalledWith({
+      expect(mockRequestPasswordReset).toHaveBeenCalledWith({
         email: 'retailer@example.com',
         role: 'DRLP',
       });
@@ -129,7 +129,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that success toast appears
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Password reset instructions sent to retailer@example.com');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Password reset instructions sent to retailer@example.com');
     });
 
     // Assert that modal closes after success
