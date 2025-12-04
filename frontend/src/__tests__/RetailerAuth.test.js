@@ -31,8 +31,15 @@ describe('RetailerAuth - Forgot Password Flow', () => {
     // Clear all mocks before each test
     jest.clearAllMocks();
     
-    // Mock charities list API call
-    auth.charities = { list: jest.fn().mockResolvedValue({ data: [] }) };
+    // Mock API methods
+    api.auth = {
+      register: jest.fn(),
+      login: jest.fn(),
+      requestPasswordReset: jest.fn(),
+    };
+    api.charities = {
+      list: jest.fn().mockResolvedValue({ data: [] }),
+    };
   });
 
   const renderComponent = () => {
