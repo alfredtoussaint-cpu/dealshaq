@@ -214,7 +214,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
   test('should clear email input when modal closes after successful submission', async () => {
     // Mock successful API response
-    auth.requestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
+    api.auth.requestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
 
     renderComponent();
 
