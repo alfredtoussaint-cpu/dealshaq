@@ -98,7 +98,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
   test('should send password reset request and show success toast', async () => {
     // Mock successful API response
-    api.auth.requestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
+    mockRequestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
 
     renderComponent();
 
