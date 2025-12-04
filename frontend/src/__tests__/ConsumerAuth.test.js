@@ -82,7 +82,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     renderComponent();
 
     // Enter email in the login form
-    const emailInput = screen.getByTestId('consumer-login-email');
+    const emailInput = screen.getByTestId('login-email');
     await userEvent.type(emailInput, 'test@consumer.com');
 
     // Click "Forgot password?" link
