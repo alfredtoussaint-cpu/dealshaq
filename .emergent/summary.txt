@@ -1,5 +1,5 @@
 <analysis>**original_problem_statement:**
-The user wants to build a multi-faceted, Instacart-like application named DealShaq focused on discounted grocery foods. The core concept is a surplus-centric model where retailers post time-sensitive deals (RSHDs) and the system notifies interested consumers (DACs) based on their preferences.
+The user wants to build a multi-faceted, Instacart-like application named DealShaq focused on discounted grocery foods. The core concept is a surplus-driven model where retailers post time-sensitive deals (RSHDs) and the system notifies interested consumers (DACs) based on their preferences.
 
 The system is composed of three frontend applications and a unified backend:
 1.  **Consumer App:** Allows users to register, set a shopping area (DACSAI), manage a favorite categories list (DACFI-List), receive notifications for deals, and check out using either delivery (DoorDash) or pickup.
