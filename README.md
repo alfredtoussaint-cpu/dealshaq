@@ -1,4 +1,4 @@
-# DealShaq: Surplus-Centric Discount Marketplace - Where Hot Deals Sizzle!
+# DealShaq: Surplus-Driven Discount Marketplace - Where Hot Deals Sizzle!
 
 A surplus-centric grocery discount marketplace connecting retailers with time-sensitive surplus inventory to consumers seeking great deals.
 
