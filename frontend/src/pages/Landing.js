@@ -15,7 +15,7 @@ export default function Landing() {
             DealShaq
           </h1>
           <p className="text-2xl text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Supply-Initiated Grocery Deals
+            Surplus-Centric Grocery Deals
           </p>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             Retailers post urgent deals on quality items that must move fast. 
