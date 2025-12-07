@@ -311,7 +311,7 @@ REACT_APP_BACKEND_URL=https://dealshaq-discounts.preview.emergentagent.com
 
 ## Key Technical Decisions
 
-### Why Supply-Initiated?
+### Why Surplus-Centric?
 - Maximizes efficiency for perishables and urgent inventory
 - Reduces noise for consumers (no spam)
 - Retailer-driven urgency creates natural time constraints
