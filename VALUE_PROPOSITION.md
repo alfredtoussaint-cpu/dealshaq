@@ -6,7 +6,7 @@
 
 ### Surplus-Centric vs. Demand-Initiated
 
-| Aspect | DealShaq (Supply-Initiated) | Instacart (Demand-Initiated) |
+| Aspect | DealShaq (Surplus-Centric) | Instacart (Demand-Initiated) |
 |--------|----------------------------|------------------------------|
 | **Initiator** | DRLP associate posts RSHD | Consumer searches for items |
 | **Driver** | Retailer urgency (must sell fast) | Consumer need (wants to buy) |
