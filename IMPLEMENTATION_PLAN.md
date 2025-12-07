@@ -6,7 +6,7 @@ This document outlines the implementation roadmap for building out the complete 
 
 ## System Overview
 
-DealShaq is a supply-initiated grocery discount marketplace with:
+DealShaq is a surplus-centric grocery discount marketplace with:
 - **Retailer App (DRLP)**: Where retailers post time-sensitive deals
 - **Consumer App (DAC)**: Where consumers discover and purchase discounted items
 - **Admin Dashboard**: Central management and oversight platform
