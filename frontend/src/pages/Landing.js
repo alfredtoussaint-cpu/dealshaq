@@ -107,7 +107,7 @@ export default function Landing() {
           <div className="mt-20 grid md:grid-cols-3 gap-8 text-left">
             <div className="space-y-2">
               <div className="text-3xl font-bold text-emerald-600">🎯</div>
-              <h4 className="text-xl font-bold text-gray-900">Supply-Initiated</h4>
+              <h4 className="text-xl font-bold text-gray-900">Surplus-Centric</h4>
               <p className="text-gray-600">Retailers post urgent RSHDs that must move fast. You get notified only if it matches your interests.</p>
             </div>
             <div className="space-y-2">
