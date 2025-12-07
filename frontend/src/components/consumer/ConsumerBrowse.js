@@ -100,7 +100,7 @@ export default function ConsumerBrowse({ user, onLogout }) {
                 <Search className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">Surplus-Centric Model</h4>
+                <h4 className="font-bold text-gray-900 mb-1">Surplus-Driven Model</h4>
                 <p className="text-sm text-gray-600">
                   These deals were posted by local retailers with urgent items that must move fast. 
                   You're seeing them because they match your DACFI-List favorites. 
