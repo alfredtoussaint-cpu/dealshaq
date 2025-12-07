@@ -1,6 +1,6 @@
 # DealShaq Value Proposition
 
-## Core Principle: Supply-Initiated Platform
+## Core Principle: Surplus-Centric Platform
 
 **DealShaq is fundamentally different from demand-initiated platforms like Instacart.**
 
