@@ -121,7 +121,7 @@
 3. Consumer selects and purchases
 4. **Problem**: Retailer has no control over urgent inventory; consumer may not find perishables in time
 
-### DealShaq Model (Supply-Initiated)
+### DealShaq Model (Surplus-Centric)
 1. DRLP associate sees organic apples expiring tomorrow
 2. Posts RSHD: "Organic Apples - Level 2 (60% OFF)"
 3. Backend matches to DACs with "Produce → Organic" in DACFI-List + this DRLP in DACDRLP-List
