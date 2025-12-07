@@ -167,7 +167,7 @@ export default function ConsumerFavorites({ user, onLogout }) {
                 <Heart className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">Supply-Initiated Model</h4>
+                <h4 className="font-bold text-gray-900 mb-1">Surplus-Centric Model</h4>
                 <p className="text-sm text-gray-600">
                   DealShaq is supply-driven: Retailers initiate sales by posting RSHDs (urgent items). 
                   Our backend matches them against your DACFI-List and notifies you only if there's a match. 
