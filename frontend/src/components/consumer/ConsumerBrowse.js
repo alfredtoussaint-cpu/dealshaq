@@ -92,7 +92,7 @@ export default function ConsumerBrowse({ user, onLogout }) {
   return (
     <ConsumerLayout user={user} onLogout={onLogout}>
       <div className="space-y-6">
-        {/* Supply-Initiated Info Banner */}
+        {/* Surplus-Centric Info Banner */}
         <Card className="bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
