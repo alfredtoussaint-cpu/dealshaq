@@ -1,7 +1,7 @@
 # DealShaq System Architecture
 
 ## Overview
-DealShaq is a surplus-centric grocery deals platform consisting of 3 web applications (Consumer, Retailer, Admin) and a unified backend with MongoDB database.
+DealShaq is a surplus-driven grocery deals platform consisting of 3 web applications (Consumer, Retailer, Admin) and a unified backend with MongoDB database.
 
 ## System Components
 
