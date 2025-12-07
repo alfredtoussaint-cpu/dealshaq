@@ -34,7 +34,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Stripe configuration
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_51QntqsH7xN6aWpSELUaZn6UFVdJZCLJ4HoCuWSXw3nQxZQ7HS9LvzvN9Fvx0OyLRQD1hl9x7RJNAk0aOY2QCvjKE00TJnKQSAT')
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 # Resend configuration
 resend.api_key = os.environ.get('RESEND_API_KEY')
