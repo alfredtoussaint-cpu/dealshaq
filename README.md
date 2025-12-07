@@ -19,4 +19,4 @@ See the various .md files in this directory for detailed information.
 
 ---
 
-**DealShaq: Surplus-Centric Discount Marketplace - Where Hot Deals Sizzle!** 🔥
+**DealShaq: Surplus-Driven Discount Marketplace - Where Hot Deals Sizzle!** 🔥
