@@ -4,7 +4,7 @@
 
 **DealShaq is fundamentally different from demand-initiated platforms like Instacart.**
 
-### Supply-Initiated vs. Demand-Initiated
+### Surplus-Centric vs. Demand-Initiated
 
 | Aspect | DealShaq (Supply-Initiated) | Instacart (Demand-Initiated) |
 |--------|----------------------------|------------------------------|
