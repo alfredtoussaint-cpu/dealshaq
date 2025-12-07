@@ -140,7 +140,7 @@ Admin:
 - `AdminUsers.js` - User management by role
 - `AdminTransactions.js` - Order history and revenue
 
-## Data Flow: Supply-Initiated Transaction
+## Data Flow: Surplus-Centric Transaction
 
 ### Step 1: RSHD Posting (Sales Initiation)
 ```
