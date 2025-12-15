@@ -915,10 +915,14 @@ async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict
     # Remove item from user's favorite_items (case-insensitive match)
     import re
     escaped_item_name = re.escape(item_data.item_name)
+    logger.info(f"Attempting to delete item '{item_data.item_name}' (escaped: '{escaped_item_name}') for user {current_user['id']}")
+    
     result = await db.users.update_one(
         {"id": current_user["id"]},
         {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{escaped_item_name}$", "$options": "i"}}}}
     )
+    
+    logger.info(f"Delete result: matched={result.matched_count}, modified={result.modified_count}")
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Favorite item not found")
