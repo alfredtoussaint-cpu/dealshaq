@@ -912,15 +912,21 @@ async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
     
-    # Remove item from user's favorite_items (case-insensitive match)
-    import re
-    escaped_item_name = re.escape(item_data.item_name)
-    logger.info(f"Attempting to delete item '{item_data.item_name}' (escaped: '{escaped_item_name}') for user {current_user['id']}")
+    # Remove item from user's favorite_items (exact match, case-insensitive)
+    logger.info(f"Attempting to delete item '{item_data.item_name}' for user {current_user['id']}")
     
+    # First try exact match
     result = await db.users.update_one(
         {"id": current_user["id"]},
-        {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{escaped_item_name}$", "$options": "i"}}}}
+        {"$pull": {"favorite_items": {"item_name": item_data.item_name}}}
     )
+    
+    # If no exact match, try case-insensitive
+    if result.modified_count == 0:
+        result = await db.users.update_one(
+            {"id": current_user["id"]},
+            {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{item_data.item_name}$", "$options": "i"}}}}
+        )
     
     logger.info(f"Delete result: matched={result.matched_count}, modified={result.modified_count}")
     
