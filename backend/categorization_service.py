@@ -1,294 +1,210 @@
-"""
-DealShaq Product Categorization Service
-
-Automatically maps product names to the 20 DealShaq categories
-using AI (GPT-5/Gemini) or keyword matching.
-"""
-
+from typing import Dict, List, Optional, Tuple
+import re
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 import os
-from typing import Optional, Dict, List
-# Uncomment when implementing AI:
-# from emergentintegrations import OpenAI
+from dotenv import load_dotenv
+import logging
 
-# DealShaq's 20 Categories
-DEALSHAQ_CATEGORIES = [
-    "Fruits",
-    "Vegetables", 
-    "Meat & Poultry",
-    "Seafood",
-    "Dairy & Eggs",
-    "Bakery & Bread",
-    "Pantry Staples",
-    "Snacks & Candy",
-    "Frozen Foods",
-    "Beverages (Non-Alcoholic)",
-    "Alcoholic Beverages",
-    "Breakfast & Cereal",
-    "Deli & Prepared Foods",
-    "International Foods",
-    "Organic & Natural",
-    "Pet Supplies",
-    "Baby & Kids",
-    "Health & Nutrition",
-    "Household Essentials",
-    "Personal Care"
-]
+load_dotenv()
+logger = logging.getLogger(__name__)
 
-# Keyword mapping for common items (fallback before AI)
+# Keyword-based categorization dictionary
 CATEGORY_KEYWORDS = {
-    "Dairy & Eggs": [
-        "milk", "cheese", "yogurt", "butter", "cream", "eggs", "dairy",
-        "cheddar", "mozzarella", "parmesan", "sour cream", "cottage cheese"
-    ],
-    "Fruits": [
-        "apple", "banana", "orange", "grape", "berry", "strawberry",
-        "melon", "watermelon", "pear", "peach", "plum", "cherry"
-    ],
-    "Vegetables": [
-        "lettuce", "tomato", "carrot", "broccoli", "pepper", "onion",
-        "cucumber", "spinach", "celery", "potato", "cabbage"
-    ],
-    "Meat & Poultry": [
-        "beef", "chicken", "pork", "turkey", "lamb", "steak",
-        "ground beef", "chicken breast", "bacon", "sausage"
-    ],
-    "Seafood": [
-        "fish", "salmon", "tuna", "shrimp", "crab", "lobster",
-        "tilapia", "cod", "seafood"
-    ],
-    "Bakery & Bread": [
-        "bread", "bagel", "muffin", "cake", "cookie", "pastry",
-        "donut", "croissant", "baguette", "roll"
-    ],
-    "Breakfast & Cereal": [
-        "cereal", "granola", "oatmeal", "oats", "cornflakes",
-        "cheerios", "breakfast", "pancake mix", "waffle"
-    ],
-    "Snacks & Candy": [
-        "chips", "crackers", "candy", "chocolate", "pretzels",
-        "popcorn", "nuts", "trail mix", "cookies"
-    ],
-    "Frozen Foods": [
-        "frozen", "ice cream", "frozen pizza", "frozen dinner",
-        "popsicle", "frozen vegetables", "frozen fruit"
-    ],
-    "Beverages (Non-Alcoholic)": [
-        "juice", "soda", "water", "coffee", "tea", "energy drink",
-        "sports drink", "lemonade", "iced tea"
-    ],
-    "Alcoholic Beverages": [
-        "beer", "wine", "liquor", "vodka", "whiskey", "champagne",
-        "ale", "lager", "spirits"
-    ],
-    "Pantry Staples": [
-        "pasta", "rice", "flour", "sugar", "oil", "vinegar",
-        "sauce", "canned", "beans", "soup", "ketchup", "mustard"
-    ],
-    "Deli & Prepared Foods": [
-        "deli", "rotisserie", "sandwich", "salad", "prepared",
-        "ready-to-eat", "cooked chicken"
-    ],
-    "International Foods": [
-        "mexican", "asian", "italian", "indian", "sushi",
-        "tortilla", "salsa", "soy sauce", "curry"
-    ],
-    "Organic & Natural": [
-        "organic", "natural", "non-gmo", "gluten-free",
-        "vegan", "vegetarian", "whole foods"
-    ],
-    "Health & Nutrition": [
-        "vitamin", "supplement", "protein", "protein bar",
-        "nutrition", "health", "diet", "fitness"
-    ],
-    "Household Essentials": [
-        "detergent", "soap", "paper towel", "toilet paper",
-        "cleaner", "trash bag", "aluminum foil", "cleaning"
-    ],
-    "Personal Care": [
-        "shampoo", "toothpaste", "deodorant", "lotion",
-        "soap", "body wash", "skincare", "cosmetics"
-    ],
-    "Baby & Kids": [
-        "baby", "diaper", "formula", "baby food", "wipes",
-        "kids", "children", "toddler"
-    ],
-    "Pet Supplies": [
-        "dog", "cat", "pet", "dog food", "cat food",
-        "pet food", "treats", "litter"
-    ]
+    "Fruits": ["apple", "banana", "orange", "grape", "berry", "berries", "melon", "watermelon", 
+               "pear", "peach", "plum", "cherry", "cherries", "mango", "pineapple", "kiwi", "strawberry",
+               "blueberry", "raspberry", "blackberry", "lemon", "lime", "grapefruit", "avocado"],
+    
+    "Vegetables": ["lettuce", "tomato", "cucumber", "carrot", "broccoli", "spinach", "kale",
+                   "pepper", "peppers", "onion", "garlic", "potato", "celery", "cabbage", "zucchini",
+                   "squash", "eggplant", "cauliflower", "asparagus", "mushroom", "corn", "peas"],
+    
+    "Meat & Poultry": ["beef", "chicken", "pork", "turkey", "lamb", "steak", "ground beef",
+                       "bacon", "sausage", "ham", "ribs", "wings", "breast", "thigh", "drumstick"],
+    
+    "Seafood": ["fish", "salmon", "tuna", "shrimp", "crab", "lobster", "cod", "tilapia",
+                "halibut", "trout", "sardine", "anchovy", "clam", "oyster", "mussel", "scallop"],
+    
+    "Dairy & Eggs": ["milk", "cheese", "yogurt", "butter", "egg", "eggs", "cream", "sour cream",
+                     "cottage cheese", "cheddar", "mozzarella", "parmesan", "greek yogurt", 
+                     "whipped cream", "half and half", "dairy"],
+    
+    "Bakery & Bread": ["bread", "bagel", "muffin", "croissant", "donut", "cake", "cookie",
+                       "pie", "pastry", "baguette", "roll", "bun", "biscuit", "brownie", "cupcake"],
+    
+    "Pantry Staples": ["flour", "sugar", "salt", "rice", "beans", "canned", "soup", "ketchup",
+                       "mustard", "mayo", "mayonnaise", "vinegar", "honey", "jam", "jelly", "peanut butter"],
+    
+    "Snacks & Candy": ["chips", "pretzels", "popcorn", "candy", "chocolate", "nuts", "crackers",
+                       "cookies", "trail mix", "granola bar", "protein bar", "gummies"],
+    
+    "Frozen Foods": ["frozen", "ice cream", "pizza", "frozen dinner", "popsicle", "frozen meal",
+                     "frozen vegetable", "frozen fruit"],
+    
+    "Beverages": ["juice", "soda", "water", "coffee", "tea", "energy drink", "sports drink",
+                  "lemonade", "iced tea", "sparkling water", "cola", "beverage"],
+    
+    "Deli & Prepared Foods": ["deli", "rotisserie", "prepared", "ready to eat", "salad bar",
+                              "sandwich", "wrap", "sushi", "sliced turkey", "sliced ham"],
+    
+    "Breakfast & Cereal": ["cereal", "oatmeal", "granola", "breakfast", "pancake", "waffle",
+                           "syrup", "breakfast bar", "corn flakes"],
+    
+    "Pasta, Rice & Grains": ["pasta", "spaghetti", "macaroni", "noodle", "rice", "quinoa",
+                             "couscous", "barley", "bulgur", "farro"],
+    
+    "Oils, Sauces & Spices": ["oil", "olive oil", "vegetable oil", "sauce", "soy sauce",
+                              "hot sauce", "spice", "pepper", "oregano", "basil", "cinnamon",
+                              "paprika", "curry"],
+    
+    "Baby & Kids": ["baby", "formula", "baby food", "diaper", "wipes", "kids"],
+    
+    "Health & Nutrition": ["vitamin", "supplement", "protein powder", "protein", "energy bar",
+                           "health", "nutrition", "probiotic"],
+    
+    "Household Essentials": ["paper towel", "toilet paper", "tissue", "dish soap", "detergent",
+                             "cleaning", "laundry", "trash bag", "cleaner"],
+    
+    "Personal Care": ["toothpaste", "shampoo", "soap", "deodorant", "lotion", "razor",
+                      "shaving cream", "cosmetic", "makeup"],
+    
+    "Pet Supplies": ["dog food", "cat food", "pet", "dog treat", "cat treat", "pet toy"],
+    
+    "Miscellaneous": []  # Catch-all for items that don't fit elsewhere
 }
 
+# Valid categories list
+VALID_CATEGORIES = [
+    "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
+    "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
+    "Snacks & Candy", "Frozen Foods", "Beverages",
+    "Deli & Prepared Foods", "Breakfast & Cereal",
+    "Pasta, Rice & Grains", "Oils, Sauces & Spices",
+    "Baby & Kids", "Health & Nutrition", "Household Essentials",
+    "Personal Care", "Pet Supplies", "Miscellaneous"
+]
 
-def categorize_by_keywords(product_name: str) -> Optional[str]:
-    """
-    Simple keyword matching to categorize product.
-    Returns category name or None if no match.
-    """
-    product_lower = product_name.lower()
+
+def extract_keywords(item_name: str) -> List[str]:
+    """Extract keywords from item name for matching."""
+    # Convert to lowercase and split
+    item_lower = item_name.lower()
     
-    # Score each category
-    scores = {}
+    # Remove special characters but keep alphanumeric and spaces
+    cleaned = re.sub(r'[^a-z0-9\s%]', ' ', item_lower)
+    
+    # Split into words and filter out common words
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for'}
+    keywords = [word for word in cleaned.split() if word and word not in stop_words]
+    
+    return keywords
+
+
+def detect_attributes(item_name: str) -> Dict[str, bool]:
+    """Detect attributes like organic, gluten-free from item name."""
+    item_lower = item_name.lower()
+    attributes = {}
+    
+    # Check for organic
+    if 'organic' in item_lower:
+        attributes['organic'] = True
+    
+    # Check for gluten-free
+    if 'gluten-free' in item_lower or 'gluten free' in item_lower:
+        attributes['gluten_free'] = True
+    
+    # Check for non-GMO
+    if 'non-gmo' in item_lower or 'non gmo' in item_lower:
+        attributes['non_gmo'] = True
+    
+    # Check for vegan
+    if 'vegan' in item_lower:
+        attributes['vegan'] = True
+    
+    return attributes
+
+
+def categorize_by_keywords(item_name: str) -> Optional[str]:
+    """Categorize item using keyword matching."""
+    item_lower = item_name.lower()
+    
+    # Score each category based on keyword matches
+    category_scores = {}
+    
     for category, keywords in CATEGORY_KEYWORDS.items():
-        score = sum(1 for keyword in keywords if keyword in product_lower)
+        score = 0
+        for keyword in keywords:
+            if keyword in item_lower:
+                # Longer keywords get higher scores (more specific)
+                score += len(keyword.split())
+        
         if score > 0:
-            scores[category] = score
+            category_scores[category] = score
     
-    if scores:
-        # Return category with highest score
-        best_category = max(scores, key=scores.get)
-        return best_category
+    # Return category with highest score
+    if category_scores:
+        return max(category_scores, key=category_scores.get)
     
     return None
 
 
-async def categorize_with_ai(product_name: str) -> Optional[str]:
-    """
-    Use AI (GPT-5 or Gemini) to categorize product.
-    Returns category name or None if API fails.
-    """
+async def categorize_with_ai(item_name: str) -> str:
+    """Categorize item using AI (OpenAI GPT-5) as fallback."""
     try:
-        # Uncomment and implement when adding AI integration:
-        """
-        from emergentintegrations import OpenAI
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not api_key:
+            logger.error("EMERGENT_LLM_KEY not found in environment")
+            return "Miscellaneous"
         
-        client = OpenAI(api_key=os.environ.get('EMERGENT_LLM_KEY'))
+        # Create LLM chat instance
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"categorization_{item_name}",
+            system_message=f"""You are a grocery categorization expert. 
+            Categorize the given item into EXACTLY ONE of these 20 categories:
+            {', '.join(VALID_CATEGORIES)}
+            
+            Respond with ONLY the category name, nothing else."""
+        ).with_model("openai", "gpt-5.1")
         
-        prompt = f'''Classify this grocery product into ONE of these 20 categories:
-{', '.join(DEALSHAQ_CATEGORIES)}
-
-Product: "{product_name}"
-
-Rules:
-- Return ONLY the exact category name from the list above
-- No explanation, just the category name
-- If unsure, choose the most likely category
-
-Category:'''
-
-        response = client.chat.completions.create(
-            model="gpt-5",
-            messages=[
-                {"role": "system", "content": "You are a grocery product categorization expert."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=20,
-            temperature=0.1
+        user_message = UserMessage(
+            text=f"Categorize this grocery item: '{item_name}'"
         )
         
-        category = response.choices[0].message.content.strip()
+        response = await chat.send_message(user_message)
+        category = response.strip()
         
-        # Validate category is in our list
-        if category in DEALSHAQ_CATEGORIES:
+        # Validate response is a valid category
+        if category in VALID_CATEGORIES:
+            logger.info(f"AI categorized '{item_name}' as '{category}'")
             return category
-        """
-        
-        # For now, return None (implement AI later)
-        return None
-        
+        else:
+            logger.warning(f"AI returned invalid category '{category}' for '{item_name}'")
+            return "Miscellaneous"
+    
     except Exception as e:
-        print(f"AI categorization error: {e}")
-        return None
+        logger.error(f"AI categorization failed for '{item_name}': {str(e)}")
+        return "Miscellaneous"
 
 
-def generate_keywords(product_name: str) -> List[str]:
-    """
-    Generate search keywords from product name for better matching.
-    """
-    keywords = []
-    
-    # Basic tokenization
-    words = product_name.lower().split()
-    keywords.extend(words)
-    
-    # Remove common words
-    stop_words = {"the", "a", "an", "and", "or", "of", "with"}
-    keywords = [w for w in keywords if w not in stop_words]
-    
-    # Add full product name
-    keywords.append(product_name.lower())
-    
-    return list(set(keywords))
-
-
-async def auto_categorize_product(product_name: str, barcode: Optional[str] = None) -> Dict:
-    """
-    Main categorization function that tries multiple methods.
+async def categorize_item(item_name: str) -> Tuple[str, List[str], Dict[str, bool]]:
+    """Main categorization function: keyword first, AI fallback.
     
     Returns:
-    {
-        "category": str or None,
-        "confidence": "high" | "medium" | "low" | "none",
-        "method": "barcode" | "ai" | "keyword" | "manual_required",
-        "keywords": List[str],
-        "suggestions": List[str]  # Alternative categories if uncertain
-    }
+        Tuple of (category, keywords, attributes)
     """
+    # Extract keywords and attributes
+    keywords = extract_keywords(item_name)
+    attributes = detect_attributes(item_name)
     
-    # Tier 1: Barcode lookup (future implementation)
-    if barcode:
-        # TODO: Implement barcode API lookup
-        pass
+    # Try keyword-based categorization first
+    category = categorize_by_keywords(item_name)
     
-    # Tier 2: Keyword matching
-    keyword_category = categorize_by_keywords(product_name)
-    if keyword_category:
-        return {
-            "category": keyword_category,
-            "confidence": "medium",
-            "method": "keyword_match",
-            "keywords": generate_keywords(product_name),
-            "suggestions": []
-        }
+    if category:
+        logger.info(f"Keyword categorized '{item_name}' as '{category}'")
+        return category, keywords, attributes
     
-    # Tier 3: AI classification
-    ai_category = await categorize_with_ai(product_name)
-    if ai_category:
-        return {
-            "category": ai_category,
-            "confidence": "medium",
-            "method": "ai_classification",
-            "keywords": generate_keywords(product_name),
-            "suggestions": []
-        }
+    # Fallback to AI categorization
+    logger.info(f"Using AI fallback for '{item_name}'")
+    category = await categorize_with_ai(item_name)
     
-    # Tier 4: Manual selection required
-    # Suggest most common categories
-    common_categories = [
-        "Dairy & Eggs",
-        "Fruits",
-        "Vegetables",
-        "Meat & Poultry",
-        "Breakfast & Cereal"
-    ]
-    
-    return {
-        "category": None,
-        "confidence": "none",
-        "method": "manual_required",
-        "keywords": generate_keywords(product_name),
-        "suggestions": common_categories
-    }
-
-
-# Example usage
-if __name__ == "__main__":
-    import asyncio
-    
-    async def test():
-        # Test cases
-        test_items = [
-            "2% Milk",
-            "Granola",
-            "Organic Apples",
-            "Ground Beef",
-            "Whole Wheat Bread"
-        ]
-        
-        for item in test_items:
-            result = await auto_categorize_product(item)
-            print(f"\nItem: {item}")
-            print(f"Category: {result['category']}")
-            print(f"Method: {result['method']}")
-            print(f"Keywords: {result['keywords']}")
-    
-    asyncio.run(test())
+    return category, keywords, attributes
