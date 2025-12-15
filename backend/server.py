@@ -914,7 +914,7 @@ async def test_delete_favorite_item(item_data: FavoriteItemDelete, current_user:
     return {"message": f"Test delete for {item_data.item_name}"}
 
 @api_router.delete("/favorites/items")
-async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
+async def delete_favorite_item(item_name: str, current_user: Dict = Depends(get_current_user)):
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
     
