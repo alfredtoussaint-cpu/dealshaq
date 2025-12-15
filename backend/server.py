@@ -840,6 +840,120 @@ async def delete_favorite(favorite_id: str, current_user: Dict = Depends(get_cur
         raise HTTPException(status_code=404, detail="Favorite not found")
     return {"message": "Favorite removed"}
 
+# ===== ITEM-LEVEL FAVORITES ROUTES (Enhanced DACFI-List) =====
+
+@api_router.post("/favorites/items")
+async def add_favorite_item(item_data: FavoriteItemCreate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can add favorite items")
+    
+    from categorization_service import categorize_item
+    
+    # Categorize item (keyword + AI fallback)
+    category, keywords, attributes = await categorize_item(item_data.item_name)
+    
+    # Check if item already exists in favorites
+    user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "favorite_items": 1})
+    existing_items = user.get("favorite_items", [])
+    
+    for existing_item in existing_items:
+        if existing_item["item_name"].lower() == item_data.item_name.lower():
+            raise HTTPException(status_code=400, detail="Item already in favorites")
+    
+    # Create favorite item
+    favorite_item = {
+        "item_name": item_data.item_name,
+        "category": category,
+        "keywords": keywords,
+        "attributes": attributes,
+        "auto_added_date": None  # Explicit addition
+    }
+    
+    # Add to user's favorite_items
+    result = await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$push": {"favorite_items": favorite_item}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to add favorite item")
+    
+    logger.info(f"Added favorite item '{item_data.item_name}' (category: {category}) for user {current_user['id']}")
+    
+    return {
+        "message": "Favorite item added",
+        "item": favorite_item
+    }
+
+@api_router.get("/favorites/items")
+async def get_favorite_items(current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can view favorite items")
+    
+    user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "favorite_items": 1})
+    
+    favorite_items = user.get("favorite_items", [])
+    
+    # Organize by category
+    organized = {}
+    for item in favorite_items:
+        category = item.get("category", "Miscellaneous")
+        if category not in organized:
+            organized[category] = []
+        organized[category].append(item)
+    
+    return {
+        "items_by_category": organized,
+        "total_items": len(favorite_items)
+    }
+
+@api_router.delete("/favorites/items")
+async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
+    
+    # Remove item from user's favorite_items (case-insensitive match)
+    result = await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{item_data.item_name}$", "$options": "i"}}}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Favorite item not found")
+    
+    logger.info(f"Removed favorite item '{item_data.item_name}' for user {current_user['id']}")
+    
+    return {"message": "Favorite item removed"}
+
+@api_router.put("/users/settings/auto-threshold")
+async def update_auto_threshold(threshold_data: AutoThresholdUpdate, current_user: Dict = Depends(get_current_user)):
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can update auto-add settings")
+    
+    # Validate threshold value
+    if threshold_data.auto_favorite_threshold not in [0, 3, 6]:
+        raise HTTPException(
+            status_code=400, 
+            detail="Auto-favorite threshold must be 0 (Never), 3, or 6 days"
+        )
+    
+    # Update user's auto_favorite_threshold
+    result = await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"auto_favorite_threshold": threshold_data.auto_favorite_threshold}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to update auto-add settings")
+    
+    threshold_text = {0: "Never", 3: "3 days", 6: "6 days"}
+    logger.info(f"Updated auto-add threshold to '{threshold_text[threshold_data.auto_favorite_threshold]}' for user {current_user['id']}")
+    
+    return {
+        "message": "Auto-add settings updated",
+        "threshold": threshold_data.auto_favorite_threshold
+    }
+
 # ===== NOTIFICATION ROUTES =====
 
 @api_router.get("/notifications", response_model=List[Notification])
