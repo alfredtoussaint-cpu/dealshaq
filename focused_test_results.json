@@ -1,0 +1,98 @@
+{
+  "total": 13,
+  "passed": 11,
+  "failed": 2,
+  "results": [
+    {
+      "test": "Authentication",
+      "success": true,
+      "message": "Successfully authenticated as test.dac@example.com",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.729342+00:00"
+    },
+    {
+      "test": "Categories Endpoint",
+      "success": true,
+      "message": "\u2705 Returns 20 categories including 'Miscellaneous'",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.780407+00:00"
+    },
+    {
+      "test": "Add Favorite Item",
+      "success": true,
+      "message": "\u2705 Successfully added 'Organic 2% Milk' to 'Dairy & Eggs' with organic attribute",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.790754+00:00"
+    },
+    {
+      "test": "Get Favorite Items",
+      "success": true,
+      "message": "\u2705 Retrieved 1 items organized by category",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.799911+00:00"
+    },
+    {
+      "test": "Duplicate Item Handling",
+      "success": true,
+      "message": "\u2705 Correctly rejected duplicate item",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.810289+00:00"
+    },
+    {
+      "test": "Delete Favorite Item",
+      "success": false,
+      "message": "\u274c Failed with status 404: {'detail': 'Favorite not found'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.818233+00:00"
+    },
+    {
+      "test": "Auto Threshold 0",
+      "success": true,
+      "message": "\u2705 Set threshold to 0",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.868089+00:00"
+    },
+    {
+      "test": "Auto Threshold 3",
+      "success": true,
+      "message": "\u2705 Set threshold to 3",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.917181+00:00"
+    },
+    {
+      "test": "Auto Threshold 6",
+      "success": true,
+      "message": "\u2705 Set threshold to 6",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.925489+00:00"
+    },
+    {
+      "test": "Invalid Threshold",
+      "success": true,
+      "message": "\u2705 Correctly rejected invalid threshold",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.933552+00:00"
+    },
+    {
+      "test": "Categorization Fresh Spinach",
+      "success": true,
+      "message": "\u2705 Correctly categorized as 'Vegetables'",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.942816+00:00"
+    },
+    {
+      "test": "Categorization Gluten-Free Pasta",
+      "success": true,
+      "message": "\u2705 Correctly categorized as 'Pasta, Rice & Grains'",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:35.992997+00:00"
+    },
+    {
+      "test": "Categorization Apple Juice",
+      "success": false,
+      "message": "\u274c Expected 'Beverages', got 'Fruits'",
+      "details": {},
+      "timestamp": "2025-12-15T03:18:36.003397+00:00"
+    }
+  ]
+}
