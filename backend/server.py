@@ -908,6 +908,11 @@ async def get_favorite_items(current_user: Dict = Depends(get_current_user)):
         "total_items": len(favorite_items)
     }
 
+@api_router.post("/favorites/items/test-delete")
+async def test_delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
+    print(f"TEST DELETE: Received request to delete '{item_data.item_name}' for user {current_user['id']}")
+    return {"message": f"Test delete for {item_data.item_name}"}
+
 @api_router.delete("/favorites/items")
 async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
     if current_user["role"] != "DAC":
