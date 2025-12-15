@@ -934,32 +934,14 @@ async def remove_favorite_item(item_name: str, current_user: Dict = Depends(get_
 
 @api_router.delete("/favorites/items")
 async def delete_favorite_item(item_name: str, current_user: Dict = Depends(get_current_user)):
-    print(f"DELETE FUNCTION CALLED: item_name='{item_name}', user_role='{current_user['role']}'")
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
     
-    # Remove item from user's favorite_items (exact match, case-insensitive)
-    print(f"DEBUG: Attempting to delete item '{item_name}' for user {current_user['id']}")
-    logger.info(f"Attempting to delete item '{item_name}' for user {current_user['id']}")
-    
-    # First try exact match
+    # Remove item from user's favorite_items (exact match)
     result = await db.users.update_one(
         {"id": current_user["id"]},
         {"$pull": {"favorite_items": {"item_name": item_name}}}
     )
-    
-    print(f"DEBUG: First attempt result: matched={result.matched_count}, modified={result.modified_count}")
-    
-    # If no exact match, try case-insensitive
-    if result.modified_count == 0:
-        escaped_name = re.escape(item_name)
-        result = await db.users.update_one(
-            {"id": current_user["id"]},
-            {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{escaped_name}$", "$options": "i"}}}}
-        )
-        print(f"DEBUG: Second attempt result: matched={result.matched_count}, modified={result.modified_count}")
-    
-    logger.info(f"Delete result: matched={result.matched_count}, modified={result.modified_count}")
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Favorite item not found")
