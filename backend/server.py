@@ -84,6 +84,8 @@ class User(BaseModel):
     delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
     dacsai_radius: Optional[float] = 5.0  # DACSAI: 0.1 - 9.9 miles
     notification_prefs: Optional[Dict[str, bool]] = {"email": True, "push": True, "sms": False}
+    favorite_items: Optional[List[Dict[str, Any]]] = []  # Item-level favorites with keywords & attributes
+    auto_favorite_threshold: Optional[int] = 0  # 0=Never, 3, or 6 days
     created_at: str
 
 class PasswordResetRequest(BaseModel):
