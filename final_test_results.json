@@ -1,0 +1,140 @@
+{
+  "total": 19,
+  "passed": 18,
+  "failed": 1,
+  "results": [
+    {
+      "test": "Authentication",
+      "success": true,
+      "message": "Successfully authenticated as test.dac@example.com",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:32.795825+00:00"
+    },
+    {
+      "test": "Categories Endpoint",
+      "success": true,
+      "message": "Returns 20 categories including 'Miscellaneous' (no 'Alcoholic Beverages')",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:32.919637+00:00"
+    },
+    {
+      "test": "Add Item - Organic 2% Milk",
+      "success": true,
+      "message": "Correctly categorized as 'Dairy & Eggs' with attributes ['organic']",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.232196+00:00"
+    },
+    {
+      "test": "Add Item - Granola",
+      "success": true,
+      "message": "Correctly categorized as 'Breakfast & Cereal' with attributes []",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.241025+00:00"
+    },
+    {
+      "test": "Add Item - Honeycrisp Apples",
+      "success": true,
+      "message": "Correctly categorized as 'Fruits' with attributes []",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.290518+00:00"
+    },
+    {
+      "test": "Add Item - Gluten-Free Bread",
+      "success": true,
+      "message": "Correctly categorized as 'Bakery & Bread' with attributes ['gluten_free']",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.299431+00:00"
+    },
+    {
+      "test": "Get Favorite Items",
+      "success": true,
+      "message": "Retrieved 4 items organized by 4 categories",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.306832+00:00"
+    },
+    {
+      "test": "Duplicate Item Handling",
+      "success": true,
+      "message": "Correctly rejected duplicate item",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.357133+00:00"
+    },
+    {
+      "test": "Delete Favorite Item",
+      "success": true,
+      "message": "Successfully deleted 'Organic 2% Milk'",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.365671+00:00"
+    },
+    {
+      "test": "Delete Non-Existent Item",
+      "success": true,
+      "message": "Correctly returned 404 for non-existent item",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.413134+00:00"
+    },
+    {
+      "test": "Auto Threshold 0",
+      "success": true,
+      "message": "Successfully set threshold to 0",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.420528+00:00"
+    },
+    {
+      "test": "Auto Threshold 3",
+      "success": true,
+      "message": "Successfully set threshold to 3",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.427623+00:00"
+    },
+    {
+      "test": "Auto Threshold 6",
+      "success": true,
+      "message": "Successfully set threshold to 6",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.477071+00:00"
+    },
+    {
+      "test": "Invalid Auto Threshold",
+      "success": true,
+      "message": "Correctly rejected invalid threshold",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.526474+00:00"
+    },
+    {
+      "test": "Unauthenticated Access",
+      "success": true,
+      "message": "Correctly rejected unauthenticated request with 403",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.531943+00:00"
+    },
+    {
+      "test": "Categorization Fresh Spinach",
+      "success": true,
+      "message": "Correctly categorized as 'Vegetables'",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.539654+00:00"
+    },
+    {
+      "test": "Categorization Frozen Pizza",
+      "success": true,
+      "message": "Correctly categorized as 'Frozen Foods'",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.589251+00:00"
+    },
+    {
+      "test": "Categorization Apple Juice",
+      "success": false,
+      "message": "Expected 'Beverages', got 'Fruits'",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.600786+00:00"
+    },
+    {
+      "test": "Categorization Olive Oil",
+      "success": true,
+      "message": "Correctly categorized as 'Oils, Sauces & Spices'",
+      "details": {},
+      "timestamp": "2025-12-15T03:24:34.651265+00:00"
+    }
+  ]
+}
