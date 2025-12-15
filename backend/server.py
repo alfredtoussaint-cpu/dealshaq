@@ -187,6 +187,23 @@ class Favorite(BaseModel):
     dac_id: str
     category: str  # Top-level category only
 
+# Item-Level Favorite Models (Enhanced DACFI-List)
+class FavoriteItemCreate(BaseModel):
+    item_name: str  # User input: e.g., "Organic 2% Milk", "Granola"
+
+class FavoriteItemDelete(BaseModel):
+    item_name: str  # Exact match to remove
+
+class FavoriteItem(BaseModel):
+    item_name: str
+    category: str
+    keywords: List[str]
+    attributes: Dict[str, bool]
+    auto_added_date: Optional[str] = None  # null = explicit, date = implicit
+
+class AutoThresholdUpdate(BaseModel):
+    auto_favorite_threshold: int  # 0, 3, or 6
+
 # Order Models
 class OrderItem(BaseModel):
     rshd_id: str
