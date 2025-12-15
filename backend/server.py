@@ -1142,6 +1142,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize scheduler on startup
+@app.on_event("startup")
+async def startup_event():
+    from scheduler_service import start_scheduler
+    logger.info("Starting application...")
+    scheduler = start_scheduler(db)
+    logger.info("Scheduler initialized")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
