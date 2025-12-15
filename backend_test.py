@@ -20,7 +20,7 @@ BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://surplus-shop-1.pr
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials
-TEST_EMAIL = "alfred.toussaint@gmail.com"
+TEST_EMAIL = "test.dac@example.com"
 TEST_PASSWORD = "TestPassword123"
 TEST_ROLE = "DAC"
 
