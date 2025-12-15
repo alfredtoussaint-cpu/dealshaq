@@ -1,14 +1,14 @@
 {
   "total": 20,
-  "passed": 18,
-  "failed": 2,
+  "passed": 10,
+  "failed": 10,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.dac@example.com",
       "details": {},
-      "timestamp": "2025-12-15T03:17:46.068299+00:00"
+      "timestamp": "2025-12-15T03:17:52.435821+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -38,92 +38,35 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-15T03:17:46.080846+00:00"
+      "timestamp": "2025-12-15T03:17:52.447398+00:00"
     },
     {
       "test": "Add Favorite Item - Organic 2% Milk",
-      "success": true,
-      "message": "Successfully added and categorized as 'Dairy & Eggs'",
-      "details": {
-        "item": {
-          "item_name": "Organic 2% Milk",
-          "category": "Dairy & Eggs",
-          "keywords": [
-            "organic",
-            "2%",
-            "milk"
-          ],
-          "attributes": {
-            "organic": true
-          },
-          "auto_added_date": null
-        },
-        "organic_detected": true,
-        "gluten_free_detected": false
-      },
-      "timestamp": "2025-12-15T03:17:47.430899+00:00"
+      "success": false,
+      "message": "Failed with status 400: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.498169+00:00"
     },
     {
       "test": "Add Favorite Item - Granola",
-      "success": true,
-      "message": "Successfully added and categorized as 'Breakfast & Cereal'",
-      "details": {
-        "item": {
-          "item_name": "Granola",
-          "category": "Breakfast & Cereal",
-          "keywords": [
-            "granola"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        },
-        "organic_detected": false,
-        "gluten_free_detected": false
-      },
-      "timestamp": "2025-12-15T03:17:47.481807+00:00"
+      "success": false,
+      "message": "Failed with status 400: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.510952+00:00"
     },
     {
       "test": "Add Favorite Item - Honeycrisp Apples",
-      "success": true,
-      "message": "Successfully added and categorized as 'Fruits'",
-      "details": {
-        "item": {
-          "item_name": "Honeycrisp Apples",
-          "category": "Fruits",
-          "keywords": [
-            "honeycrisp",
-            "apples"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        },
-        "organic_detected": false,
-        "gluten_free_detected": false
-      },
-      "timestamp": "2025-12-15T03:17:47.495496+00:00"
+      "success": false,
+      "message": "Failed with status 400: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.522397+00:00"
     },
     {
       "test": "Add Favorite Item - Gluten-Free Bread",
-      "success": true,
-      "message": "Successfully added and categorized as 'Bakery & Bread'",
-      "details": {
-        "item": {
-          "item_name": "Gluten-Free Bread",
-          "category": "Bakery & Bread",
-          "keywords": [
-            "gluten",
-            "free",
-            "bread"
-          ],
-          "attributes": {
-            "gluten_free": true
-          },
-          "auto_added_date": null
-        },
-        "organic_detected": false,
-        "gluten_free_detected": true
-      },
-      "timestamp": "2025-12-15T03:17:47.504875+00:00"
+      "success": false,
+      "message": "Failed with status 400: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.535857+00:00"
     },
     {
       "test": "Duplicate Favorite Item",
@@ -134,20 +77,24 @@
           "detail": "Item already in favorites"
         }
       },
-      "timestamp": "2025-12-15T03:17:47.554615+00:00"
+      "timestamp": "2025-12-15T03:17:52.543861+00:00"
     },
     {
       "test": "Get Favorite Items",
       "success": true,
-      "message": "Retrieved 4 items organized by category",
+      "message": "Retrieved 9 items organized by category",
       "details": {
         "categories": [
           "Dairy & Eggs",
           "Breakfast & Cereal",
           "Fruits",
-          "Bakery & Bread"
+          "Bakery & Bread",
+          "Vegetables",
+          "Snacks & Candy",
+          "Frozen Foods",
+          "Oils, Sauces & Spices"
         ],
-        "explicit_items": 4,
+        "explicit_items": 9,
         "implicit_items": 0,
         "sample_items": {
           "Dairy & Eggs": [
@@ -186,6 +133,16 @@
               ],
               "attributes": {},
               "auto_added_date": null
+            },
+            {
+              "item_name": "Orange Juice",
+              "category": "Fruits",
+              "keywords": [
+                "orange",
+                "juice"
+              ],
+              "attributes": {},
+              "auto_added_date": null
             }
           ],
           "Bakery & Bread": [
@@ -202,17 +159,68 @@
               },
               "auto_added_date": null
             }
+          ],
+          "Vegetables": [
+            {
+              "item_name": "Organic Spinach",
+              "category": "Vegetables",
+              "keywords": [
+                "organic",
+                "spinach"
+              ],
+              "attributes": {
+                "organic": true
+              },
+              "auto_added_date": null
+            }
+          ],
+          "Snacks & Candy": [
+            {
+              "item_name": "Chocolate Chip Cookies",
+              "category": "Snacks & Candy",
+              "keywords": [
+                "chocolate",
+                "chip",
+                "cookies"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            }
+          ],
+          "Frozen Foods": [
+            {
+              "item_name": "Frozen Pizza",
+              "category": "Frozen Foods",
+              "keywords": [
+                "frozen",
+                "pizza"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            }
+          ],
+          "Oils, Sauces & Spices": [
+            {
+              "item_name": "Olive Oil",
+              "category": "Oils, Sauces & Spices",
+              "keywords": [
+                "olive",
+                "oil"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            }
           ]
         }
       },
-      "timestamp": "2025-12-15T03:17:47.564182+00:00"
+      "timestamp": "2025-12-15T03:17:52.594705+00:00"
     },
     {
       "test": "Delete Favorite Item",
       "success": false,
       "message": "Failed with status 404: {'detail': 'Favorite not found'}",
       "details": {},
-      "timestamp": "2025-12-15T03:17:47.616658+00:00"
+      "timestamp": "2025-12-15T03:17:52.604192+00:00"
     },
     {
       "test": "Delete Non-Existent Item",
@@ -223,7 +231,7 @@
           "detail": "Favorite not found"
         }
       },
-      "timestamp": "2025-12-15T03:17:47.626109+00:00"
+      "timestamp": "2025-12-15T03:17:52.612277+00:00"
     },
     {
       "test": "Auto Threshold - 0",
@@ -235,7 +243,7 @@
           "threshold": 0
         }
       },
-      "timestamp": "2025-12-15T03:17:47.676684+00:00"
+      "timestamp": "2025-12-15T03:17:52.663077+00:00"
     },
     {
       "test": "Auto Threshold - 3",
@@ -247,7 +255,7 @@
           "threshold": 3
         }
       },
-      "timestamp": "2025-12-15T03:17:47.685109+00:00"
+      "timestamp": "2025-12-15T03:17:52.713239+00:00"
     },
     {
       "test": "Auto Threshold - 6",
@@ -259,7 +267,7 @@
           "threshold": 6
         }
       },
-      "timestamp": "2025-12-15T03:17:47.734433+00:00"
+      "timestamp": "2025-12-15T03:17:52.721523+00:00"
     },
     {
       "test": "Invalid Auto Threshold",
@@ -270,7 +278,7 @@
           "detail": "Auto-favorite threshold must be 0 (Never), 3, or 6 days"
         }
       },
-      "timestamp": "2025-12-15T03:17:47.742292+00:00"
+      "timestamp": "2025-12-15T03:17:52.728905+00:00"
     },
     {
       "test": "Unauthenticated Access",
@@ -281,100 +289,42 @@
           "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-15T03:17:47.748273+00:00"
+      "timestamp": "2025-12-15T03:17:52.776872+00:00"
     },
     {
       "test": "Categorization - Organic Spinach",
-      "success": true,
-      "message": "Correctly categorized as 'Vegetables'",
-      "details": {
-        "item": {
-          "item_name": "Organic Spinach",
-          "category": "Vegetables",
-          "keywords": [
-            "organic",
-            "spinach"
-          ],
-          "attributes": {
-            "organic": true
-          },
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-15T03:17:47.798747+00:00"
+      "success": false,
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.786233+00:00"
     },
     {
       "test": "Categorization - Chocolate Chip Cookies",
-      "success": true,
-      "message": "Correctly categorized as 'Snacks & Candy'",
-      "details": {
-        "item": {
-          "item_name": "Chocolate Chip Cookies",
-          "category": "Snacks & Candy",
-          "keywords": [
-            "chocolate",
-            "chip",
-            "cookies"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-15T03:17:47.807846+00:00"
+      "success": false,
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.834806+00:00"
     },
     {
       "test": "Categorization - Frozen Pizza",
-      "success": true,
-      "message": "Correctly categorized as 'Frozen Foods'",
-      "details": {
-        "item": {
-          "item_name": "Frozen Pizza",
-          "category": "Frozen Foods",
-          "keywords": [
-            "frozen",
-            "pizza"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-15T03:17:47.857753+00:00"
+      "success": false,
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.843870+00:00"
     },
     {
       "test": "Categorization - Orange Juice",
       "success": false,
-      "message": "Expected 'Beverages', got 'Fruits'",
-      "details": {
-        "item": {
-          "item_name": "Orange Juice",
-          "category": "Fruits",
-          "keywords": [
-            "orange",
-            "juice"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-15T03:17:47.906536+00:00"
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.851539+00:00"
     },
     {
       "test": "Categorization - Olive Oil",
-      "success": true,
-      "message": "Correctly categorized as 'Oils, Sauces & Spices'",
-      "details": {
-        "item": {
-          "item_name": "Olive Oil",
-          "category": "Oils, Sauces & Spices",
-          "keywords": [
-            "olive",
-            "oil"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-15T03:17:47.915352+00:00"
+      "success": false,
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-15T03:17:52.900102+00:00"
     }
   ]
 }
