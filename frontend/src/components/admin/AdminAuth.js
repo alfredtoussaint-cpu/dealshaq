@@ -5,9 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { auth } from '../../utils/api';
 import { toast } from 'sonner';
-import { BarChart3 } from 'lucide-react';
+import { Shield, Eye, EyeOff } from 'lucide-react';
+import Logo from '../Logo';
 
 export default function AdminAuth({ onLogin }) {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,11 +22,11 @@ export default function AdminAuth({ onLogin }) {
 
     try {
       const response = await auth.login({
-        ...formData,
-        role: 'Admin',  // Filter by Admin role
+        email: formData.email,
+        password: formData.password,
+        role: 'Admin',
       });
-      onLogin(response.data.access_token, response.data.user);
-      toast.success('Welcome, Admin!');
+      onLogin(response.data);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Authentication failed');
     } finally {
@@ -33,27 +35,26 @@ export default function AdminAuth({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="space-y-2 text-center pb-6">
-          <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
-            <BarChart3 className="w-8 h-8 text-purple-600" />
+        <CardHeader className="text-center">
+          <div className="mb-4 flex justify-center">
+            <Logo size="large" />
           </div>
-          <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>
-            DealShaq Admin
+          <CardTitle className="text-2xl font-bold text-gray-700">
+            Admin Portal
           </CardTitle>
-          <CardDescription className="text-base">System Management Dashboard</CardDescription>
+          <CardDescription className="text-base">Secure access for administrators</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Admin Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                data-testid="admin-login-email"
+                data-testid="admin-email-input"
                 type="email"
-                placeholder="admin@dealshaq.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
@@ -61,23 +62,33 @@ export default function AdminAuth({ onLogin }) {
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                data-testid="admin-login-password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  data-testid="admin-password-input"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  data-testid="admin-toggle-password"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-
             <Button
-              data-testid="admin-auth-submit-btn"
               type="submit"
               className="w-full bg-purple-600 hover:bg-purple-700"
               disabled={loading}
+              data-testid="admin-submit-btn"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Loading...' : 'Login'}
             </Button>
           </form>
         </CardContent>
