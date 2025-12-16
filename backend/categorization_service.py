@@ -84,6 +84,87 @@ VALID_CATEGORIES = [
 ]
 
 
+def parse_brand_and_generic(item_input: str) -> Dict[str, any]:
+    """
+    Smart parsing of brand and generic names from user input.
+    
+    Supports formats:
+    - "Quaker, Simply Granola" → brand: Quaker, generic: Granola
+    - "Quaker Simply, Granola" → brand: Quaker Simply, generic: Granola
+    - "Quaker, Granola" → brand: Quaker, generic: Granola
+    - "Granola" → brand: None, generic: Granola
+    
+    Logic: Text before comma = brand, text after comma = generic (intelligently extracted)
+    """
+    item_input = item_input.strip()
+    
+    # Check if comma exists
+    if ',' in item_input:
+        parts = item_input.split(',', 1)  # Split on first comma only
+        brand = parts[0].strip()
+        
+        # Smart generic extraction: extract the most meaningful generic term
+        generic_part = parts[1].strip()
+        
+        # Extract the core generic name (last significant word or phrase)
+        # Examples: "Simply Granola" → "Granola", "2% Milk" → "2% Milk"
+        generic = extract_core_generic(generic_part)
+        
+        return {
+            "brand": brand,
+            "generic": generic,
+            "full_name": item_input,
+            "has_brand": True
+        }
+    else:
+        # No comma = generic name only (no brand specified)
+        return {
+            "brand": None,
+            "generic": item_input,
+            "full_name": item_input,
+            "has_brand": False
+        }
+
+
+def extract_core_generic(generic_part: str) -> str:
+    """
+    Extract the core generic name from a phrase.
+    
+    Examples:
+    - "Simply Granola" → "Granola"
+    - "Organic 2% Milk" → "2% Milk" (keeps percentage)
+    - "Greek Yogurt" → "Greek Yogurt" (both words are meaningful)
+    - "Fresh Bananas" → "Bananas"
+    """
+    generic_lower = generic_part.lower()
+    
+    # Common modifier words that should be removed to get core generic
+    modifiers = {
+        'simply', 'fresh', 'pure', 'natural', 'classic', 'original',
+        'premium', 'extra', 'special', 'deluxe', 'regular', 'light'
+    }
+    
+    words = generic_part.split()
+    
+    # If only one word, return as-is
+    if len(words) == 1:
+        return generic_part
+    
+    # Filter out modifier words (but keep organic, gluten-free, etc. as they're attributes)
+    core_words = []
+    for word in words:
+        word_lower = word.lower()
+        # Keep words that are NOT simple modifiers
+        if word_lower not in modifiers:
+            core_words.append(word)
+    
+    # Return filtered words or original if all were modifiers
+    if core_words:
+        return ' '.join(core_words)
+    else:
+        return generic_part
+
+
 def extract_keywords(item_name: str) -> List[str]:
     """Extract keywords from item name for matching."""
     # Convert to lowercase and split
