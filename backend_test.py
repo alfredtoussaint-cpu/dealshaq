@@ -398,6 +398,317 @@ class BackendTester:
                     f"Failed to add item: {response['data']}"
                 )
     
+    async def test_brand_generic_parsing(self):
+        """Test brand/generic parsing and storage - Core Feature"""
+        logger.info("🏪 Testing brand/generic parsing and storage...")
+        
+        # Clear existing favorites first
+        await self.clear_all_favorites()
+        
+        test_cases = [
+            # Brand-specific items (with comma)
+            {
+                "input": "Quaker, Simply Granola",
+                "expected_brand": "Quaker",
+                "expected_generic": "Granola",
+                "expected_has_brand": True,
+                "expected_category": "Breakfast & Cereal",
+                "description": "Brand-specific with modifier word removal"
+            },
+            {
+                "input": "Valley Farm, 2% Milk",
+                "expected_brand": "Valley Farm",
+                "expected_generic": "2% Milk",
+                "expected_has_brand": True,
+                "expected_category": "Dairy & Eggs",
+                "description": "Brand-specific with percentage"
+            },
+            {
+                "input": "Quaker Simply, Granola",
+                "expected_brand": "Quaker Simply",
+                "expected_generic": "Granola",
+                "expected_has_brand": True,
+                "expected_category": "Breakfast & Cereal",
+                "description": "Multi-word brand name"
+            },
+            # Generic items (no comma)
+            {
+                "input": "Granola",
+                "expected_brand": None,
+                "expected_generic": "Granola",
+                "expected_has_brand": False,
+                "expected_category": "Breakfast & Cereal",
+                "description": "Generic item - any brand matches"
+            },
+            {
+                "input": "Organic 2% Milk",
+                "expected_brand": None,
+                "expected_generic": "Organic 2% Milk",
+                "expected_has_brand": False,
+                "expected_category": "Dairy & Eggs",
+                "description": "Generic with organic attribute"
+            }
+        ]
+        
+        for case in test_cases:
+            response = await self.make_request("POST", "/favorites/items", {
+                "item_name": case["input"]
+            })
+            
+            if response["status"] == 200:
+                item = response["data"]["item"]
+                
+                # Check all expected fields
+                checks = {
+                    "brand": item.get("brand") == case["expected_brand"],
+                    "generic": item.get("generic") == case["expected_generic"],
+                    "has_brand": item.get("has_brand") == case["expected_has_brand"],
+                    "category": item.get("category") == case["expected_category"]
+                }
+                
+                all_correct = all(checks.values())
+                
+                if all_correct:
+                    self.log_result(
+                        f"Brand/Generic Parsing - {case['input']}", True,
+                        f"{case['description']} - All fields correct",
+                        {
+                            "item": item,
+                            "expected": case,
+                            "brand_keywords": item.get("brand_keywords", []),
+                            "generic_keywords": item.get("generic_keywords", [])
+                        }
+                    )
+                else:
+                    failed_checks = [k for k, v in checks.items() if not v]
+                    self.log_result(
+                        f"Brand/Generic Parsing - {case['input']}", False,
+                        f"Failed checks: {failed_checks}",
+                        {
+                            "item": item,
+                            "expected": case,
+                            "failed_checks": failed_checks
+                        }
+                    )
+            else:
+                self.log_result(
+                    f"Brand/Generic Parsing - {case['input']}", False,
+                    f"Failed to add item: {response['data']}"
+                )
+    
+    async def test_smart_generic_extraction(self):
+        """Test smart generic extraction removes modifier words correctly"""
+        logger.info("🧠 Testing smart generic extraction...")
+        
+        test_cases = [
+            {
+                "input": "Quaker, Simply Granola",
+                "expected_generic": "Granola",
+                "description": "Remove 'Simply' modifier"
+            },
+            {
+                "input": "Valley Farm, Fresh 2% Milk",
+                "expected_generic": "2% Milk",
+                "description": "Remove 'Fresh' but keep '2%'"
+            },
+            {
+                "input": "Dannon, Light Greek Yogurt",
+                "expected_generic": "Greek Yogurt",
+                "description": "Remove 'Light' but keep 'Greek'"
+            }
+        ]
+        
+        for case in test_cases:
+            response = await self.make_request("POST", "/favorites/items", {
+                "item_name": case["input"]
+            })
+            
+            if response["status"] == 200:
+                item = response["data"]["item"]
+                actual_generic = item.get("generic")
+                
+                if actual_generic == case["expected_generic"]:
+                    self.log_result(
+                        f"Smart Generic - {case['input']}", True,
+                        f"{case['description']} - Got '{actual_generic}'",
+                        {"item": item}
+                    )
+                else:
+                    self.log_result(
+                        f"Smart Generic - {case['input']}", False,
+                        f"Expected '{case['expected_generic']}', got '{actual_generic}'",
+                        {"item": item}
+                    )
+            else:
+                self.log_result(
+                    f"Smart Generic - {case['input']}", False,
+                    f"Failed to add item: {response['data']}"
+                )
+    
+    async def test_edge_cases(self):
+        """Test edge cases in brand/generic parsing"""
+        logger.info("⚠️ Testing edge cases...")
+        
+        test_cases = [
+            {
+                "input": "Quaker, Simply, Granola",
+                "expected_brand": "Quaker",
+                "expected_generic": "Simply, Granola",
+                "description": "Multiple commas - split on first only"
+            },
+            {
+                "input": "Quaker , Granola",
+                "expected_brand": "Quaker",
+                "expected_generic": "Granola",
+                "description": "Spaces around comma should be trimmed"
+            }
+        ]
+        
+        for case in test_cases:
+            response = await self.make_request("POST", "/favorites/items", {
+                "item_name": case["input"]
+            })
+            
+            if response["status"] == 200:
+                item = response["data"]["item"]
+                brand_correct = item.get("brand") == case["expected_brand"]
+                generic_correct = item.get("generic") == case["expected_generic"]
+                
+                if brand_correct and generic_correct:
+                    self.log_result(
+                        f"Edge Case - {case['input']}", True,
+                        f"{case['description']} - Parsed correctly",
+                        {"item": item}
+                    )
+                else:
+                    self.log_result(
+                        f"Edge Case - {case['input']}", False,
+                        f"Parsing failed - brand: {item.get('brand')}, generic: {item.get('generic')}",
+                        {"item": item, "expected": case}
+                    )
+            else:
+                self.log_result(
+                    f"Edge Case - {case['input']}", False,
+                    f"Failed to add item: {response['data']}"
+                )
+    
+    async def test_organic_attribute_with_brand_matching(self):
+        """Test organic attribute detection with brand matching"""
+        logger.info("🌱 Testing organic attribute with brand matching...")
+        
+        # Add organic brand-specific favorite
+        response = await self.make_request("POST", "/favorites/items", {
+            "item_name": "Quaker, Organic Granola"
+        })
+        
+        if response["status"] == 200:
+            item = response["data"]["item"]
+            organic_detected = item.get("attributes", {}).get("organic", False)
+            has_brand = item.get("has_brand", False)
+            
+            if organic_detected and has_brand:
+                self.log_result(
+                    "Organic Brand Favorite", True,
+                    "Successfully added 'Quaker, Organic Granola' with organic=True and has_brand=True",
+                    {"item": item}
+                )
+            else:
+                self.log_result(
+                    "Organic Brand Favorite", False,
+                    f"Organic: {organic_detected}, Has Brand: {has_brand}",
+                    {"item": item}
+                )
+        else:
+            self.log_result(
+                "Organic Brand Favorite", False,
+                f"Failed to add organic brand favorite: {response['data']}"
+            )
+    
+    async def clear_all_favorites(self):
+        """Helper method to clear all favorites for clean testing"""
+        logger.info("🧹 Clearing all existing favorites...")
+        
+        # Get current favorites
+        response = await self.make_request("GET", "/favorites/items")
+        if response["status"] == 200:
+            items_by_category = response["data"].get("items_by_category", {})
+            
+            # Delete each item
+            for category, items in items_by_category.items():
+                for item in items:
+                    item_name = item.get("item_name")
+                    if item_name:
+                        delete_response = await self.make_request(
+                            "DELETE", "/favorites/items/remove", 
+                            headers={}, 
+                            data=None
+                        )
+                        # Use query parameter instead
+                        delete_url = f"{API_BASE}/favorites/items/remove?item_name={item_name}"
+                        async with self.session.delete(
+                            delete_url,
+                            headers={"Authorization": f"Bearer {self.auth_token}"}
+                        ) as delete_resp:
+                            pass  # Just clear it, don't check result
+    
+    async def simulate_rshd_matching_test(self):
+        """Test the matching logic by simulating RSHD posts (conceptual test)"""
+        logger.info("🎯 Testing matching logic concepts...")
+        
+        # This is a conceptual test since we can't easily simulate RSHD posts
+        # We'll test the data structure and verify favorites are stored correctly for matching
+        
+        # Clear and add test favorites
+        await self.clear_all_favorites()
+        
+        # Add brand-specific favorite
+        brand_response = await self.make_request("POST", "/favorites/items", {
+            "item_name": "Quaker, Granola"
+        })
+        
+        # Add generic favorite  
+        generic_response = await self.make_request("POST", "/favorites/items", {
+            "item_name": "Yogurt"
+        })
+        
+        if brand_response["status"] == 200 and generic_response["status"] == 200:
+            brand_item = brand_response["data"]["item"]
+            generic_item = generic_response["data"]["item"]
+            
+            # Verify brand-specific has correct structure for strict matching
+            brand_has_keywords = bool(brand_item.get("brand_keywords"))
+            brand_has_generic_keywords = bool(brand_item.get("generic_keywords"))
+            brand_has_brand_flag = brand_item.get("has_brand") == True
+            
+            # Verify generic has correct structure for flexible matching
+            generic_has_keywords = bool(generic_item.get("generic_keywords"))
+            generic_no_brand_flag = generic_item.get("has_brand") == False
+            
+            if all([brand_has_keywords, brand_has_generic_keywords, brand_has_brand_flag, 
+                   generic_has_keywords, generic_no_brand_flag]):
+                self.log_result(
+                    "Matching Logic Structure", True,
+                    "Both brand-specific and generic favorites have correct structure for matching",
+                    {
+                        "brand_item": brand_item,
+                        "generic_item": generic_item
+                    }
+                )
+            else:
+                self.log_result(
+                    "Matching Logic Structure", False,
+                    "Favorites missing required fields for matching logic",
+                    {
+                        "brand_checks": [brand_has_keywords, brand_has_generic_keywords, brand_has_brand_flag],
+                        "generic_checks": [generic_has_keywords, generic_no_brand_flag]
+                    }
+                )
+        else:
+            self.log_result(
+                "Matching Logic Structure", False,
+                "Failed to add test favorites for matching logic test"
+            )
+    
     async def run_all_tests(self):
         """Run all backend tests"""
         logger.info("🚀 Starting Enhanced DACFI-List Backend Tests")
