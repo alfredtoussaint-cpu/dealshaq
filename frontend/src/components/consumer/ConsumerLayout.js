@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '../Logo';
 
 export default function ConsumerLayout({ children, user, onLogout }) {
   const navigate = useNavigate();
