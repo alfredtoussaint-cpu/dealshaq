@@ -1,1 +1,929 @@
-null
+{
+  "total": 32,
+  "passed": 28,
+  "failed": 4,
+  "results": [
+    {
+      "test": "Authentication",
+      "success": true,
+      "message": "Successfully authenticated as test.brand.generic@example.com",
+      "details": {},
+      "timestamp": "2025-12-16T19:15:13.195362+00:00"
+    },
+    {
+      "test": "Categories Endpoint",
+      "success": true,
+      "message": "Returns 20 categories including 'Miscellaneous'",
+      "details": {
+        "categories": [
+          "Fruits",
+          "Vegetables",
+          "Meat & Poultry",
+          "Seafood",
+          "Dairy & Eggs",
+          "Bakery & Bread",
+          "Pantry Staples",
+          "Snacks & Candy",
+          "Frozen Foods",
+          "Beverages",
+          "Deli & Prepared Foods",
+          "Breakfast & Cereal",
+          "Pasta, Rice & Grains",
+          "Oils, Sauces & Spices",
+          "Baby & Kids",
+          "Health & Nutrition",
+          "Household Essentials",
+          "Personal Care",
+          "Pet Supplies",
+          "Miscellaneous"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:13.201826+00:00"
+    },
+    {
+      "test": "Brand/Generic Parsing - Quaker, Simply Granola",
+      "success": true,
+      "message": "Brand-specific with modifier word removal - All fields correct",
+      "details": {
+        "item": {
+          "item_name": "Quaker, Simply Granola",
+          "brand": "Quaker",
+          "generic": "Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "simply",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker"
+          ],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "expected": {
+          "input": "Quaker, Simply Granola",
+          "expected_brand": "Quaker",
+          "expected_generic": "Granola",
+          "expected_has_brand": true,
+          "expected_category": "Breakfast & Cereal",
+          "description": "Brand-specific with modifier word removal"
+        },
+        "brand_keywords": [
+          "quaker"
+        ],
+        "generic_keywords": [
+          "granola"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:14.519360+00:00"
+    },
+    {
+      "test": "Brand/Generic Parsing - Valley Farm, 2% Milk",
+      "success": true,
+      "message": "Brand-specific with percentage - All fields correct",
+      "details": {
+        "item": {
+          "item_name": "Valley Farm, 2% Milk",
+          "brand": "Valley Farm",
+          "generic": "2% Milk",
+          "has_brand": true,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "valley",
+            "farm",
+            "2%",
+            "milk"
+          ],
+          "brand_keywords": [
+            "valley",
+            "farm"
+          ],
+          "generic_keywords": [
+            "2%",
+            "milk"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "expected": {
+          "input": "Valley Farm, 2% Milk",
+          "expected_brand": "Valley Farm",
+          "expected_generic": "2% Milk",
+          "expected_has_brand": true,
+          "expected_category": "Dairy & Eggs",
+          "description": "Brand-specific with percentage"
+        },
+        "brand_keywords": [
+          "valley",
+          "farm"
+        ],
+        "generic_keywords": [
+          "2%",
+          "milk"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:14.526540+00:00"
+    },
+    {
+      "test": "Brand/Generic Parsing - Quaker Simply, Granola",
+      "success": true,
+      "message": "Multi-word brand name - All fields correct",
+      "details": {
+        "item": {
+          "item_name": "Quaker Simply, Granola",
+          "brand": "Quaker Simply",
+          "generic": "Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "simply",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker",
+            "simply"
+          ],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "expected": {
+          "input": "Quaker Simply, Granola",
+          "expected_brand": "Quaker Simply",
+          "expected_generic": "Granola",
+          "expected_has_brand": true,
+          "expected_category": "Breakfast & Cereal",
+          "description": "Multi-word brand name"
+        },
+        "brand_keywords": [
+          "quaker",
+          "simply"
+        ],
+        "generic_keywords": [
+          "granola"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:14.574281+00:00"
+    },
+    {
+      "test": "Brand/Generic Parsing - Granola",
+      "success": true,
+      "message": "Generic item - any brand matches - All fields correct",
+      "details": {
+        "item": {
+          "item_name": "Granola",
+          "brand": null,
+          "generic": "Granola",
+          "has_brand": false,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "granola"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "expected": {
+          "input": "Granola",
+          "expected_brand": null,
+          "expected_generic": "Granola",
+          "expected_has_brand": false,
+          "expected_category": "Breakfast & Cereal",
+          "description": "Generic item - any brand matches"
+        },
+        "brand_keywords": [],
+        "generic_keywords": [
+          "granola"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:14.581502+00:00"
+    },
+    {
+      "test": "Brand/Generic Parsing - Organic 2% Milk",
+      "success": true,
+      "message": "Generic with organic attribute - All fields correct",
+      "details": {
+        "item": {
+          "item_name": "Organic 2% Milk",
+          "brand": null,
+          "generic": "Organic 2% Milk",
+          "has_brand": false,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "organic",
+            "2%",
+            "milk"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "organic",
+            "2%",
+            "milk"
+          ],
+          "attributes": {
+            "organic": true
+          },
+          "auto_added_date": null
+        },
+        "expected": {
+          "input": "Organic 2% Milk",
+          "expected_brand": null,
+          "expected_generic": "Organic 2% Milk",
+          "expected_has_brand": false,
+          "expected_category": "Dairy & Eggs",
+          "description": "Generic with organic attribute"
+        },
+        "brand_keywords": [],
+        "generic_keywords": [
+          "organic",
+          "2%",
+          "milk"
+        ]
+      },
+      "timestamp": "2025-12-16T19:15:14.629101+00:00"
+    },
+    {
+      "test": "Smart Generic - Quaker, Simply Granola",
+      "success": false,
+      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
+      "details": {},
+      "timestamp": "2025-12-16T19:15:14.636152+00:00"
+    },
+    {
+      "test": "Smart Generic - Valley Farm, Fresh 2% Milk",
+      "success": true,
+      "message": "Remove 'Fresh' but keep '2%' - Got '2% Milk'",
+      "details": {
+        "item": {
+          "item_name": "Valley Farm, Fresh 2% Milk",
+          "brand": "Valley Farm",
+          "generic": "2% Milk",
+          "has_brand": true,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "valley",
+            "farm",
+            "fresh",
+            "2%",
+            "milk"
+          ],
+          "brand_keywords": [
+            "valley",
+            "farm"
+          ],
+          "generic_keywords": [
+            "2%",
+            "milk"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:14.642524+00:00"
+    },
+    {
+      "test": "Smart Generic - Dannon, Light Greek Yogurt",
+      "success": true,
+      "message": "Remove 'Light' but keep 'Greek' - Got 'Greek Yogurt'",
+      "details": {
+        "item": {
+          "item_name": "Dannon, Light Greek Yogurt",
+          "brand": "Dannon",
+          "generic": "Greek Yogurt",
+          "has_brand": true,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "dannon",
+            "light",
+            "greek",
+            "yogurt"
+          ],
+          "brand_keywords": [
+            "dannon"
+          ],
+          "generic_keywords": [
+            "greek",
+            "yogurt"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:14.689932+00:00"
+    },
+    {
+      "test": "Edge Case - Quaker, Simply, Granola",
+      "success": true,
+      "message": "Multiple commas - split on first only - Parsed correctly",
+      "details": {
+        "item": {
+          "item_name": "Quaker, Simply, Granola",
+          "brand": "Quaker",
+          "generic": "Simply, Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "simply",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker"
+          ],
+          "generic_keywords": [
+            "simply",
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:14.697001+00:00"
+    },
+    {
+      "test": "Edge Case - Quaker , Granola",
+      "success": true,
+      "message": "Spaces around comma should be trimmed - Parsed correctly",
+      "details": {
+        "item": {
+          "item_name": "Quaker , Granola",
+          "brand": "Quaker",
+          "generic": "Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker"
+          ],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:14.744494+00:00"
+    },
+    {
+      "test": "Organic Brand Favorite",
+      "success": true,
+      "message": "Successfully added 'Quaker, Organic Granola' with organic=True and has_brand=True",
+      "details": {
+        "item": {
+          "item_name": "Quaker, Organic Granola",
+          "brand": "Quaker",
+          "generic": "Organic Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "organic",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker"
+          ],
+          "generic_keywords": [
+            "organic",
+            "granola"
+          ],
+          "attributes": {
+            "organic": true
+          },
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:14.751890+00:00"
+    },
+    {
+      "test": "Matching Logic Structure",
+      "success": true,
+      "message": "Both brand-specific and generic favorites have correct structure for matching",
+      "details": {
+        "brand_item": {
+          "item_name": "Quaker, Granola",
+          "brand": "Quaker",
+          "generic": "Granola",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "quaker",
+            "granola"
+          ],
+          "brand_keywords": [
+            "quaker"
+          ],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "generic_item": {
+          "item_name": "Yogurt",
+          "brand": null,
+          "generic": "Yogurt",
+          "has_brand": false,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "yogurt"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "yogurt"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.286797+00:00"
+    },
+    {
+      "test": "Add Favorite Item - Organic 2% Milk",
+      "success": true,
+      "message": "Successfully added and categorized as 'Dairy & Eggs'",
+      "details": {
+        "item": {
+          "item_name": "Organic 2% Milk",
+          "brand": null,
+          "generic": "Organic 2% Milk",
+          "has_brand": false,
+          "category": "Dairy & Eggs",
+          "keywords": [
+            "organic",
+            "2%",
+            "milk"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "organic",
+            "2%",
+            "milk"
+          ],
+          "attributes": {
+            "organic": true
+          },
+          "auto_added_date": null
+        },
+        "organic_detected": true,
+        "gluten_free_detected": false
+      },
+      "timestamp": "2025-12-16T19:15:15.334485+00:00"
+    },
+    {
+      "test": "Add Favorite Item - Granola",
+      "success": true,
+      "message": "Successfully added and categorized as 'Breakfast & Cereal'",
+      "details": {
+        "item": {
+          "item_name": "Granola",
+          "brand": null,
+          "generic": "Granola",
+          "has_brand": false,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "granola"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "granola"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "organic_detected": false,
+        "gluten_free_detected": false
+      },
+      "timestamp": "2025-12-16T19:15:15.341627+00:00"
+    },
+    {
+      "test": "Add Favorite Item - Honeycrisp Apples",
+      "success": true,
+      "message": "Successfully added and categorized as 'Fruits'",
+      "details": {
+        "item": {
+          "item_name": "Honeycrisp Apples",
+          "brand": null,
+          "generic": "Honeycrisp Apples",
+          "has_brand": false,
+          "category": "Fruits",
+          "keywords": [
+            "honeycrisp",
+            "apples"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "honeycrisp",
+            "apples"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        },
+        "organic_detected": false,
+        "gluten_free_detected": false
+      },
+      "timestamp": "2025-12-16T19:15:15.388408+00:00"
+    },
+    {
+      "test": "Add Favorite Item - Gluten-Free Bread",
+      "success": true,
+      "message": "Successfully added and categorized as 'Bakery & Bread'",
+      "details": {
+        "item": {
+          "item_name": "Gluten-Free Bread",
+          "brand": null,
+          "generic": "Gluten-Free Bread",
+          "has_brand": false,
+          "category": "Bakery & Bread",
+          "keywords": [
+            "gluten",
+            "free",
+            "bread"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "gluten",
+            "free",
+            "bread"
+          ],
+          "attributes": {
+            "gluten_free": true
+          },
+          "auto_added_date": null
+        },
+        "organic_detected": false,
+        "gluten_free_detected": true
+      },
+      "timestamp": "2025-12-16T19:15:15.395797+00:00"
+    },
+    {
+      "test": "Duplicate Favorite Item",
+      "success": true,
+      "message": "Correctly rejected duplicate item with 400 error",
+      "details": {
+        "response": {
+          "detail": "Item already in favorites"
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.443331+00:00"
+    },
+    {
+      "test": "Get Favorite Items",
+      "success": true,
+      "message": "Retrieved 6 items organized by category",
+      "details": {
+        "categories": [
+          "Breakfast & Cereal",
+          "Dairy & Eggs",
+          "Fruits",
+          "Bakery & Bread"
+        ],
+        "explicit_items": 6,
+        "implicit_items": 0,
+        "sample_items": {
+          "Breakfast & Cereal": [
+            {
+              "item_name": "Quaker, Granola",
+              "brand": "Quaker",
+              "generic": "Granola",
+              "has_brand": true,
+              "category": "Breakfast & Cereal",
+              "keywords": [
+                "quaker",
+                "granola"
+              ],
+              "brand_keywords": [
+                "quaker"
+              ],
+              "generic_keywords": [
+                "granola"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            },
+            {
+              "item_name": "Granola",
+              "brand": null,
+              "generic": "Granola",
+              "has_brand": false,
+              "category": "Breakfast & Cereal",
+              "keywords": [
+                "granola"
+              ],
+              "brand_keywords": [],
+              "generic_keywords": [
+                "granola"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            }
+          ],
+          "Dairy & Eggs": [
+            {
+              "item_name": "Yogurt",
+              "brand": null,
+              "generic": "Yogurt",
+              "has_brand": false,
+              "category": "Dairy & Eggs",
+              "keywords": [
+                "yogurt"
+              ],
+              "brand_keywords": [],
+              "generic_keywords": [
+                "yogurt"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            },
+            {
+              "item_name": "Organic 2% Milk",
+              "brand": null,
+              "generic": "Organic 2% Milk",
+              "has_brand": false,
+              "category": "Dairy & Eggs",
+              "keywords": [
+                "organic",
+                "2%",
+                "milk"
+              ],
+              "brand_keywords": [],
+              "generic_keywords": [
+                "organic",
+                "2%",
+                "milk"
+              ],
+              "attributes": {
+                "organic": true
+              },
+              "auto_added_date": null
+            }
+          ],
+          "Fruits": [
+            {
+              "item_name": "Honeycrisp Apples",
+              "brand": null,
+              "generic": "Honeycrisp Apples",
+              "has_brand": false,
+              "category": "Fruits",
+              "keywords": [
+                "honeycrisp",
+                "apples"
+              ],
+              "brand_keywords": [],
+              "generic_keywords": [
+                "honeycrisp",
+                "apples"
+              ],
+              "attributes": {},
+              "auto_added_date": null
+            }
+          ],
+          "Bakery & Bread": [
+            {
+              "item_name": "Gluten-Free Bread",
+              "brand": null,
+              "generic": "Gluten-Free Bread",
+              "has_brand": false,
+              "category": "Bakery & Bread",
+              "keywords": [
+                "gluten",
+                "free",
+                "bread"
+              ],
+              "brand_keywords": [],
+              "generic_keywords": [
+                "gluten",
+                "free",
+                "bread"
+              ],
+              "attributes": {
+                "gluten_free": true
+              },
+              "auto_added_date": null
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.450174+00:00"
+    },
+    {
+      "test": "Delete Favorite Item",
+      "success": false,
+      "message": "Failed with status 404: {'detail': 'Favorite not found'}",
+      "details": {},
+      "timestamp": "2025-12-16T19:15:15.457818+00:00"
+    },
+    {
+      "test": "Delete Non-Existent Item",
+      "success": true,
+      "message": "Correctly returned 404 for non-existent item",
+      "details": {
+        "response": {
+          "detail": "Favorite not found"
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.503843+00:00"
+    },
+    {
+      "test": "Auto Threshold - 0",
+      "success": false,
+      "message": "Failed with status 500: {'detail': 'Failed to update auto-add settings'}",
+      "details": {},
+      "timestamp": "2025-12-16T19:15:15.509819+00:00"
+    },
+    {
+      "test": "Auto Threshold - 3",
+      "success": true,
+      "message": "Successfully set threshold to 3",
+      "details": {
+        "response": {
+          "message": "Auto-add settings updated",
+          "threshold": 3
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.515911+00:00"
+    },
+    {
+      "test": "Auto Threshold - 6",
+      "success": true,
+      "message": "Successfully set threshold to 6",
+      "details": {
+        "response": {
+          "message": "Auto-add settings updated",
+          "threshold": 6
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.563084+00:00"
+    },
+    {
+      "test": "Invalid Auto Threshold",
+      "success": true,
+      "message": "Correctly rejected invalid threshold with 400 error",
+      "details": {
+        "response": {
+          "detail": "Auto-favorite threshold must be 0 (Never), 3, or 6 days"
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.568733+00:00"
+    },
+    {
+      "test": "Unauthenticated Access",
+      "success": true,
+      "message": "Correctly rejected unauthenticated request with 403",
+      "details": {
+        "response": {
+          "detail": "Not authenticated"
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.572734+00:00"
+    },
+    {
+      "test": "Categorization - Organic Spinach",
+      "success": true,
+      "message": "Correctly categorized as 'Vegetables'",
+      "details": {
+        "item": {
+          "item_name": "Organic Spinach",
+          "brand": null,
+          "generic": "Organic Spinach",
+          "has_brand": false,
+          "category": "Vegetables",
+          "keywords": [
+            "organic",
+            "spinach"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "organic",
+            "spinach"
+          ],
+          "attributes": {
+            "organic": true
+          },
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.620642+00:00"
+    },
+    {
+      "test": "Categorization - Chocolate Chip Cookies",
+      "success": true,
+      "message": "Correctly categorized as 'Snacks & Candy'",
+      "details": {
+        "item": {
+          "item_name": "Chocolate Chip Cookies",
+          "brand": null,
+          "generic": "Chocolate Chip Cookies",
+          "has_brand": false,
+          "category": "Snacks & Candy",
+          "keywords": [
+            "chocolate",
+            "chip",
+            "cookies"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "chocolate",
+            "chip",
+            "cookies"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.626777+00:00"
+    },
+    {
+      "test": "Categorization - Frozen Pizza",
+      "success": true,
+      "message": "Correctly categorized as 'Frozen Foods'",
+      "details": {
+        "item": {
+          "item_name": "Frozen Pizza",
+          "brand": null,
+          "generic": "Frozen Pizza",
+          "has_brand": false,
+          "category": "Frozen Foods",
+          "keywords": [
+            "frozen",
+            "pizza"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "frozen",
+            "pizza"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.675113+00:00"
+    },
+    {
+      "test": "Categorization - Orange Juice",
+      "success": false,
+      "message": "Expected 'Beverages', got 'Fruits'",
+      "details": {
+        "item": {
+          "item_name": "Orange Juice",
+          "brand": null,
+          "generic": "Orange Juice",
+          "has_brand": false,
+          "category": "Fruits",
+          "keywords": [
+            "orange",
+            "juice"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "orange",
+            "juice"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.681644+00:00"
+    },
+    {
+      "test": "Categorization - Olive Oil",
+      "success": true,
+      "message": "Correctly categorized as 'Oils, Sauces & Spices'",
+      "details": {
+        "item": {
+          "item_name": "Olive Oil",
+          "brand": null,
+          "generic": "Olive Oil",
+          "has_brand": false,
+          "category": "Oils, Sauces & Spices",
+          "keywords": [
+            "olive",
+            "oil"
+          ],
+          "brand_keywords": [],
+          "generic_keywords": [
+            "olive",
+            "oil"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T19:15:15.730421+00:00"
+    }
+  ]
+}
