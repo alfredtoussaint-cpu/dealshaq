@@ -219,39 +219,60 @@ backend:
 frontend:
   - task: "Consumer Settings Page - Smart Favorites Configuration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/consumer/ConsumerSettings.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "testing"
           comment: "Frontend implementation found. Ready for comprehensive testing of Smart Favorites configuration with radio buttons (6/3/Never days), verbose question text, save functionality, and account information display."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE - Cannot test due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system. Frontend appears properly implemented but untestable without authentication."
 
   - task: "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/consumer/ConsumerFavorites.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "testing"
           comment: "Frontend implementation found. Ready for comprehensive testing of add item form, auto-categorization display, Manual/Auto badges, organic indicators, remove functionality, and category organization."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE - Cannot test due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system. Frontend appears properly implemented but untestable without authentication."
 
   - task: "Navigation and Layout Integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/consumer/ConsumerLayout.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "testing"
           comment: "Navigation layout includes Settings link with proper testId attributes. Ready for testing navigation between pages and layout consistency."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE - Cannot test navigation due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system."
+
+  - task: "DAC User Registration and Authentication"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL BACKEND ISSUE - DAC user registration fails with 500 Internal Server Error. Error: 'Unable to serialize unknown type: <class 'bson.objectid.ObjectId'>'. This prevents all consumer frontend testing. DRLP registration works but DAC registration is broken. No DAC accounts exist in system."
 
 metadata:
   created_by: "testing_agent"
