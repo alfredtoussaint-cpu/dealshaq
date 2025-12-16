@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Package, ShoppingBag, LogOut, Plus } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Store } from 'lucide-react';
+import Logo from '../Logo';
 
 export default function RetailerLayout({ children, user, onLogout }) {
   const navigate = useNavigate();
