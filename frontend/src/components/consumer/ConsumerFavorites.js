@@ -184,9 +184,16 @@ export default function ConsumerFavorites({ user, onLogout }) {
                           >
                             <div className="flex-1">
                               <div className="flex items-center space-x-2">
-                                <span className="font-medium text-gray-900">
-                                  {item.item_name}
-                                </span>
+                                <div>
+                                  <span className="font-medium text-gray-900">
+                                    {item.item_name}
+                                  </span>
+                                  {item.has_brand && (
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      (Brand: {item.brand})
+                                    </span>
+                                  )}
+                                </div>
                                 {item.auto_added_date ? (
                                   <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                                     <Sparkles className="w-3 h-3 mr-1" />
@@ -198,9 +205,14 @@ export default function ConsumerFavorites({ user, onLogout }) {
                                   </Badge>
                                 )}
                               </div>
-                              {item.attributes?.organic && (
-                                <span className="text-xs text-emerald-600">🌿 Organic</span>
-                              )}
+                              <div className="flex items-center space-x-2 mt-1">
+                                {item.attributes?.organic && (
+                                  <span className="text-xs text-emerald-600">🌿 Organic</span>
+                                )}
+                                {item.has_brand && (
+                                  <span className="text-xs text-purple-600">🏷️ Brand-specific</span>
+                                )}
+                              </div>
                             </div>
                             <Button
                               size="sm"
