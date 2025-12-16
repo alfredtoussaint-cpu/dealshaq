@@ -770,21 +770,25 @@ class BackendTester:
             logger.error("❌ Authentication failed - stopping tests")
             return
         
-        # Run all tests - focusing on brand/generic feature
-        await self.test_categories_endpoint()
+        # PRIORITY 1: Test the 3 CRITICAL FIXES from review request
+        logger.info("🎯 PRIORITY 1: Testing CRITICAL FIXES")
+        await self.test_orange_juice_categorization_fix()  # Fix #1: Orange Juice → Beverages
+        await self.test_delete_favorite_item_new_endpoint()  # Fix #2: New POST delete endpoint
         
-        # Core Brand/Generic Feature Tests
+        # PRIORITY 2: Core Brand/Generic Feature Regression Tests
+        logger.info("🔄 PRIORITY 2: Brand/Generic Regression Tests")
         await self.test_brand_generic_parsing()
         await self.test_smart_generic_extraction()
         await self.test_edge_cases()
         await self.test_organic_attribute_with_brand_matching()
         await self.simulate_rshd_matching_test()
         
-        # Basic functionality tests
+        # PRIORITY 3: General functionality regression tests
+        logger.info("✅ PRIORITY 3: General Regression Tests")
+        await self.test_categories_endpoint()
         await self.test_add_favorite_items()
         await self.test_duplicate_favorite_item()
         await self.test_get_favorite_items()
-        await self.test_delete_favorite_item()
         await self.test_delete_nonexistent_item()
         await self.test_auto_threshold_settings()
         await self.test_invalid_auto_threshold()
