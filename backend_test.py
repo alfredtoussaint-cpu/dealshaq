@@ -250,24 +250,46 @@ class BackendTester:
                 f"Failed with status {response['status']}: {response['data']}"
             )
     
-    async def test_delete_favorite_item(self):
-        """Test DELETE /api/favorites/items - Remove favorite item"""
-        logger.info("🗑️ Testing delete favorite item...")
+    async def test_delete_favorite_item_new_endpoint(self):
+        """Test NEW POST /api/favorites/items/delete - Remove favorite item (FIXED ENDPOINT)"""
+        logger.info("🗑️ Testing NEW delete favorite item endpoint (POST-based)...")
         
-        # Delete "Organic 2% Milk"
-        response = await self.make_request("DELETE", "/favorites/items", {
-            "item_name": "Organic 2% Milk"
+        # First add a test item to delete
+        add_response = await self.make_request("POST", "/favorites/items", {
+            "item_name": "Test Granola"
+        })
+        
+        if add_response["status"] != 200:
+            self.log_result(
+                "Delete Favorite Item (NEW) - Setup", False,
+                f"Failed to add test item: {add_response['data']}"
+            )
+            return
+        
+        # Now delete using the NEW POST endpoint
+        response = await self.make_request("POST", "/favorites/items/delete", {
+            "item_name": "Test Granola"
         })
         
         if response["status"] == 200:
-            self.log_result(
-                "Delete Favorite Item", True,
-                "Successfully deleted 'Organic 2% Milk'",
-                {"response": response["data"]}
-            )
+            expected_message = "Favorite item removed"
+            actual_message = response["data"].get("message", "")
+            
+            if expected_message in actual_message:
+                self.log_result(
+                    "Delete Favorite Item (NEW POST Endpoint)", True,
+                    f"Successfully deleted 'Test Granola' using POST /api/favorites/items/delete",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    "Delete Favorite Item (NEW POST Endpoint)", False,
+                    f"Unexpected response message: {actual_message}",
+                    {"response": response["data"]}
+                )
         else:
             self.log_result(
-                "Delete Favorite Item", False,
+                "Delete Favorite Item (NEW POST Endpoint)", False,
                 f"Failed with status {response['status']}: {response['data']}"
             )
     
