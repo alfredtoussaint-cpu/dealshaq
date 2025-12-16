@@ -342,12 +342,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "DAC User Registration and Authentication"
+    - "Brand/Generic Parsing and Storage"
+    - "Smart Generic Extraction"
+    - "Hybrid Matching Logic (Option C)"
+    - "Organic Attribute with Brand Matching"
+    - "Edge Cases Handling"
   stuck_tasks:
     - "Consumer Settings Page - Smart Favorites Configuration"
     - "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
     - "Navigation and Layout Integration"
-    - "DAC User Registration and Authentication"
   test_all: false
   test_priority: "high_first"
 
