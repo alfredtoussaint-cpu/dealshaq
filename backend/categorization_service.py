@@ -40,8 +40,8 @@ CATEGORY_KEYWORDS = {
     "Frozen Foods": ["frozen", "ice cream", "pizza", "frozen dinner", "popsicle", "frozen meal",
                      "frozen vegetable", "frozen fruit"],
     
-    "Beverages": ["juice", "soda", "water", "coffee", "tea", "energy drink", "sports drink",
-                  "lemonade", "iced tea", "sparkling water", "cola", "beverage"],
+    "Beverages": ["juice", "orange juice", "apple juice", "grape juice", "soda", "water", "coffee", "tea", "energy drink", "sports drink",
+                  "lemonade", "iced tea", "sparkling water", "cola", "beverage", "drink"],
     
     "Deli & Prepared Foods": ["deli", "rotisserie", "prepared", "ready to eat", "salad bar",
                               "sandwich", "wrap", "sushi", "sliced turkey", "sliced ham"],
