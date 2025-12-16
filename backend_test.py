@@ -387,6 +387,14 @@ class BackendTester:
         """Test CRITICAL FIX: Orange Juice categorization to Beverages (not Fruits)"""
         logger.info("🍊 Testing CRITICAL FIX: Orange Juice categorization...")
         
+        # First try to remove Orange Juice if it exists
+        try:
+            await self.make_request("POST", "/favorites/items/delete", {
+                "item_name": "Orange Juice"
+            })
+        except:
+            pass  # Ignore if it doesn't exist
+        
         response = await self.make_request("POST", "/favorites/items", {
             "item_name": "Orange Juice"
         })
@@ -406,6 +414,46 @@ class BackendTester:
                     "CRITICAL FIX - Orange Juice Categorization", False,
                     f"❌ STILL BROKEN: Expected '{expected_category}', got '{category}'",
                     {"item": response["data"]["item"]}
+                )
+        elif response["status"] == 400 and "already in favorites" in response["data"].get("detail", ""):
+            # Item already exists, let's check what category it has
+            get_response = await self.make_request("GET", "/favorites/items")
+            if get_response["status"] == 200:
+                items_by_category = get_response["data"].get("items_by_category", {})
+                orange_juice_item = None
+                
+                for category, items in items_by_category.items():
+                    for item in items:
+                        if item.get("item_name", "").lower() == "orange juice":
+                            orange_juice_item = item
+                            actual_category = category
+                            break
+                    if orange_juice_item:
+                        break
+                
+                if orange_juice_item:
+                    expected_category = "Beverages"
+                    if actual_category == expected_category:
+                        self.log_result(
+                            "CRITICAL FIX - Orange Juice Categorization", True,
+                            f"✅ FIXED: Orange Juice already exists and correctly categorized as '{actual_category}' (not Fruits)",
+                            {"item": orange_juice_item}
+                        )
+                    else:
+                        self.log_result(
+                            "CRITICAL FIX - Orange Juice Categorization", False,
+                            f"❌ STILL BROKEN: Expected '{expected_category}', got '{actual_category}'",
+                            {"item": orange_juice_item}
+                        )
+                else:
+                    self.log_result(
+                        "CRITICAL FIX - Orange Juice Categorization", False,
+                        "Orange Juice exists but couldn't find it in favorites list"
+                    )
+            else:
+                self.log_result(
+                    "CRITICAL FIX - Orange Juice Categorization", False,
+                    f"Orange Juice already exists but couldn't retrieve favorites: {get_response['data']}"
                 )
         else:
             self.log_result(
