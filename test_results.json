@@ -1,14 +1,14 @@
 {
   "total": 32,
-  "passed": 31,
-  "failed": 1,
+  "passed": 32,
+  "failed": 0,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-16T20:02:15.020791+00:00"
+      "timestamp": "2025-12-16T20:02:43.457313+00:00"
     },
     {
       "test": "CRITICAL FIX - Orange Juice Categorization",
@@ -34,7 +34,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.079778+00:00"
+      "timestamp": "2025-12-16T20:02:43.560131+00:00"
     },
     {
       "test": "Delete Favorite Item (NEW POST Endpoint)",
@@ -45,7 +45,7 @@
           "message": "Favorite item removed"
         }
       },
-      "timestamp": "2025-12-16T20:02:15.098825+00:00"
+      "timestamp": "2025-12-16T20:02:43.618573+00:00"
     },
     {
       "test": "Brand/Generic Parsing - Quaker, Simply Granola",
@@ -87,7 +87,7 @@
           "granola"
         ]
       },
-      "timestamp": "2025-12-16T20:02:15.620475+00:00"
+      "timestamp": "2025-12-16T20:02:44.183902+00:00"
     },
     {
       "test": "Brand/Generic Parsing - Valley Farm, 2% Milk",
@@ -134,7 +134,7 @@
           "milk"
         ]
       },
-      "timestamp": "2025-12-16T20:02:15.628741+00:00"
+      "timestamp": "2025-12-16T20:02:44.190591+00:00"
     },
     {
       "test": "Brand/Generic Parsing - Quaker Simply, Granola",
@@ -178,7 +178,7 @@
           "granola"
         ]
       },
-      "timestamp": "2025-12-16T20:02:15.635569+00:00"
+      "timestamp": "2025-12-16T20:02:44.239269+00:00"
     },
     {
       "test": "Brand/Generic Parsing - Granola",
@@ -214,7 +214,7 @@
           "granola"
         ]
       },
-      "timestamp": "2025-12-16T20:02:15.682817+00:00"
+      "timestamp": "2025-12-16T20:02:44.288333+00:00"
     },
     {
       "test": "Brand/Generic Parsing - Organic 2% Milk",
@@ -258,14 +258,7 @@
           "milk"
         ]
       },
-      "timestamp": "2025-12-16T20:02:15.692549+00:00"
-    },
-    {
-      "test": "Smart Generic - Quaker, Simply Granola",
-      "success": false,
-      "message": "Failed to add item: {'detail': 'Item already in favorites'}",
-      "details": {},
-      "timestamp": "2025-12-16T20:02:15.700967+00:00"
+      "timestamp": "2025-12-16T20:02:44.297552+00:00"
     },
     {
       "test": "Smart Generic - Valley Farm, Fresh 2% Milk",
@@ -297,7 +290,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.749865+00:00"
+      "timestamp": "2025-12-16T20:02:44.354288+00:00"
     },
     {
       "test": "Smart Generic - Dannon, Light Greek Yogurt",
@@ -327,7 +320,39 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.760638+00:00"
+      "timestamp": "2025-12-16T20:02:44.409609+00:00"
+    },
+    {
+      "test": "Smart Generic - Kellogg's, Simply Corn Flakes",
+      "success": true,
+      "message": "Remove 'Simply' modifier from different brand - Got 'Corn Flakes'",
+      "details": {
+        "item": {
+          "item_name": "Kellogg's, Simply Corn Flakes",
+          "brand": "Kellogg's",
+          "generic": "Corn Flakes",
+          "has_brand": true,
+          "category": "Breakfast & Cereal",
+          "keywords": [
+            "kellogg",
+            "s",
+            "simply",
+            "corn",
+            "flakes"
+          ],
+          "brand_keywords": [
+            "kellogg",
+            "s"
+          ],
+          "generic_keywords": [
+            "corn",
+            "flakes"
+          ],
+          "attributes": {},
+          "auto_added_date": null
+        }
+      },
+      "timestamp": "2025-12-16T20:02:44.464811+00:00"
     },
     {
       "test": "Edge Case - Quaker, Simply, Granola",
@@ -356,7 +381,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.768927+00:00"
+      "timestamp": "2025-12-16T20:02:44.472802+00:00"
     },
     {
       "test": "Edge Case - Quaker , Granola",
@@ -383,7 +408,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.779515+00:00"
+      "timestamp": "2025-12-16T20:02:44.521282+00:00"
     },
     {
       "test": "Organic Brand Favorite",
@@ -414,7 +439,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:15.830277+00:00"
+      "timestamp": "2025-12-16T20:02:44.531128+00:00"
     },
     {
       "test": "Matching Logic Structure",
@@ -457,7 +482,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:16.454369+00:00"
+      "timestamp": "2025-12-16T20:02:45.143993+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -487,7 +512,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-16T20:02:16.499107+00:00"
+      "timestamp": "2025-12-16T20:02:45.148300+00:00"
     },
     {
       "test": "Add Favorite Item - Organic 2% Milk",
@@ -519,7 +544,7 @@
         "organic_detected": true,
         "gluten_free_detected": false
       },
-      "timestamp": "2025-12-16T20:02:16.547553+00:00"
+      "timestamp": "2025-12-16T20:02:45.200959+00:00"
     },
     {
       "test": "Add Favorite Item - Granola",
@@ -545,7 +570,7 @@
         "organic_detected": false,
         "gluten_free_detected": false
       },
-      "timestamp": "2025-12-16T20:02:16.555878+00:00"
+      "timestamp": "2025-12-16T20:02:45.248387+00:00"
     },
     {
       "test": "Add Favorite Item - Honeycrisp Apples",
@@ -573,7 +598,7 @@
         "organic_detected": false,
         "gluten_free_detected": false
       },
-      "timestamp": "2025-12-16T20:02:16.602932+00:00"
+      "timestamp": "2025-12-16T20:02:45.255950+00:00"
     },
     {
       "test": "Add Favorite Item - Gluten-Free Bread",
@@ -605,7 +630,7 @@
         "organic_detected": false,
         "gluten_free_detected": true
       },
-      "timestamp": "2025-12-16T20:02:16.651614+00:00"
+      "timestamp": "2025-12-16T20:02:45.303979+00:00"
     },
     {
       "test": "Duplicate Favorite Item",
@@ -616,7 +641,7 @@
           "detail": "Item already in favorites"
         }
       },
-      "timestamp": "2025-12-16T20:02:16.660489+00:00"
+      "timestamp": "2025-12-16T20:02:45.311271+00:00"
     },
     {
       "test": "Get Favorite Items",
@@ -755,7 +780,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-16T20:02:16.669203+00:00"
+      "timestamp": "2025-12-16T20:02:45.317067+00:00"
     },
     {
       "test": "Delete Non-Existent Item",
@@ -766,7 +791,7 @@
           "detail": "Favorite not found"
         }
       },
-      "timestamp": "2025-12-16T20:02:16.715703+00:00"
+      "timestamp": "2025-12-16T20:02:45.322700+00:00"
     },
     {
       "test": "Auto Threshold - 0",
@@ -778,7 +803,7 @@
           "threshold": 0
         }
       },
-      "timestamp": "2025-12-16T20:02:16.722044+00:00"
+      "timestamp": "2025-12-16T20:02:45.371751+00:00"
     },
     {
       "test": "Auto Threshold - 3",
@@ -790,7 +815,7 @@
           "threshold": 3
         }
       },
-      "timestamp": "2025-12-16T20:02:16.770078+00:00"
+      "timestamp": "2025-12-16T20:02:45.381733+00:00"
     },
     {
       "test": "Auto Threshold - 6",
@@ -802,7 +827,7 @@
           "threshold": 6
         }
       },
-      "timestamp": "2025-12-16T20:02:16.776944+00:00"
+      "timestamp": "2025-12-16T20:02:45.387416+00:00"
     },
     {
       "test": "Invalid Auto Threshold",
@@ -813,7 +838,7 @@
           "detail": "Auto-favorite threshold must be 0 (Never), 3, or 6 days"
         }
       },
-      "timestamp": "2025-12-16T20:02:16.783431+00:00"
+      "timestamp": "2025-12-16T20:02:45.394222+00:00"
     },
     {
       "test": "Unauthenticated Access",
@@ -824,7 +849,7 @@
           "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-16T20:02:16.788685+00:00"
+      "timestamp": "2025-12-16T20:02:45.440340+00:00"
     },
     {
       "test": "Categorization - Organic Spinach",
@@ -852,7 +877,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:16.837217+00:00"
+      "timestamp": "2025-12-16T20:02:45.447804+00:00"
     },
     {
       "test": "Categorization - Chocolate Chip Cookies",
@@ -880,7 +905,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:16.847815+00:00"
+      "timestamp": "2025-12-16T20:02:45.496234+00:00"
     },
     {
       "test": "Categorization - Frozen Pizza",
@@ -906,7 +931,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:16.896619+00:00"
+      "timestamp": "2025-12-16T20:02:45.544213+00:00"
     },
     {
       "test": "Categorization - Olive Oil",
@@ -932,7 +957,7 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-16T20:02:16.906558+00:00"
+      "timestamp": "2025-12-16T20:02:45.551788+00:00"
     }
   ]
 }
