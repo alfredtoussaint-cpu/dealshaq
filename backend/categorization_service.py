@@ -267,25 +267,42 @@ async def categorize_with_ai(item_name: str) -> str:
         return "Miscellaneous"
 
 
-async def categorize_item(item_name: str) -> Tuple[str, List[str], Dict[str, bool]]:
+async def categorize_item(item_name: str) -> Tuple[str, List[str], Dict[str, bool], Dict[str, any]]:
     """Main categorization function: keyword first, AI fallback.
     
     Returns:
-        Tuple of (category, keywords, attributes)
+        Tuple of (category, keywords, attributes, brand_info)
     """
-    # Extract keywords and attributes
+    # Parse brand and generic
+    brand_info = parse_brand_and_generic(item_name)
+    
+    # Extract keywords from the full name
     keywords = extract_keywords(item_name)
+    
+    # Also extract separate keyword lists for brand and generic
+    brand_keywords = extract_keywords(brand_info["brand"]) if brand_info["brand"] else []
+    generic_keywords = extract_keywords(brand_info["generic"])
+    
+    # Detect attributes
     attributes = detect_attributes(item_name)
     
-    # Try keyword-based categorization first
-    category = categorize_by_keywords(item_name)
+    # Try keyword-based categorization first (use generic for better accuracy)
+    category = categorize_by_keywords(brand_info["generic"])
     
     if category:
         logger.info(f"Keyword categorized '{item_name}' as '{category}'")
-        return category, keywords, attributes
+        return category, keywords, attributes, {
+            **brand_info,
+            "brand_keywords": brand_keywords,
+            "generic_keywords": generic_keywords
+        }
     
     # Fallback to AI categorization
     logger.info(f"Using AI fallback for '{item_name}'")
     category = await categorize_with_ai(item_name)
     
-    return category, keywords, attributes
+    return category, keywords, attributes, {
+        **brand_info,
+        "brand_keywords": brand_keywords,
+        "generic_keywords": generic_keywords
+    }
