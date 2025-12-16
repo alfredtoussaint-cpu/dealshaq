@@ -383,6 +383,36 @@ class BackendTester:
                 f"Expected 401/403, got {response['status']}: {response['data']}"
             )
     
+    async def test_orange_juice_categorization_fix(self):
+        """Test CRITICAL FIX: Orange Juice categorization to Beverages (not Fruits)"""
+        logger.info("🍊 Testing CRITICAL FIX: Orange Juice categorization...")
+        
+        response = await self.make_request("POST", "/favorites/items", {
+            "item_name": "Orange Juice"
+        })
+        
+        if response["status"] == 200:
+            category = response["data"]["item"]["category"]
+            expected_category = "Beverages"
+            
+            if category == expected_category:
+                self.log_result(
+                    "CRITICAL FIX - Orange Juice Categorization", True,
+                    f"✅ FIXED: Orange Juice correctly categorized as '{category}' (not Fruits)",
+                    {"item": response["data"]["item"]}
+                )
+            else:
+                self.log_result(
+                    "CRITICAL FIX - Orange Juice Categorization", False,
+                    f"❌ STILL BROKEN: Expected '{expected_category}', got '{category}'",
+                    {"item": response["data"]["item"]}
+                )
+        else:
+            self.log_result(
+                "CRITICAL FIX - Orange Juice Categorization", False,
+                f"Failed to add Orange Juice: {response['data']}"
+            )
+    
     async def test_categorization_logic(self):
         """Test categorization accuracy for various items"""
         logger.info("🏷️ Testing categorization logic...")
@@ -391,7 +421,6 @@ class BackendTester:
             {"item": "Organic Spinach", "expected": "Vegetables"},
             {"item": "Chocolate Chip Cookies", "expected": "Snacks & Candy"},
             {"item": "Frozen Pizza", "expected": "Frozen Foods"},
-            {"item": "Orange Juice", "expected": "Beverages"},
             {"item": "Olive Oil", "expected": "Oils, Sauces & Spices"}
         ]
         
