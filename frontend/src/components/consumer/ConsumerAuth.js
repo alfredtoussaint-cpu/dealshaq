@@ -93,10 +93,10 @@ export default function ConsumerAuth({ onLogin }) {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="space-y-2 text-center pb-6">
           <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
-            <ShoppingCart className="w-8 h-8 text-emerald-600" />
+            <Logo size="large" />
           </div>
-          <CardTitle className="text-3xl font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>
-            DealShaq Consumer
+          <CardTitle className="text-2xl font-bold text-gray-700">
+            Consumer Portal
           </CardTitle>
           <CardDescription className="text-base">Join the smart shopping revolution</CardDescription>
         </CardHeader>
