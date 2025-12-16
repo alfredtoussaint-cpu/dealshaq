@@ -397,6 +397,12 @@ async def register(user_data: UserCreate):
     user_dict["password_hash"] = hash_password(user_data.password)
     user_dict["created_at"] = datetime.now(timezone.utc).isoformat()
     user_dict["notification_prefs"] = {"email": True, "push": True, "sms": False}
+    
+    # Initialize Enhanced DACFI-List fields for DAC users
+    if user_data.role == "DAC":
+        user_dict["favorite_items"] = []
+        user_dict["auto_favorite_threshold"] = 0  # Default: Never
+    
     del user_dict["password"]
     
     await db.users.insert_one(user_dict)
