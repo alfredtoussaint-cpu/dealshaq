@@ -282,10 +282,12 @@ metadata:
 
 test_plan:
   current_focus:
+    - "DAC User Registration and Authentication"
+  stuck_tasks:
     - "Consumer Settings Page - Smart Favorites Configuration"
     - "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
     - "Navigation and Layout Integration"
-  stuck_tasks: []
+    - "DAC User Registration and Authentication"
   test_all: false
   test_priority: "high_first"
 
