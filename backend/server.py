@@ -905,8 +905,8 @@ async def add_favorite_item(item_data: FavoriteItemCreate, current_user: Dict = 
     
     from categorization_service import categorize_item
     
-    # Categorize item (keyword + AI fallback)
-    category, keywords, attributes = await categorize_item(item_data.item_name)
+    # Categorize item with brand/generic parsing
+    category, keywords, attributes, brand_info = await categorize_item(item_data.item_name)
     
     # Check if item already exists in favorites
     user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "favorite_items": 1})
@@ -916,11 +916,16 @@ async def add_favorite_item(item_data: FavoriteItemCreate, current_user: Dict = 
         if existing_item["item_name"].lower() == item_data.item_name.lower():
             raise HTTPException(status_code=400, detail="Item already in favorites")
     
-    # Create favorite item
+    # Create favorite item with brand/generic structure
     favorite_item = {
         "item_name": item_data.item_name,
+        "brand": brand_info.get("brand"),
+        "generic": brand_info.get("generic"),
+        "has_brand": brand_info.get("has_brand", False),
         "category": category,
         "keywords": keywords,
+        "brand_keywords": brand_info.get("brand_keywords", []),
+        "generic_keywords": brand_info.get("generic_keywords", []),
         "attributes": attributes,
         "auto_added_date": None  # Explicit addition
     }
@@ -934,7 +939,11 @@ async def add_favorite_item(item_data: FavoriteItemCreate, current_user: Dict = 
     if result.modified_count == 0:
         raise HTTPException(status_code=500, detail="Failed to add favorite item")
     
-    logger.info(f"Added favorite item '{item_data.item_name}' (category: {category}) for user {current_user['id']}")
+    logger.info(
+        f"Added favorite item '{item_data.item_name}' "
+        f"(brand: {brand_info.get('brand')}, generic: {brand_info.get('generic')}, "
+        f"category: {category}) for user {current_user['id']}"
+    )
     
     return {
         "message": "Favorite item added",
