@@ -25,10 +25,11 @@ export default function ConsumerLayout({ children, user, onLogout }) {
             <div className="bg-emerald-100 p-2 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-emerald-600" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
-                DealShaq
-              </h1>
+            <div 
+              className="cursor-pointer"
+              onClick={() => navigate('/consumer/dashboard')}
+            >
+              <Logo size="default" />
               <p className="text-xs text-gray-500">{user?.name}</p>
             </div>
           </div>
