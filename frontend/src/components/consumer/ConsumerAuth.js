@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { auth, charities as charitiesApi } from '../../utils/api';
 import { toast } from 'sonner';
 import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
+import Logo from '../Logo';
 
 export default function ConsumerAuth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
