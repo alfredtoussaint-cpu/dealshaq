@@ -216,6 +216,66 @@ backend:
           agent: "testing"
           comment: "⏰ NOT TESTABLE - Scheduler service runs daily at 11 PM for implicit auto-add based on purchase history. Service is implemented and starts correctly, but cannot be tested in real-time during testing session."
 
+  - task: "Brand/Generic Parsing and Storage"
+    implemented: true
+    working: true
+    file: "backend/categorization_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Brand/generic parsing working perfectly. 'Quaker, Simply Granola' correctly parsed as brand='Quaker', generic='Granola', has_brand=True. 'Valley Farm, 2% Milk' parsed as brand='Valley Farm', generic='2% Milk'. Generic items like 'Granola' correctly parsed with brand=None, has_brand=False. Multi-word brands supported. All test cases passed."
+
+  - task: "Smart Generic Extraction"
+    implemented: true
+    working: true
+    file: "backend/categorization_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Smart generic extraction removes modifier words correctly. 'Valley Farm, Fresh 2% Milk' → generic='2% Milk' (removes 'Fresh' but keeps '2%'). 'Dannon, Light Greek Yogurt' → generic='Greek Yogurt' (removes 'Light' but keeps 'Greek'). Intelligent word filtering working as expected."
+
+  - task: "Hybrid Matching Logic (Option C)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Matching logic structure verified. Brand-specific favorites (has_brand=True) have brand_keywords and generic_keywords for strict matching. Generic favorites (has_brand=False) have generic_keywords for flexible matching. Data structure supports Option C hybrid matching where brand-specific requires brand+generic match, generic allows any brand."
+
+  - task: "Organic Attribute with Brand Matching"
+    implemented: true
+    working: true
+    file: "backend/categorization_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Organic attribute detection working with brand matching. 'Quaker, Organic Granola' correctly detected organic=True and has_brand=True. 'Organic 2% Milk' (generic) correctly detected organic=True and has_brand=False. Attribute detection compatible with brand/generic structure."
+
+  - task: "Edge Cases Handling"
+    implemented: true
+    working: true
+    file: "backend/categorization_service.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Edge cases handled correctly. 'Quaker, Simply, Granola' splits on first comma only (brand='Quaker', generic='Simply, Granola'). 'Quaker , Granola' trims spaces properly. Multiple comma handling and whitespace normalization working as expected."
+
 frontend:
   - task: "Consumer Settings Page - Smart Favorites Configuration"
     implemented: true
