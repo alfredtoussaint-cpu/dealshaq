@@ -1035,21 +1035,22 @@ async def remove_favorite_item(item_name: str, current_user: Dict = Depends(get_
     
     return {"message": "Favorite item removed"}
 
-@api_router.delete("/favorites/items")
-async def delete_favorite_item(item_name: str, current_user: Dict = Depends(get_current_user)):
+@api_router.request("DELETE", "/favorites/items")
+async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
+    """Delete favorite item using request body (for clients that support DELETE with body)"""
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
     
-    # Remove item from user's favorite_items (exact match)
+    # Remove item from user's favorite_items (case-insensitive match)
     result = await db.users.update_one(
         {"id": current_user["id"]},
-        {"$pull": {"favorite_items": {"item_name": item_name}}}
+        {"$pull": {"favorite_items": {"item_name": {"$regex": f"^{item_data.item_name}$", "$options": "i"}}}}
     )
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Favorite item not found")
     
-    logger.info(f"Removed favorite item '{item_name}' for user {current_user['id']}")
+    logger.info(f"Removed favorite item '{item_data.item_name}' for user {current_user['id']}")
     
     return {"message": "Favorite item removed"}
 
