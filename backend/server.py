@@ -765,6 +765,10 @@ async def create_matching_notifications(item: Dict):
     item_name_lower = item["name"].lower()
     item_organic = item.get("attributes", {}).get("organic", False)
     
+    # Extract brand from RSHD item name (first word/phrase before generic)
+    # This is a simple heuristic - in production, RSHD should have explicit brand field
+    item_brand_keywords = item_name_lower.split()[:2]  # First 1-2 words often indicate brand
+    
     for user in users_with_item_favs:
         dac_id = user["id"]
         
@@ -778,12 +782,43 @@ async def create_matching_notifications(item: Dict):
             if fav_item.get("category") != item["category"]:
                 continue
             
-            # Check keyword matching
-            keywords = fav_item.get("keywords", [])
-            keywords_match = any(kw in item_name_lower for kw in keywords)
+            # OPTION C (HYBRID) MATCHING LOGIC:
+            # If favorite has brand specified (has_brand=True) → strict brand matching
+            # If favorite has no brand (has_brand=False) → flexible generic matching
             
-            if not keywords_match:
-                continue
+            has_brand = fav_item.get("has_brand", False)
+            
+            if has_brand:
+                # STRICT BRAND MATCHING: Brand must match
+                fav_brand_keywords = fav_item.get("brand_keywords", [])
+                brand_match = any(
+                    brand_kw in item_name_lower 
+                    for brand_kw in fav_brand_keywords
+                )
+                
+                if not brand_match:
+                    continue  # Brand doesn't match, skip this favorite
+                
+                # Brand matches, now check generic
+                generic_keywords = fav_item.get("generic_keywords", [])
+                generic_match = any(
+                    gen_kw in item_name_lower 
+                    for gen_kw in generic_keywords
+                )
+                
+                if not generic_match:
+                    continue  # Generic doesn't match either
+                
+            else:
+                # FLEXIBLE GENERIC MATCHING: Any brand is OK
+                generic_keywords = fav_item.get("generic_keywords", [])
+                generic_match = any(
+                    gen_kw in item_name_lower 
+                    for gen_kw in generic_keywords
+                )
+                
+                if not generic_match:
+                    continue  # Generic doesn't match
             
             # Check organic attribute if specified
             fav_organic = fav_item.get("attributes", {}).get("organic")
@@ -793,6 +828,10 @@ async def create_matching_notifications(item: Dict):
             # Match found! Create notification and stop checking for this DAC
             await _create_notification(dac_id, item)
             notified_dacs.add(dac_id)
+            logger.info(
+                f"Match: RSHD '{item['name']}' matched DAC {dac_id} favorite "
+                f"'{fav_item.get('item_name')}' (brand_match: {has_brand})"
+            )
             break  # STOP after first match for this DAC
 
 async def _create_notification(dac_id: str, item: Dict):
