@@ -63,6 +63,7 @@ export default function ConsumerApp() {
       <Route path="/notifications" element={<ConsumerNotifications user={user} onLogout={handleLogout} />} />
       <Route path="/checkout" element={<ConsumerCheckout user={user} onLogout={handleLogout} />} />
       <Route path="/orders" element={<ConsumerOrders user={user} onLogout={handleLogout} />} />
+      <Route path="/settings" element={<ConsumerSettings user={user} onLogout={handleLogout} />} />
     </Routes>
   );
 }
