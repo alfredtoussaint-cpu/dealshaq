@@ -261,10 +261,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All Enhanced DACFI-List backend features tested"
-  stuck_tasks:
-    - "DELETE /api/favorites/items endpoint routing issue (resolved with alternative endpoint)"
-  test_all: true
+    - "Consumer Settings Page - Smart Favorites Configuration"
+    - "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
+    - "Navigation and Layout Integration"
+  stuck_tasks: []
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
