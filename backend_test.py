@@ -601,11 +601,6 @@ class BackendTester:
         
         test_cases = [
             {
-                "input": "Quaker, Simply Granola",
-                "expected_generic": "Granola",
-                "description": "Remove 'Simply' modifier"
-            },
-            {
                 "input": "Valley Farm, Fresh 2% Milk",
                 "expected_generic": "2% Milk",
                 "description": "Remove 'Fresh' but keep '2%'"
@@ -614,10 +609,23 @@ class BackendTester:
                 "input": "Dannon, Light Greek Yogurt",
                 "expected_generic": "Greek Yogurt",
                 "description": "Remove 'Light' but keep 'Greek'"
+            },
+            {
+                "input": "Kellogg's, Simply Corn Flakes",
+                "expected_generic": "Corn Flakes",
+                "description": "Remove 'Simply' modifier from different brand"
             }
         ]
         
         for case in test_cases:
+            # First try to remove if it exists
+            try:
+                await self.make_request("POST", "/favorites/items/delete", {
+                    "item_name": case["input"]
+                })
+            except:
+                pass
+            
             response = await self.make_request("POST", "/favorites/items", {
                 "item_name": case["input"]
             })
@@ -637,6 +645,45 @@ class BackendTester:
                         f"Smart Generic - {case['input']}", False,
                         f"Expected '{case['expected_generic']}', got '{actual_generic}'",
                         {"item": item}
+                    )
+            elif response["status"] == 400 and "already in favorites" in response["data"].get("detail", ""):
+                # Item exists, check its generic field from existing favorites
+                get_response = await self.make_request("GET", "/favorites/items")
+                if get_response["status"] == 200:
+                    items_by_category = get_response["data"].get("items_by_category", {})
+                    found_item = None
+                    
+                    for category, items in items_by_category.items():
+                        for item in items:
+                            if item.get("item_name") == case["input"]:
+                                found_item = item
+                                break
+                        if found_item:
+                            break
+                    
+                    if found_item:
+                        actual_generic = found_item.get("generic")
+                        if actual_generic == case["expected_generic"]:
+                            self.log_result(
+                                f"Smart Generic - {case['input']}", True,
+                                f"{case['description']} - Already exists with correct generic '{actual_generic}'",
+                                {"item": found_item}
+                            )
+                        else:
+                            self.log_result(
+                                f"Smart Generic - {case['input']}", False,
+                                f"Expected '{case['expected_generic']}', got '{actual_generic}'",
+                                {"item": found_item}
+                            )
+                    else:
+                        self.log_result(
+                            f"Smart Generic - {case['input']}", False,
+                            "Item exists but couldn't find it in favorites"
+                        )
+                else:
+                    self.log_result(
+                        f"Smart Generic - {case['input']}", False,
+                        f"Item exists but couldn't retrieve favorites: {get_response['data']}"
                     )
             else:
                 self.log_result(
