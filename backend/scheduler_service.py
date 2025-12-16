@@ -105,15 +105,24 @@ async def process_auto_add_favorites(db):
                         f"(purchased on {unique_days} separate days)"
                     )
             
-            # Update user's favorite_items
+            # Update user's favorite_items (auto-added items don't have brand specified)
             if items_to_add:
+                # Note: Auto-added items from purchases won't have brand separation
+                # They are added as generic items (has_brand=False) for flexible matching
+                for item in items_to_add:
+                    item["has_brand"] = False
+                    item["brand"] = None
+                    item["generic"] = item["item_name"]
+                    item["brand_keywords"] = []
+                    # generic_keywords are already set from extract_keywords
+                
                 result = await db.users.update_one(
                     {"id": dac_id},
                     {"$push": {"favorite_items": {"$each": items_to_add}}}
                 )
                 
                 logger.info(
-                    f"Added {len(items_to_add)} items to DAC {dac_id}'s DACFI-List"
+                    f"Added {len(items_to_add)} items to DAC {dac_id}'s DACFI-List (auto-add)"
                 )
         
         logger.info("Auto-add favorites job completed successfully")
