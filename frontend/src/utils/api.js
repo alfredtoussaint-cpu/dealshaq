@@ -66,7 +66,7 @@ export const favorites = {
 export const favoriteItems = {
   list: () => api.get('/favorites/items'),
   create: (data) => api.post('/favorites/items', data),
-  delete: (itemName) => api.delete('/favorites/items/remove', { params: { item_name: itemName } }),
+  delete: (itemName) => api.post('/favorites/items/delete', { item_name: itemName }),
 };
 
 // User settings
