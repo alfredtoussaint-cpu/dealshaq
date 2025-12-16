@@ -20,13 +20,14 @@ export default function RetailerLayout({ children, user, onLogout }) {
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Store className="w-6 h-6 text-blue-600" />
+            <div 
+              className="cursor-pointer"
+              onClick={() => navigate('/retailer/dashboard')}
+            >
+              <Logo size="default" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
-                DealShaq Retailer
-              </h1>
+              <p className="text-sm font-semibold text-gray-700">Retailer Portal</p>
               <p className="text-xs text-gray-500">{user?.name}</p>
             </div>
           </div>
