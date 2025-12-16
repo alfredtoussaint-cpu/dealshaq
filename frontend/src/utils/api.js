@@ -62,6 +62,18 @@ export const favorites = {
   delete: (id) => api.delete(`/favorites/${id}`),
 };
 
+// Item-level favorites (Enhanced DACFI-List)
+export const favoriteItems = {
+  list: () => api.get('/favorites/items'),
+  create: (data) => api.post('/favorites/items', data),
+  delete: (itemName) => api.delete('/favorites/items/remove', { params: { item_name: itemName } }),
+};
+
+// User settings
+export const userSettings = {
+  updateAutoThreshold: (data) => api.put('/users/settings/auto-threshold', data),
+};
+
 export const notifications = {
   list: () => api.get('/notifications'),
   markRead: (id) => api.put(`/notifications/${id}/read`),
@@ -82,4 +94,8 @@ export const admin = {
   stats: () => api.get('/admin/stats'),
   users: () => api.get('/admin/users'),
   items: () => api.get('/admin/items'),
+};
+
+export const categories = {
+  list: () => api.get('/categories'),
 };
