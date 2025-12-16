@@ -2,70 +2,89 @@ import { useState, useEffect } from 'react';
 import ConsumerLayout from './ConsumerLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { favorites as favoritesApi } from '../../utils/api';
-import { Heart, Trash2, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { favoriteItems, categories as categoriesApi } from '../../utils/api';
+import { Heart, Trash2, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
-// DealShaq 20-Category Taxonomy (Top-level only for DACFI-List)
-const CATEGORIES = [
-  "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
-  "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
-  "Snacks & Candy", "Frozen Foods", "Beverages",
-  "Alcoholic Beverages", "Deli & Prepared Foods",
-  "Breakfast & Cereal", "Pasta, Rice & Grains",
-  "Oils, Sauces & Spices", "Baby & Kids",
-  "Health & Nutrition", "Household Essentials",
-  "Personal Care", "Pet Supplies"
-];
-
 export default function ConsumerFavorites({ user, onLogout }) {
-  const [favorites, setFavorites] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [favoriteItemsByCategory, setFavoriteItemsByCategory] = useState({});
+  const [totalItems, setTotalItems] = useState(0);
+  const [newItemName, setNewItemName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    loadFavorites();
+    loadCategories();
+    loadFavoriteItems();
   }, []);
 
-  const loadFavorites = async () => {
+  const loadCategories = async () => {
     try {
-      const response = await favoritesApi.list();
-      setFavorites(response.data);
+      const response = await categoriesApi.list();
+      setCategories(response.data.categories);
     } catch (error) {
-      toast.error('Failed to load favorites');
+      console.error('Failed to load categories:', error);
+    }
+  };
+
+  const loadFavoriteItems = async () => {
+    try {
+      const response = await favoriteItems.list();
+      setFavoriteItemsByCategory(response.data.items_by_category || {});
+      setTotalItems(response.data.total_items || 0);
+    } catch (error) {
+      toast.error('Failed to load favorite items');
     } finally {
       setLoading(false);
     }
   };
 
-  const addFavorite = async () => {
-    if (!selectedCategory) {
-      toast.error('Please select a category');
+  const addFavoriteItem = async () => {
+    if (!newItemName.trim()) {
+      toast.error('Please enter an item name');
       return;
     }
 
+    setAdding(true);
     try {
-      await favoritesApi.create({
-        category: selectedCategory,
+      const response = await favoriteItems.create({
+        item_name: newItemName.trim(),
       });
-      toast.success('Category added to your DACFI-List!');
-      loadFavorites();
-      setSelectedCategory('');
+      
+      toast.success(`"${newItemName}" added to your favorites!`, {
+        description: `Automatically categorized as: ${response.data.item.category}`,
+      });
+      
+      setNewItemName('');
+      loadFavoriteItems();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to add favorite');
+      toast.error(error.response?.data?.detail || 'Failed to add item');
+    } finally {
+      setAdding(false);
     }
   };
 
-  const removeFavorite = async (id) => {
+  const removeFavoriteItem = async (itemName, category) => {
     try {
-      await favoritesApi.delete(id);
-      toast.success('Favorite removed');
-      loadFavorites();
+      await favoriteItems.delete(itemName);
+      toast.success(`"${itemName}" removed from favorites`);
+      loadFavoriteItems();
     } catch (error) {
-      toast.error('Failed to remove favorite');
+      toast.error('Failed to remove item');
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   return (
@@ -74,86 +93,128 @@ export default function ConsumerFavorites({ user, onLogout }) {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
-            My DACFI-List
+            My Favorite Items (DACFI-List)
           </h1>
-          <p className="text-gray-600 mt-1">Build your favorites inventory list. When retailers post matching RSHDs, you'll be notified.</p>
+          <p className="text-gray-600 mt-1">
+            Add specific items you love. When retailers post matching deals, you'll be notified.
+          </p>
         </div>
 
-        {/* Add Favorite Form */}
+        {/* Add Favorite Item Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Add Favorite Category</CardTitle>
-            <CardDescription>Choose categories to receive deal notifications</CardDescription>
+            <CardTitle className="flex items-center space-x-2">
+              <Plus className="w-5 h-5 text-emerald-600" />
+              <span>Add Favorite Item</span>
+            </CardTitle>
+            <CardDescription>
+              Enter your favorite item - we'll automatically organize it for you
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger data-testid="select-category">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div>
+                <Input
+                  type="text"
+                  placeholder='e.g., "2% Milk" or "Valley Farm 2% Milk"'
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addFavoriteItem()}
+                  disabled={adding}
+                  className="text-base"
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  <strong>Tip:</strong> For brand-specific items, enter brand name first, followed by the item name
+                </p>
+              </div>
 
               <Button
-                data-testid="add-favorite-btn"
-                onClick={addFavorite}
-                disabled={!selectedCategory}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                onClick={addFavoriteItem}
+                disabled={!newItemName.trim() || adding}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Favorite
+                {adding ? 'Adding...' : 'Add to Favorites'}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Favorites List */}
+        {/* Favorites List by Category */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Favorite Categories</CardTitle>
-            <CardDescription>You'll receive notifications for deals in these categories</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Your Favorite Items</CardTitle>
+                <CardDescription>
+                  {totalItems} {totalItems === 1 ? 'item' : 'items'} organized by category
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-base px-3 py-1">
+                {totalItems} items
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <p className="text-center text-gray-500 py-8">Loading favorites...</p>
-            ) : favorites.length === 0 ? (
+            ) : totalItems === 0 ? (
               <div className="text-center py-12">
                 <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No favorites yet</p>
-                <p className="text-gray-400 text-sm mt-2">Add categories above to get started</p>
+                <p className="text-gray-500 text-lg">No favorite items yet</p>
+                <p className="text-gray-400 text-sm mt-2">Add items above to get personalized deal notifications</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {favorites.map((fav) => (
-                  <div
-                    key={fav.id}
-                    data-testid={`favorite-${fav.id}`}
-                    className="border rounded-lg p-4 bg-gradient-to-br from-emerald-50 to-teal-50 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="bg-emerald-100 p-2 rounded-lg">
-                        <Heart className="w-5 h-5 text-emerald-600 fill-emerald-600" />
+              <div className="space-y-6">
+                {categories.map((category) => {
+                  const items = favoriteItemsByCategory[category];
+                  if (!items || items.length === 0) return null;
+
+                  return (
+                    <div key={category} className="border-l-4 border-emerald-500 pl-4">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3">
+                        {category}
+                      </h3>
+                      <div className="space-y-2">
+                        {items.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-lg p-3 transition-colors"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">
+                                  {item.item_name}
+                                </span>
+                                {item.auto_added_date ? (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                    <Sparkles className="w-3 h-3 mr-1" />
+                                    Auto: {formatDate(item.auto_added_date)}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                    Manual
+                                  </Badge>
+                                )}
+                              </div>
+                              {item.attributes?.organic && (
+                                <span className="text-xs text-emerald-600">🌿 Organic</span>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeFavoriteItem(item.item_name, category)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                      <Button
-                        data-testid={`remove-favorite-${fav.id}`}
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeFavorite(fav.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg">{fav.category}</h3>
-                    <p className="text-xs text-gray-500 mt-1">All items in this category</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -167,12 +228,14 @@ export default function ConsumerFavorites({ user, onLogout }) {
                 <Heart className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">Surplus-Driven Model</h4>
-                <p className="text-sm text-gray-600">
-                  DealShaq is supply-driven: Retailers initiate sales by posting RSHDs (urgent items). 
-                  Our backend matches them against your DACFI-List and notifies you only if there's a match. 
-                  No searching, no noise - just targeted offers you care about.
-                </p>
+                <h4 className="font-bold text-gray-900 mb-2">How It Works</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>✓ <strong>Add items manually</strong> by typing specific product names</li>
+                  <li>✓ <strong>Auto-categorization</strong> organizes items into categories automatically</li>
+                  <li>✓ <strong>Smart matching</strong> notifies you when retailers post matching deals</li>
+                  <li>✓ <strong>Organic detection</strong> recognizes when you prefer organic products</li>
+                  <li>✓ <strong>Auto-add feature</strong> learns from your purchases (configurable in Settings)</li>
+                </ul>
               </div>
             </div>
           </CardContent>
