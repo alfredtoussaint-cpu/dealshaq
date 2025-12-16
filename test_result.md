@@ -217,7 +217,41 @@ backend:
           comment: "⏰ NOT TESTABLE - Scheduler service runs daily at 11 PM for implicit auto-add based on purchase history. Service is implemented and starts correctly, but cannot be tested in real-time during testing session."
 
 frontend:
-  # No frontend testing performed as per instructions
+  - task: "Consumer Settings Page - Smart Favorites Configuration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerSettings.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Frontend implementation found. Ready for comprehensive testing of Smart Favorites configuration with radio buttons (6/3/Never days), verbose question text, save functionality, and account information display."
+
+  - task: "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerFavorites.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Frontend implementation found. Ready for comprehensive testing of add item form, auto-categorization display, Manual/Auto badges, organic indicators, remove functionality, and category organization."
+
+  - task: "Navigation and Layout Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerLayout.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Navigation layout includes Settings link with proper testId attributes. Ready for testing navigation between pages and layout consistency."
 
 metadata:
   created_by: "testing_agent"
