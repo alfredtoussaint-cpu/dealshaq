@@ -1035,9 +1035,9 @@ async def remove_favorite_item(item_name: str, current_user: Dict = Depends(get_
     
     return {"message": "Favorite item removed"}
 
-@api_router.request("DELETE", "/favorites/items")
-async def delete_favorite_item(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
-    """Delete favorite item using request body (for clients that support DELETE with body)"""
+@api_router.post("/favorites/items/delete")
+async def delete_favorite_item_post(item_data: FavoriteItemDelete, current_user: Dict = Depends(get_current_user)):
+    """Delete favorite item using POST (standard approach for body-based deletion)"""
     if current_user["role"] != "DAC":
         raise HTTPException(status_code=403, detail="Only DAC users can remove favorite items")
     
