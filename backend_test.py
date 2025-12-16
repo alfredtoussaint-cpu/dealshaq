@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://surplus-shop-1.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
-# Test credentials
-TEST_EMAIL = "test.dac@example.com"
+# Test credentials - Using provided credentials from review request
+TEST_EMAIL = "alfred.toussaint@gmail.com"
 TEST_PASSWORD = "TestPassword123"
 TEST_ROLE = "DAC"
 
