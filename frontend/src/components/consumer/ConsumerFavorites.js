@@ -116,7 +116,7 @@ export default function ConsumerFavorites({ user, onLogout }) {
               <div>
                 <Input
                   type="text"
-                  placeholder='e.g., "2% Milk" or "Valley Farm 2% Milk"'
+                  placeholder='e.g., "Granola" or "Quaker, Granola"'
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addFavoriteItem()}
@@ -124,7 +124,8 @@ export default function ConsumerFavorites({ user, onLogout }) {
                   className="text-base"
                 />
                 <p className="text-sm text-gray-500 mt-2">
-                  <strong>Tip:</strong> For brand-specific items, enter brand name first, followed by the item name
+                  <strong>Brand-specific items:</strong> Use comma after brand name (e.g., "Valley Farm, 2% Milk")<br />
+                  <strong>Any brand:</strong> Enter generic name only (e.g., "Granola" matches all brands)
                 </p>
               </div>
 
