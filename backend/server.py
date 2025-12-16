@@ -730,28 +730,76 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
 async def create_matching_notifications(item: Dict):
     """Match RSHD with DAC favorites and create notifications
     
-    Matching Logic:
-    - Only matches on top-level category (subcategories ignored)
-    - DAC with "Fruits" in DACFI-List gets notified for ALL fruits RSHDs
-    - Existence-check model: O(n) where n = DACs with this category
+    Enhanced Matching Logic:
+    1. First check category-level favorites (old DACFI-List)
+    2. Then check item-level favorites (new enhanced DACFI-List)
+    3. Match on: keywords + organic attribute
+    4. STOP after first match per DAC (efficiency optimization)
     """
-    # Find DACs with matching category in their DACFI-List
-    matching_favorites = await db.favorites.find({
-        "category": item["category"]  # Top-level category only
+    notified_dacs = set()  # Track DACs already notified
+    
+    # 1. Find DACs with matching category-level favorites (backward compatibility)
+    matching_category_favs = await db.favorites.find({
+        "category": item["category"]
     }, {"_id": 0}).to_list(1000)
     
-    dac_ids = list(set([fav["dac_id"] for fav in matching_favorites]))
+    for fav in matching_category_favs:
+        dac_id = fav["dac_id"]
+        if dac_id not in notified_dacs:
+            await _create_notification(dac_id, item)
+            notified_dacs.add(dac_id)
     
-    for dac_id in dac_ids:
-        notification = {
-            "id": str(uuid.uuid4()),
-            "dac_id": dac_id,
-            "rshd_id": item["id"],
-            "message": f"New deal on {item['name']} - {item['consumer_discount_percent']}% off at {item['drlp_name']}!",
-            "read": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.notifications.insert_one(notification)
+    # 2. Find DACs with matching item-level favorites
+    users_with_item_favs = await db.users.find({
+        "role": "DAC",
+        "favorite_items": {"$exists": True, "$ne": []}
+    }, {"_id": 0, "id": 1, "favorite_items": 1}).to_list(10000)
+    
+    item_name_lower = item["name"].lower()
+    item_organic = item.get("attributes", {}).get("organic", False)
+    
+    for user in users_with_item_favs:
+        dac_id = user["id"]
+        
+        # Skip if already notified (stop-after-first-hit)
+        if dac_id in notified_dacs:
+            continue
+        
+        # Check item-level favorites
+        for fav_item in user.get("favorite_items", []):
+            # Must match category first
+            if fav_item.get("category") != item["category"]:
+                continue
+            
+            # Check keyword matching
+            keywords = fav_item.get("keywords", [])
+            keywords_match = any(kw in item_name_lower for kw in keywords)
+            
+            if not keywords_match:
+                continue
+            
+            # Check organic attribute if specified
+            fav_organic = fav_item.get("attributes", {}).get("organic")
+            if fav_organic is True and not item_organic:
+                continue  # DAC wants organic only, item is not organic
+            
+            # Match found! Create notification and stop checking for this DAC
+            await _create_notification(dac_id, item)
+            notified_dacs.add(dac_id)
+            break  # STOP after first match for this DAC
+
+async def _create_notification(dac_id: str, item: Dict):
+    """Helper to create a single notification"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "dac_id": dac_id,
+        "rshd_id": item["id"],
+        "message": f"New deal on {item['name']} - {item['consumer_discount_percent']}% off at {item['drlp_name']}!",
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+    logger.info(f"Created notification for DAC {dac_id} for RSHD {item['id']} ({item['name']})")
 
 @api_router.get("/rshd/items", response_model=List[RSHDItem])
 async def get_rshd_items(category: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
