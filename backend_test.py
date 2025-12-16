@@ -711,7 +711,7 @@ class BackendTester:
     
     async def run_all_tests(self):
         """Run all backend tests"""
-        logger.info("🚀 Starting Enhanced DACFI-List Backend Tests")
+        logger.info("🚀 Starting Brand/Generic Name Feature Backend Tests (V1.0)")
         logger.info(f"Backend URL: {API_BASE}")
         
         # Authentication
@@ -719,8 +719,17 @@ class BackendTester:
             logger.error("❌ Authentication failed - stopping tests")
             return
         
-        # Run all tests
+        # Run all tests - focusing on brand/generic feature
         await self.test_categories_endpoint()
+        
+        # Core Brand/Generic Feature Tests
+        await self.test_brand_generic_parsing()
+        await self.test_smart_generic_extraction()
+        await self.test_edge_cases()
+        await self.test_organic_attribute_with_brand_matching()
+        await self.simulate_rshd_matching_test()
+        
+        # Basic functionality tests
         await self.test_add_favorite_items()
         await self.test_duplicate_favorite_item()
         await self.test_get_favorite_items()
@@ -736,7 +745,7 @@ class BackendTester:
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         
-        logger.info(f"\n📊 TEST SUMMARY")
+        logger.info(f"\n📊 BRAND/GENERIC FEATURE TEST SUMMARY")
         logger.info(f"Total Tests: {total_tests}")
         logger.info(f"Passed: {passed_tests} ✅")
         logger.info(f"Failed: {failed_tests} ❌")
