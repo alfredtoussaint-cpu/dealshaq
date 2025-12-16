@@ -413,7 +413,8 @@ async def register(user_data: UserCreate):
     
     access_token = create_access_token(data={"sub": user_dict["id"]})
     
-    user_response = {k: v for k, v in user_dict.items() if k != "password_hash"}
+    # Remove MongoDB _id and password_hash from response
+    user_response = {k: v for k, v in user_dict.items() if k not in ["password_hash", "_id"]}
     
     return {
         "access_token": access_token,
