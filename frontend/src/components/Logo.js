@@ -8,10 +8,10 @@ const LOGO_ICON_URL = 'https://customer-assets.emergentagent.com/job_surplus-sho
 
 export default function Logo({ size = 'default', className = '' }) {
   const sizeClasses = {
-    small: 'h-8',
-    default: 'h-12',
-    large: 'h-16',
-    xlarge: 'h-20'
+    small: 'h-10',
+    default: 'h-16',
+    large: 'h-24',
+    xlarge: 'h-32'
   };
 
   return (
