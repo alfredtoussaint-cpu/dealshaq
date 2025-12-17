@@ -1,10 +1,10 @@
 import React from 'react';
 
-// Full logo image (with text)
-const LOGO_FULL_URL = 'https://customer-assets.emergentagent.com/job_surplus-shop-1/artifacts/5xxg0k5q_image.png';
+// Full logo image (with text) - Icon Left version
+const LOGO_FULL_URL = '/dealshaq-logo.png';
 
 // Icon only (no text)
-const LOGO_ICON_URL = 'https://customer-assets.emergentagent.com/job_surplus-shop-1/artifacts/has3vx4v_icon%20png.png';
+const LOGO_ICON_URL = '/dealshaq-icon.png';
 
 export default function Logo({ size = 'default', className = '' }) {
   const sizeClasses = {
