@@ -911,3 +911,47 @@ test_plan:
 #====================================================================================================
 # End of Final Comprehensive Backend Testing Results
 #====================================================================================================
+
+#====================================================================================================
+# CATEGORY-LEVEL FAVORITES REMOVAL (P0 FIX) - December 18, 2025
+#====================================================================================================
+
+## Summary
+- **Task:** Remove hallucinated "category-level favorites" system that was never requested by user
+- **Status:** ✅ COMPLETED
+
+## Changes Made
+1. **Removed obsolete API endpoints:**
+   - ❌ `POST /api/favorites` (category-level create)
+   - ❌ `GET /api/favorites` (category-level list)
+   - ❌ `DELETE /api/favorites/{favorite_id}` (category-level delete)
+
+2. **Removed from notification matching logic:**
+   - ❌ `db.favorites.find()` query for category-level matching
+   - ❌ Category-based notification creation loop
+
+3. **Updated docstring:**
+   - Updated `create_matching_notifications()` function documentation
+   - Removed references to "category-level favorites"
+
+## Verification Results
+- ✅ Backend starts successfully (no NameError for `Favorite` or `FavoriteCreate`)
+- ✅ Item-level favorites endpoints still work:
+  - ✅ `POST /api/favorites/items` - Add item
+  - ✅ `GET /api/favorites/items` - List items by category
+  - ✅ `POST /api/favorites/items/delete` - Delete item
+  - ✅ `PUT /api/users/settings/auto-threshold` - Update threshold
+- ✅ Removed endpoints return 404 (as expected)
+
+## Backend Test Status
+- needs_retesting: true
+- test_priority: high
+- focus: Ensure no regressions in item-level favorites and notification matching
+
+agent_communication:
+    - agent: "main"
+      message: "Removed hallucinated category-level favorites system. All obsolete endpoints and db.favorites references removed. Backend starts successfully. Item-level favorites still working. Ready for comprehensive regression testing."
+
+#====================================================================================================
+# End of Category-Level Favorites Removal
+#====================================================================================================
