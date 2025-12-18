@@ -3,12 +3,34 @@
 ## Overview
 Enable DACs to quickly set up their shopping preferences and local retailer relationships for targeted, efficient deal notifications.
 
+## Key Definitions
+
+### DACSAI (DAC's Shopping Area of Interest)
+The **circular geographical AREA** around the DAC's delivery location, defined by:
+- **Center:** DAC's delivery location (geocoded coordinates)
+- **Radius:** DACSAI-Rad (0.1 to 9.9 miles)
+
+### DACSAI-Rad (DACSAI Radius)
+The **radius value** (0.1 to 9.9 miles) that determines the size of the DACSAI. Measured from the DAC's delivery location.
+
+### DACDRLP-List (DAC's DRLP List)
+The list of DRLPs the DAC wants to receive notifications from:
+- **Formula:** `DRLPs domiciled inside DACSAI` + `Manually added DRLPs outside DACSAI` - `Manually removed DRLPs inside DACSAI`
+- **Bidirectional Sync:** Must be kept in sync with each DRLP's DRLPDAC-List
+
+### DRLPDAC-List (DRLP's DAC List)
+The list of DACs who should receive notifications from a specific DRLP:
+- Contains all DACs who have this DRLP in their DACDRLP-List
+- **Bidirectional Sync Required:**
+  - When DAC adds DRLP → Add DAC to that DRLP's DRLPDAC-List
+  - When DAC removes DRLP → Remove DAC from that DRLP's DRLPDAC-List
+
 ## Goals
 1. **Fast Onboarding**: Complete setup in < 5 minutes
-2. **Simple Preferences**: Use 20-category taxonomy for DACFI-List
-3. **Geographic Control**: Define DACSAI (Shopping Area of Interest)
-4. **Retailer Control**: Manage DACDRLP-List (local retailers)
-5. **Targeted Notifications**: Receive only relevant offers
+2. **Item-Level Preferences**: Build DACFI-List with specific items (brand/generic)
+3. **Geographic Control**: Define DACSAI via delivery location + DACSAI-Rad
+4. **Retailer Control**: Manage DACDRLP-List (add/remove retailers)
+5. **Targeted Notifications**: Receive only relevant offers from chosen retailers
 
 ## Workflow Overview
 
@@ -18,58 +40,78 @@ Enable DACs to quickly set up their shopping preferences and local retailer rela
 - Select preferred charity from list
 - Terms of service acceptance
 
-**Step 2: Delivery Location**
+**Step 2: Delivery Location (DACSAI Center)**
 - Enter delivery address
 - Geocode to coordinates (lat/lng)
 - Store as primary delivery location
-- Used as center point for DACSAI
+- This becomes the **center point of the DAC's DACSAI**
 
-**Step 3: Define DACSAI**
-- Set shopping radius: 0.1 - 9.9 miles
-- Visual map shows radius circle
-- Backend initializes DACDRLP-List with DRLPs inside radius
-- Default: 5.0 miles
+**Step 3: Define DACSAI-Rad**
+- Set shopping radius: 0.1 - 9.9 miles (default: 5.0 miles)
+- Visual map shows the DACSAI (circular area)
+- Backend identifies all DRLPs domiciled inside this DACSAI
+- Backend initializes DACDRLP-List with these DRLPs
+- Backend adds DAC to each of those DRLPs' DRLPDAC-Lists (bidirectional sync)
 
 ### Phase 2: DACFI-List Creation (2-3 minutes)
-**Build Favorite Categories**
-- Select from 20 top-level categories
-- No subcategories (simplified for efficiency)
-- Can select 1-20 categories (recommend 5-10)
-- Visual cards with category icons
+**Build Favorite Items**
+- Add specific items: "Organic 2% Milk", "Quaker, Granola"
+- Brand-specific items use comma delimiter: "Brand, Item"
+- Generic items (any brand OK): Just the item name
+- Auto-categorized into 20 categories
 
 **Quick-Add Methods:**
-1. **Category Browser**: Scroll and tap categories
-2. **Barcode Scan**: Scan items at home (maps to category)
-3. **Batch Select**: Check multiple and add all
+1. **Text Entry**: Type item name directly
+2. **Barcode Scan**: Scan items at home (maps to category + extracts item name)
+3. **Purchase History**: Auto-add after buying same item on 3 or 6 separate days
 
-**Backend Storage:**
+**Backend Storage (in users collection):**
 ```json
 {
-  "dac_id": "uuid",
-  "dacfi_list": [
-    {"id": "uuid", "category": "Fruits"},
-    {"id": "uuid", "category": "Dairy & Eggs"},
-    {"id": "uuid", "category": "Meat & Poultry"}
+  "favorite_items": [
+    {
+      "item_name": "Quaker, Granola",
+      "brand": "Quaker",
+      "generic": "Granola",
+      "has_brand": true,
+      "category": "Breakfast & Cereal",
+      "keywords": ["quaker", "granola"],
+      "attributes": {"organic": false}
+    },
+    {
+      "item_name": "Organic 2% Milk",
+      "brand": null,
+      "generic": "Organic 2% Milk",
+      "has_brand": false,
+      "category": "Dairy & Eggs",
+      "keywords": ["milk", "2%"],
+      "attributes": {"organic": true}
+    }
   ]
 }
 ```
 
 ### Phase 3: DACDRLP-List Management (Ongoing)
 **Initial State:**
-- Auto-populated with all DRLPs within DACSAI
+- Auto-populated with all DRLPs domiciled inside the DAC's DACSAI
+- Each DRLP's DRLPDAC-List is updated to include this DAC (bidirectional sync)
 - Shown on map with pins
 
 **Manual Management:**
-- ✅ **Add DRLP**: Manually add DRLPs outside DACSAI
-- ❌ **Remove DRLP**: Remove DRLPs even if inside DACSAI
+- ✅ **Add DRLP (outside DACSAI)**: 
+  - Add DRLP to DAC's DACDRLP-List
+  - Add DAC to that DRLP's DRLPDAC-List (bidirectional sync)
+- ❌ **Remove DRLP (inside DACSAI)**:
+  - Remove DRLP from DAC's DACDRLP-List
+  - Remove DAC from that DRLP's DRLPDAC-List (bidirectional sync)
 - 🔒 **Overrides Preserved**: 
-  - Removed DRLPs never auto-added back
-  - Manually added DRLPs always kept
+  - Removed DRLPs never auto-added back (even if inside DACSAI)
+  - Manually added DRLPs always kept (even if outside DACSAI)
 
 **Visual Tools:**
-- **Map View**: Geographic display of DRLPs in list
-- **List View**: Sortable table with distance, name
-- **Radar View**: Live feed of RSHDs from these DRLPs
+- **Map View**: Geographic display showing DACSAI circle and DRLPs
+- **List View**: Sortable table with distance, name, add/remove controls
+- **Radar View**: Live feed of RSHDs from DRLPs in DACDRLP-List
 
 ## Detailed Workflows
 
