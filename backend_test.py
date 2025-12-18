@@ -1231,7 +1231,10 @@ class BackendTester:
         """Create a test DAC with delivery location for geographic testing"""
         logger.info("🏠 Creating test DAC with delivery location...")
         
-        dac_email = "test.dac.geo@example.com"
+        # Use unique timestamp-based email to avoid conflicts
+        import time
+        timestamp = int(time.time())
+        dac_email = f"test.dac.geo.{timestamp}@example.com"
         dac_password = "TestPassword123"
         
         register_response = await self.make_request("POST", "/auth/register", {
