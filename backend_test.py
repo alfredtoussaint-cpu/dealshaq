@@ -1403,7 +1403,7 @@ class BackendTester:
         
         # PRIORITY 2: Registration with Geographic Data
         logger.info("🏗️ PRIORITY 2: Registration with Geographic Data")
-        await self.create_test_drlp_with_location()
+        await self.get_existing_drlp_with_location()
         await self.create_test_dac_with_delivery_location()
         
         # PRIORITY 3: Add/Remove Retailers
