@@ -881,26 +881,41 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
 async def create_matching_notifications(item: Dict):
     """Match RSHD with DAC item-level favorites and create notifications
     
-    Enhanced Matching Logic (DACFI-List V1.0):
-    1. Match on category, keywords, and attributes
-    2. Brand-specific favorites require brand + generic match
-    3. Generic favorites match any brand
-    4. STOP after first match per DAC (efficiency optimization)
+    Enhanced Matching Logic with Geographic Filtering (V1.0):
+    1. GEOGRAPHIC FILTER: Query DRLPDAC-List to get DACs who consider this DRLP local
+    2. PREFERENCE FILTER: Check if RSHD matches DAC's DACFI-List (favorite_items)
+    3. Brand-specific favorites require brand + generic match
+    4. Generic favorites match any brand
+    5. STOP after first match per DAC (efficiency optimization)
     """
     notified_dacs = set()  # Track DACs already notified
+    drlp_id = item["drlp_id"]
     
-    # Find DACs with matching item-level favorites
+    # STEP 1: GEOGRAPHIC FILTER - Get DACs from DRLPDAC-List
+    # This list contains all DACs who have this DRLP in their DACDRLP-List
+    drlpdac_doc = await db.drlpdac_list.find_one({"drlp_id": drlp_id}, {"_id": 0})
+    
+    if not drlpdac_doc:
+        logger.info(f"No DRLPDAC-List found for DRLP {drlp_id} - no DACs in geographic range")
+        return
+    
+    eligible_dac_ids = drlpdac_doc.get("dac_ids", [])
+    
+    if not eligible_dac_ids:
+        logger.info(f"DRLPDAC-List for DRLP {drlp_id} is empty - no DACs in geographic range")
+        return
+    
+    logger.info(f"Found {len(eligible_dac_ids)} DACs in DRLPDAC-List for DRLP {drlp_id}")
+    
+    # STEP 2: PREFERENCE FILTER - Check each DAC's favorite_items
+    # Only query users who are in the DRLPDAC-List (geographic filter already applied)
     users_with_item_favs = await db.users.find({
-        "role": "DAC",
+        "id": {"$in": eligible_dac_ids},
         "favorite_items": {"$exists": True, "$ne": []}
     }, {"_id": 0, "id": 1, "favorite_items": 1}).to_list(10000)
     
     item_name_lower = item["name"].lower()
     item_organic = item.get("attributes", {}).get("organic", False)
-    
-    # Extract brand from RSHD item name (first word/phrase before generic)
-    # This is a simple heuristic - in production, RSHD should have explicit brand field
-    item_brand_keywords = item_name_lower.split()[:2]  # First 1-2 words often indicate brand
     
     for user in users_with_item_favs:
         dac_id = user["id"]
@@ -909,7 +924,7 @@ async def create_matching_notifications(item: Dict):
         if dac_id in notified_dacs:
             continue
         
-        # Check item-level favorites
+        # Check item-level favorites (DACFI-List)
         for fav_item in user.get("favorite_items", []):
             # Must match category first
             if fav_item.get("category") != item["category"]:
@@ -966,6 +981,8 @@ async def create_matching_notifications(item: Dict):
                 f"'{fav_item.get('item_name')}' (brand_match: {has_brand})"
             )
             break  # STOP after first match for this DAC
+    
+    logger.info(f"Notification matching complete: {len(notified_dacs)} DACs notified for RSHD '{item['name']}'")
 
 async def _create_notification(dac_id: str, item: Dict):
     """Helper to create a single notification"""
