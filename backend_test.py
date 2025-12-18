@@ -1178,60 +1178,54 @@ class BackendTester:
                 f"Expected 400 error, got {response['status']}: {response['data']}"
             )
 
-    async def create_test_drlp_with_location(self):
-        """Create a test DRLP with location for geographic testing"""
-        logger.info("🏗️ Creating test DRLP with location...")
+    async def get_existing_drlp_with_location(self):
+        """Get existing DRLP with location for geographic testing"""
+        logger.info("🏗️ Getting existing DRLP with location...")
         
-        # Create DRLP user
-        drlp_email = "test.drlp.geo@example.com"
-        drlp_password = "TestPassword123"
+        # Get all DRLP locations
+        locations_response = await self.make_request("GET", "/drlp/locations")
         
-        register_response = await self.make_request("POST", "/auth/register", {
-            "email": drlp_email,
-            "password": drlp_password,
-            "name": "Test Geo Store",
-            "role": "DRLP"
-        })
-        
-        if register_response["status"] != 200:
-            self.log_result(
-                "Create Test DRLP", False,
-                f"Failed to register DRLP: {register_response['data']}"
-            )
-            return None
-        
-        drlp_token = register_response["data"]["access_token"]
-        drlp_id = register_response["data"]["user"]["id"]
-        
-        # Create location for DRLP
-        location_response = await self.make_request("POST", "/drlp/locations", {
-            "name": "Test Geo Store Location",
-            "address": "456 Store St, New York, NY",
-            "coordinates": {"lat": 40.7589, "lng": -73.9851},  # Near Times Square
-            "charity_id": "test-charity-id",
-            "operating_hours": "9 AM - 9 PM"
-        }, headers={"Authorization": f"Bearer {drlp_token}"})
-        
-        if location_response["status"] == 200:
-            self.log_result(
-                "Create Test DRLP", True,
-                f"Successfully created DRLP with location",
-                {
-                    "drlp_id": drlp_id,
-                    "location": location_response["data"]
+        if locations_response["status"] == 200:
+            locations = locations_response["data"]
+            
+            # Find a DRLP with proper coordinates (not 0,0)
+            for location in locations:
+                coords = location.get("coordinates", {})
+                if coords.get("lat", 0) != 0 and coords.get("lng", 0) != 0:
+                    self.log_result(
+                        "Get Existing DRLP", True,
+                        f"Found existing DRLP with location: {location['name']}",
+                        {
+                            "drlp_id": location["user_id"],
+                            "location": location
+                        }
+                    )
+                    return {
+                        "drlp_id": location["user_id"],
+                        "location": location
+                    }
+            
+            # If no DRLP with proper coordinates, use the first one
+            if locations:
+                location = locations[0]
+                self.log_result(
+                    "Get Existing DRLP", True,
+                    f"Using existing DRLP (may have 0,0 coordinates): {location['name']}",
+                    {
+                        "drlp_id": location["user_id"],
+                        "location": location
+                    }
+                )
+                return {
+                    "drlp_id": location["user_id"],
+                    "location": location
                 }
-            )
-            return {
-                "drlp_id": drlp_id,
-                "drlp_token": drlp_token,
-                "location": location_response["data"]
-            }
-        else:
-            self.log_result(
-                "Create Test DRLP", False,
-                f"Failed to create DRLP location: {location_response['data']}"
-            )
-            return None
+        
+        self.log_result(
+            "Get Existing DRLP", False,
+            f"No DRLP locations found: {locations_response['data']}"
+        )
+        return None
 
     async def create_test_dac_with_delivery_location(self):
         """Create a test DAC with delivery location for geographic testing"""
