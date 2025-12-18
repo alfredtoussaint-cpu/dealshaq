@@ -1,67 +1,120 @@
 {
-  "total": 18,
-  "passed": 17,
-  "failed": 1,
+  "total": 14,
+  "passed": 11,
+  "failed": 3,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-18T18:54:16.017341+00:00"
+      "timestamp": "2025-12-18T22:26:20.967910+00:00"
     },
     {
-      "test": "Removed Endpoint - GET /favorites",
+      "test": "DACDRLP-List GET Endpoint",
       "success": true,
-      "message": "Correctly returns 404 for removed GET category-level favorites endpoint",
+      "message": "Returns DACDRLP-List with 0 retailers",
+      "details": {
+        "retailers_count": 0,
+        "dacsai_rad": null
+      },
+      "timestamp": "2025-12-18T22:26:20.982986+00:00"
+    },
+    {
+      "test": "DACSAI Update - No Delivery Location",
+      "success": true,
+      "message": "Correctly returns 400 error when no delivery location set",
       "details": {
         "response": {
-          "detail": "Not Found"
+          "detail": "Delivery location not set. Please update your profile first."
         }
       },
-      "timestamp": "2025-12-18T18:54:16.064546+00:00"
+      "timestamp": "2025-12-18T22:26:21.032386+00:00"
     },
     {
-      "test": "Removed Endpoint - POST /favorites",
+      "test": "Create Test DRLP",
       "success": true,
-      "message": "Correctly returns 404 for removed POST category-level favorites endpoint",
+      "message": "Successfully created DRLP with location",
+      "details": {
+        "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
+        "location": {
+          "id": "f1585e6c-4779-48a9-9b66-a02a7b9b3c1c",
+          "user_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
+          "name": "Test Geo Store Location",
+          "address": "456 Store St, New York, NY",
+          "coordinates": {
+            "lat": 40.7589,
+            "lng": -73.9851
+          },
+          "charity_id": "test-charity-id",
+          "operating_hours": "9 AM - 9 PM"
+        }
+      },
+      "timestamp": "2025-12-18T22:26:21.345842+00:00"
+    },
+    {
+      "test": "Create Test DAC with Delivery Location",
+      "success": true,
+      "message": "Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
+      "details": {
+        "dac_id": "eb0a4ede-4d73-4810-929c-a4b70b87ee32",
+        "delivery_location": {
+          "address": "123 Test St, New York, NY",
+          "coordinates": {
+            "lat": 40.7128,
+            "lng": -74.006
+          }
+        }
+      },
+      "timestamp": "2025-12-18T22:26:21.636171+00:00"
+    },
+    {
+      "test": "Create Test DRLP",
+      "success": false,
+      "message": "Failed to register DRLP: {'detail': 'Email already registered as DRLP'}",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:21.684760+00:00"
+    },
+    {
+      "test": "Add/Remove Retailers - Setup",
+      "success": false,
+      "message": "Failed to create test DRLP for testing",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:21.684840+00:00"
+    },
+    {
+      "test": "Geographic Filter - DACDRLP-List Check",
+      "success": true,
+      "message": "DACDRLP-List endpoint accessible for geographic filtering",
       "details": {
         "response": {
-          "detail": "Not Found"
+          "dac_id": "5f7e6fcb-e5fb-4489-ac95-3f1fd8488249",
+          "retailers": [],
+          "created_at": "2025-12-16T19:15:03.066054+00:00",
+          "updated_at": "2025-12-16T19:15:03.066061+00:00"
         }
       },
-      "timestamp": "2025-12-18T18:54:16.075842+00:00"
+      "timestamp": "2025-12-18T22:26:21.699432+00:00"
     },
     {
-      "test": "Removed Endpoint - DELETE /favorites/test-id",
+      "test": "Existing Functionality - Item Favorites",
       "success": true,
-      "message": "Correctly returns 404 for removed DELETE category-level favorites endpoint",
-      "details": {
-        "response": {
-          "detail": "Not Found"
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.122586+00:00"
-    },
-    {
-      "test": "Item-Level Add Regression",
-      "success": true,
-      "message": "Successfully added 'Regression Test Apple' to item-level favorites",
+      "message": "Item-level favorites still working correctly",
       "details": {
         "item": {
-          "item_name": "Regression Test Apple",
+          "item_name": "Geographic Test Apple",
           "brand": null,
-          "generic": "Regression Test Apple",
+          "generic": "Geographic Test Apple",
           "has_brand": false,
           "category": "Fruits",
           "keywords": [
-            "regression",
+            "geographic",
             "test",
             "apple"
           ],
           "brand_keywords": [],
           "generic_keywords": [
-            "regression",
+            "geographic",
             "test",
             "apple"
           ],
@@ -69,160 +122,19 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-18T18:54:16.130814+00:00"
+      "timestamp": "2025-12-18T22:26:24.222531+00:00"
     },
     {
-      "test": "Item-Level Get Regression",
+      "test": "Existing Functionality - Auto Threshold",
       "success": true,
-      "message": "Successfully retrieved items organized by category (total: 13)",
-      "details": {
-        "categories": [
-          "Breakfast & Cereal",
-          "Dairy & Eggs",
-          "Fruits",
-          "Bakery & Bread",
-          "Vegetables",
-          "Snacks & Candy",
-          "Frozen Foods",
-          "Oils, Sauces & Spices",
-          "Miscellaneous"
-        ]
-      },
-      "timestamp": "2025-12-18T18:54:16.137930+00:00"
-    },
-    {
-      "test": "Item-Level Delete Regression",
-      "success": true,
-      "message": "Successfully deleted 'Regression Test Apple' from item-level favorites",
-      "details": {
-        "response": {
-          "message": "Favorite item removed"
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.185388+00:00"
-    },
-    {
-      "test": "Brand/Generic Regression - Quaker, Granola",
-      "success": true,
-      "message": "Brand-specific parsing - All fields correct",
-      "details": {
-        "item": {
-          "item_name": "Quaker, Granola",
-          "brand": "Quaker",
-          "generic": "Granola",
-          "has_brand": true,
-          "category": "Breakfast & Cereal",
-          "keywords": [
-            "quaker",
-            "granola"
-          ],
-          "brand_keywords": [
-            "quaker"
-          ],
-          "generic_keywords": [
-            "granola"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.240782+00:00"
-    },
-    {
-      "test": "Brand/Generic Regression - Granola",
-      "success": true,
-      "message": "Generic parsing - All fields correct",
-      "details": {
-        "item": {
-          "item_name": "Granola",
-          "brand": null,
-          "generic": "Granola",
-          "has_brand": false,
-          "category": "Breakfast & Cereal",
-          "keywords": [
-            "granola"
-          ],
-          "brand_keywords": [],
-          "generic_keywords": [
-            "granola"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.295626+00:00"
-    },
-    {
-      "test": "Auto-Threshold Regression - 0",
-      "success": true,
-      "message": "Successfully set threshold to 0",
-      "details": {
-        "response": {
-          "message": "Auto-add settings updated",
-          "threshold": 0
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.343515+00:00"
-    },
-    {
-      "test": "Auto-Threshold Regression - 3",
-      "success": true,
-      "message": "Successfully set threshold to 3",
+      "message": "Auto-threshold settings still working correctly",
       "details": {
         "response": {
           "message": "Auto-add settings updated",
           "threshold": 3
         }
       },
-      "timestamp": "2025-12-18T18:54:16.350561+00:00"
-    },
-    {
-      "test": "Auto-Threshold Regression - 6",
-      "success": true,
-      "message": "Successfully set threshold to 6",
-      "details": {
-        "response": {
-          "message": "Auto-add settings updated",
-          "threshold": 6
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.397389+00:00"
-    },
-    {
-      "test": "Auto-Threshold Invalid Value Regression",
-      "success": true,
-      "message": "Correctly rejected invalid threshold (5) with 400 error",
-      "details": {
-        "response": {
-          "detail": "Auto-favorite threshold must be 0 (Never), 3, or 6 days"
-        }
-      },
-      "timestamp": "2025-12-18T18:54:16.403379+00:00"
-    },
-    {
-      "test": "Authentication Login Regression",
-      "success": true,
-      "message": "Login endpoint returns valid token",
-      "details": {
-        "user_role": "DAC"
-      },
-      "timestamp": "2025-12-18T18:54:16.652551+00:00"
-    },
-    {
-      "test": "Authentication Protection Regression",
-      "success": false,
-      "message": "Expected 401/403 for invalid token, got 520",
-      "details": {},
-      "timestamp": "2025-12-18T18:54:16.658395+00:00"
-    },
-    {
-      "test": "Authentication Role Access Regression",
-      "success": true,
-      "message": "DAC user can access favorites endpoints",
-      "details": {
-        "user_role": "DAC"
-      },
-      "timestamp": "2025-12-18T18:54:16.675979+00:00"
+      "timestamp": "2025-12-18T22:26:24.240675+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -252,18 +164,32 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-18T18:54:16.681576+00:00"
+      "timestamp": "2025-12-18T22:26:24.248517+00:00"
     },
     {
-      "test": "Unauthenticated Access",
+      "test": "Authentication Login Regression",
       "success": true,
-      "message": "Correctly rejected unauthenticated request with 403",
+      "message": "Login endpoint returns valid token",
       "details": {
-        "response": {
-          "detail": "Not authenticated"
-        }
+        "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T18:54:16.727765+00:00"
+      "timestamp": "2025-12-18T22:26:24.500260+00:00"
+    },
+    {
+      "test": "Authentication Protection Regression",
+      "success": false,
+      "message": "Expected 401/403 for invalid token, got 520",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:24.506209+00:00"
+    },
+    {
+      "test": "Authentication Role Access Regression",
+      "success": true,
+      "message": "DAC user can access favorites endpoints",
+      "details": {
+        "user_role": "DAC"
+      },
+      "timestamp": "2025-12-18T22:26:24.514982+00:00"
     }
   ]
 }
