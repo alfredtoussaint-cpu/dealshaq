@@ -1,14 +1,14 @@
 {
-  "total": 14,
-  "passed": 12,
-  "failed": 2,
+  "total": 15,
+  "passed": 15,
+  "failed": 0,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-18T22:28:11.054996+00:00"
+      "timestamp": "2025-12-18T22:29:00.982929+00:00"
     },
     {
       "test": "DACDRLP-List GET Endpoint",
@@ -18,7 +18,7 @@
         "retailers_count": 0,
         "dacsai_rad": null
       },
-      "timestamp": "2025-12-18T22:28:11.070225+00:00"
+      "timestamp": "2025-12-18T22:29:00.996767+00:00"
     },
     {
       "test": "DACSAI Update - No Delivery Location",
@@ -29,7 +29,7 @@
           "detail": "Delivery location not set. Please update your profile first."
         }
       },
-      "timestamp": "2025-12-18T22:28:11.083450+00:00"
+      "timestamp": "2025-12-18T22:29:01.049695+00:00"
     },
     {
       "test": "Get Existing DRLP",
@@ -50,14 +50,14 @@
           "operating_hours": "9 AM - 9 PM"
         }
       },
-      "timestamp": "2025-12-18T22:28:11.131378+00:00"
+      "timestamp": "2025-12-18T22:29:01.062497+00:00"
     },
     {
       "test": "Create Test DAC with Delivery Location",
       "success": true,
       "message": "Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
       "details": {
-        "dac_id": "b15a97fe-ffac-42e5-8532-4da960bf4606",
+        "dac_id": "64475ae3-3519-4e5d-80ea-c39964fa44f3",
         "delivery_location": {
           "address": "123 Test St, New York, NY",
           "coordinates": {
@@ -66,7 +66,7 @@
           }
         }
       },
-      "timestamp": "2025-12-18T22:28:11.389268+00:00"
+      "timestamp": "2025-12-18T22:29:01.358443+00:00"
     },
     {
       "test": "Get Existing DRLP",
@@ -87,14 +87,39 @@
           "operating_hours": "9 AM - 9 PM"
         }
       },
-      "timestamp": "2025-12-18T22:28:11.397247+00:00"
+      "timestamp": "2025-12-18T22:29:01.409610+00:00"
     },
     {
       "test": "Add Retailer to DACDRLP-List",
-      "success": false,
-      "message": "Failed to add retailer: {'raw_response': 'Internal Server Error'}",
-      "details": {},
-      "timestamp": "2025-12-18T22:28:11.406436+00:00"
+      "success": true,
+      "message": "Successfully added DRLP 0a5bc7fd-47c2-4aa9-813b-4eed25f77771 to retailer list",
+      "details": {
+        "retailer": {
+          "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
+          "drlp_name": "Test Geo Store Location",
+          "drlp_location": {
+            "lat": 40.7589,
+            "lng": -73.9851
+          },
+          "distance": 0.0,
+          "inside_dacsai": false,
+          "manually_added": true,
+          "manually_removed": false,
+          "added_at": "2025-12-18T22:29:01.417755+00:00"
+        }
+      },
+      "timestamp": "2025-12-18T22:29:01.422864+00:00"
+    },
+    {
+      "test": "Remove Retailer from DACDRLP-List",
+      "success": true,
+      "message": "Successfully removed DRLP 0a5bc7fd-47c2-4aa9-813b-4eed25f77771 from retailer list",
+      "details": {
+        "response": {
+          "message": "Retailer removed from your list. You will no longer receive notifications from this store."
+        }
+      },
+      "timestamp": "2025-12-18T22:29:01.436753+00:00"
     },
     {
       "test": "Geographic Filter - DACDRLP-List Check",
@@ -103,12 +128,26 @@
       "details": {
         "response": {
           "dac_id": "5f7e6fcb-e5fb-4489-ac95-3f1fd8488249",
-          "retailers": [],
+          "retailers": [
+            {
+              "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
+              "drlp_name": "Test Geo Store Location",
+              "drlp_location": {
+                "lat": 40.7589,
+                "lng": -73.9851
+              },
+              "distance": 0.0,
+              "inside_dacsai": false,
+              "manually_added": true,
+              "manually_removed": true,
+              "added_at": "2025-12-18T22:29:01.417755+00:00"
+            }
+          ],
           "created_at": "2025-12-16T19:15:03.066054+00:00",
-          "updated_at": "2025-12-16T19:15:03.066061+00:00"
+          "updated_at": "2025-12-18T22:29:01.432222+00:00"
         }
       },
-      "timestamp": "2025-12-18T22:28:11.455424+00:00"
+      "timestamp": "2025-12-18T22:29:01.448362+00:00"
     },
     {
       "test": "Existing Functionality - Item Favorites",
@@ -136,14 +175,19 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-18T22:28:11.465224+00:00"
+      "timestamp": "2025-12-18T22:29:03.171242+00:00"
     },
     {
       "test": "Existing Functionality - Auto Threshold",
-      "success": false,
-      "message": "Auto-threshold settings broken: {'detail': 'Failed to update auto-add settings'}",
-      "details": {},
-      "timestamp": "2025-12-18T22:28:11.488256+00:00"
+      "success": true,
+      "message": "Auto-threshold settings still working correctly",
+      "details": {
+        "response": {
+          "message": "Auto-add settings updated",
+          "threshold": 3
+        }
+      },
+      "timestamp": "2025-12-18T22:29:03.611333+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -173,7 +217,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-18T22:28:11.498412+00:00"
+      "timestamp": "2025-12-18T22:29:03.621008+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -182,7 +226,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:28:11.748822+00:00"
+      "timestamp": "2025-12-18T22:29:04.084430+00:00"
     },
     {
       "test": "Authentication Protection Regression",
@@ -193,7 +237,7 @@
           "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-18T22:28:11.756053+00:00"
+      "timestamp": "2025-12-18T22:29:04.092452+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -202,7 +246,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:28:11.764714+00:00"
+      "timestamp": "2025-12-18T22:29:04.102778+00:00"
     }
   ]
 }
