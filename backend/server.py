@@ -62,8 +62,8 @@ class UserCreate(BaseModel):
     name: str
     role: str  # DAC, DRLP, Admin
     charity_id: Optional[str] = None
-    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
-    dacsai_radius: Optional[float] = 5.0  # DACSAI: 0.1 - 9.9 miles
+    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}} - DACSAI center
+    dacsai_rad: Optional[float] = 5.0  # DACSAI-Rad: 0.1 - 9.9 miles (defines DACSAI size)
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -82,8 +82,8 @@ class User(BaseModel):
     name: str
     role: str
     charity_id: Optional[str] = None
-    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
-    dacsai_radius: Optional[float] = 5.0  # DACSAI: 0.1 - 9.9 miles
+    delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}} - DACSAI center
+    dacsai_rad: Optional[float] = 5.0  # DACSAI-Rad: 0.1 - 9.9 miles (defines DACSAI size)
     notification_prefs: Optional[Dict[str, bool]] = {"email": True, "push": True, "sms": False}
     favorite_items: Optional[List[Dict[str, Any]]] = []  # Item-level favorites with keywords & attributes
     auto_favorite_threshold: Optional[int] = 0  # 0=Never, 3, or 6 days
