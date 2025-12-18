@@ -943,10 +943,78 @@ test_plan:
   - ✅ `PUT /api/users/settings/auto-threshold` - Update threshold
 - ✅ Removed endpoints return 404 (as expected)
 
-## Backend Test Status
-- needs_retesting: true
-- test_priority: high
-- focus: Ensure no regressions in item-level favorites and notification matching
+backend:
+  - task: "Category-Level Favorites Removal Verification"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - All 3 removed endpoints (GET/POST/DELETE /api/favorites) correctly return 404. No category-level favorites references found in notification matching logic. Removal successful with no regressions."
+
+  - task: "Item-Level Favorites Regression Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - All item-level favorites functionality intact. POST /api/favorites/items working (added 'Regression Test Apple'). GET /api/favorites/items returns organized data (13 items, 9 categories). POST /api/favorites/items/delete working correctly. No regressions detected."
+
+  - task: "Brand/Generic Parsing Regression Testing"
+    implemented: true
+    working: true
+    file: "backend/categorization_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Brand/generic parsing fully intact. 'Quaker, Granola' → brand='Quaker', generic='Granola', has_brand=True. 'Granola' → brand=None, generic='Granola', has_brand=False. All parsing logic working correctly after category-level removal."
+
+  - task: "Auto-Threshold Settings Regression Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Auto-threshold settings fully functional. PUT /api/users/settings/auto-threshold accepts valid values (0, 3, 6) and rejects invalid value (5) with 400 error. No regressions in settings functionality."
+
+  - task: "Authentication and Authorization Regression Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Authentication core functionality intact. Login returns valid token. DAC users can access favorites endpoints. Role-based access working. Minor: JWT error causes 520 instead of 401/403 for invalid tokens (non-critical edge case)."
+
+  - task: "Notification Matching Logic Update Verification"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Notification matching logic correctly updated. No references to category-level favorites (db.favorites) found. Function documentation updated. Only item-level favorites matching remains active."
 
 agent_communication:
     - agent: "main"
