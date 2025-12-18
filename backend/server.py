@@ -178,17 +178,7 @@ class RSHDItem(BaseModel):
     posted_at: str
     status: str = "available"
 
-# Favorite Models (DACFI-List)
-class FavoriteCreate(BaseModel):
-    category: str  # Must be one of VALID_CATEGORIES only (no subcategories)
-
-class Favorite(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str
-    dac_id: str
-    category: str  # Top-level category only
-
-# Item-Level Favorite Models (Enhanced DACFI-List)
+# Item-Level Favorite Models (DACFI-List)
 class FavoriteItemCreate(BaseModel):
     item_name: str  # User input: e.g., "Organic 2% Milk", "Granola"
 
