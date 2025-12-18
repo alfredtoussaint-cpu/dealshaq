@@ -271,7 +271,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.JWTError:
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 def calculate_tax(subtotal: float, is_taxable: bool = True) -> float:
