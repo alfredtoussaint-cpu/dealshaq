@@ -8,7 +8,7 @@
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-18T22:28:05.137742+00:00"
+      "timestamp": "2025-12-18T22:28:11.054996+00:00"
     },
     {
       "test": "DACDRLP-List GET Endpoint",
@@ -18,7 +18,7 @@
         "retailers_count": 0,
         "dacsai_rad": null
       },
-      "timestamp": "2025-12-18T22:28:05.147185+00:00"
+      "timestamp": "2025-12-18T22:28:11.070225+00:00"
     },
     {
       "test": "DACSAI Update - No Delivery Location",
@@ -29,7 +29,7 @@
           "detail": "Delivery location not set. Please update your profile first."
         }
       },
-      "timestamp": "2025-12-18T22:28:05.193489+00:00"
+      "timestamp": "2025-12-18T22:28:11.083450+00:00"
     },
     {
       "test": "Get Existing DRLP",
@@ -50,14 +50,14 @@
           "operating_hours": "9 AM - 9 PM"
         }
       },
-      "timestamp": "2025-12-18T22:28:05.241342+00:00"
+      "timestamp": "2025-12-18T22:28:11.131378+00:00"
     },
     {
       "test": "Create Test DAC with Delivery Location",
       "success": true,
       "message": "Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
       "details": {
-        "dac_id": "12217556-dcf4-4765-b86f-c2287b0569fe",
+        "dac_id": "b15a97fe-ffac-42e5-8532-4da960bf4606",
         "delivery_location": {
           "address": "123 Test St, New York, NY",
           "coordinates": {
@@ -66,7 +66,7 @@
           }
         }
       },
-      "timestamp": "2025-12-18T22:28:05.535614+00:00"
+      "timestamp": "2025-12-18T22:28:11.389268+00:00"
     },
     {
       "test": "Get Existing DRLP",
@@ -87,14 +87,14 @@
           "operating_hours": "9 AM - 9 PM"
         }
       },
-      "timestamp": "2025-12-18T22:28:05.541402+00:00"
+      "timestamp": "2025-12-18T22:28:11.397247+00:00"
     },
     {
       "test": "Add Retailer to DACDRLP-List",
       "success": false,
       "message": "Failed to add retailer: {'raw_response': 'Internal Server Error'}",
       "details": {},
-      "timestamp": "2025-12-18T22:28:05.549696+00:00"
+      "timestamp": "2025-12-18T22:28:11.406436+00:00"
     },
     {
       "test": "Geographic Filter - DACDRLP-List Check",
@@ -108,7 +108,7 @@
           "updated_at": "2025-12-16T19:15:03.066061+00:00"
         }
       },
-      "timestamp": "2025-12-18T22:28:05.555515+00:00"
+      "timestamp": "2025-12-18T22:28:11.455424+00:00"
     },
     {
       "test": "Existing Functionality - Item Favorites",
@@ -136,14 +136,14 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-18T22:28:05.603296+00:00"
+      "timestamp": "2025-12-18T22:28:11.465224+00:00"
     },
     {
       "test": "Existing Functionality - Auto Threshold",
       "success": false,
       "message": "Auto-threshold settings broken: {'detail': 'Failed to update auto-add settings'}",
       "details": {},
-      "timestamp": "2025-12-18T22:28:05.656424+00:00"
+      "timestamp": "2025-12-18T22:28:11.488256+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -173,7 +173,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-18T22:28:05.661177+00:00"
+      "timestamp": "2025-12-18T22:28:11.498412+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -182,7 +182,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:28:05.909191+00:00"
+      "timestamp": "2025-12-18T22:28:11.748822+00:00"
     },
     {
       "test": "Authentication Protection Regression",
@@ -193,7 +193,7 @@
           "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-18T22:28:05.913513+00:00"
+      "timestamp": "2025-12-18T22:28:11.756053+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -202,7 +202,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:28:05.919276+00:00"
+      "timestamp": "2025-12-18T22:28:11.764714+00:00"
     }
   ]
 }
