@@ -656,4 +656,4 @@ GET /api/radar
 
 **Version**: 1.0  
 **Target Time**: < 5 minutes onboarding  
-**Status**: V1.0 uses simplified DACSAI (all DACs see all DRLPs), full DACDRLP-List in v2.0
+**Status**: V1.0 implements full geographic filtering with DACSAI, DACDRLP-List, and DRLPDAC-List bidirectional sync
