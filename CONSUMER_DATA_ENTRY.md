@@ -533,20 +533,20 @@ POST /api/dac/retailers/add
     - Side effect: Add DAC to that DRLP's DRLPDAC-List (bidirectional sync)
 
 DELETE /api/dac/retailers/{drlp_id}
-    - Output: DRLP removed (manually_removed: true)
-
-PUT /api/dac/dacsai
-    - Input: New radius
-    - Output: DACDRLP-List updated, preserves manual overrides
+    - Input: DRLP ID (for a DRLP inside DACSAI that DAC wants to stop receiving notifications from)
+    - Output: DRLP marked as manually_removed in DACDRLP-List
+    - Side effect: Remove DAC from that DRLP's DRLPDAC-List (bidirectional sync)
 ```
 
 ### Notifications
 ```
 GET /api/notifications
-    - Output: Notifications for current DAC (from DRLPDAC-SNL)
+    - Output: Notifications for current DAC
+    - Note: Notifications only generated for DACs in DRLPDAC-SNL (geographic + preference match)
 
 GET /api/radar
-    - Output: Live feed of RSHDs from DRLPs in DACDRLP-List
+    - Output: Live feed of all RSHDs from DRLPs in DAC's DACDRLP-List
+    - Note: Shows all deals from chosen retailers, not just matching favorites
 ```
 
 ## UI/UX Best Practices
