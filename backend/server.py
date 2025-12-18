@@ -1178,8 +1178,10 @@ async def update_auto_threshold(threshold_data: AutoThresholdUpdate, current_use
         {"$set": {"auto_favorite_threshold": threshold_data.auto_favorite_threshold}}
     )
     
-    if result.modified_count == 0:
-        raise HTTPException(status_code=500, detail="Failed to update auto-add settings")
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Note: modified_count can be 0 if the value is the same, which is OK
     
     threshold_text = {0: "Never", 3: "3 days", 6: "6 days"}
     logger.info(f"Updated auto-add threshold to '{threshold_text[threshold_data.auto_favorite_threshold]}' for user {current_user['id']}")
