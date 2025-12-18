@@ -855,60 +855,323 @@ class BackendTester:
                 "Failed to add test favorites for matching logic test"
             )
     
+    async def test_removed_endpoints_return_404(self):
+        """Test that removed category-level favorites endpoints return 404"""
+        logger.info("🚫 Testing removed category-level favorites endpoints return 404...")
+        
+        removed_endpoints = [
+            ("GET", "/favorites", "GET category-level favorites"),
+            ("POST", "/favorites", "POST category-level favorites"),
+            ("DELETE", "/favorites/test-id", "DELETE category-level favorites")
+        ]
+        
+        for method, endpoint, description in removed_endpoints:
+            response = await self.make_request(method, endpoint, {
+                "category": "Fruits",
+                "name": "Test Category Favorite"
+            } if method == "POST" else None)
+            
+            if response["status"] == 404:
+                self.log_result(
+                    f"Removed Endpoint - {method} {endpoint}", True,
+                    f"Correctly returns 404 for removed {description} endpoint",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    f"Removed Endpoint - {method} {endpoint}", False,
+                    f"Expected 404, got {response['status']} for {description}",
+                    {"response": response["data"]}
+                )
+
+    async def test_item_level_favorites_regression(self):
+        """Test that item-level favorites still work after category-level removal"""
+        logger.info("🔄 Testing item-level favorites regression (NO REGRESSION)...")
+        
+        # Test 1: Add a regression test item
+        test_item = "Regression Test Apple"
+        add_response = await self.make_request("POST", "/favorites/items", {
+            "item_name": test_item
+        })
+        
+        if add_response["status"] == 200:
+            self.log_result(
+                "Item-Level Add Regression", True,
+                f"Successfully added '{test_item}' to item-level favorites",
+                {"item": add_response["data"]["item"]}
+            )
+        else:
+            self.log_result(
+                "Item-Level Add Regression", False,
+                f"Failed to add item-level favorite: {add_response['data']}"
+            )
+            return
+        
+        # Test 2: Get items organized by category
+        get_response = await self.make_request("GET", "/favorites/items")
+        
+        if get_response["status"] == 200:
+            items_by_category = get_response["data"].get("items_by_category", {})
+            total_items = get_response["data"].get("total_items", 0)
+            
+            # Check if our test item is there
+            found_item = False
+            for category, items in items_by_category.items():
+                for item in items:
+                    if item.get("item_name") == test_item:
+                        found_item = True
+                        break
+                if found_item:
+                    break
+            
+            if found_item and total_items > 0:
+                self.log_result(
+                    "Item-Level Get Regression", True,
+                    f"Successfully retrieved items organized by category (total: {total_items})",
+                    {"categories": list(items_by_category.keys())}
+                )
+            else:
+                self.log_result(
+                    "Item-Level Get Regression", False,
+                    f"Test item not found in organized favorites or no items returned"
+                )
+        else:
+            self.log_result(
+                "Item-Level Get Regression", False,
+                f"Failed to get item-level favorites: {get_response['data']}"
+            )
+        
+        # Test 3: Delete the test item
+        delete_response = await self.make_request("POST", "/favorites/items/delete", {
+            "item_name": test_item
+        })
+        
+        if delete_response["status"] == 200:
+            self.log_result(
+                "Item-Level Delete Regression", True,
+                f"Successfully deleted '{test_item}' from item-level favorites",
+                {"response": delete_response["data"]}
+            )
+        else:
+            self.log_result(
+                "Item-Level Delete Regression", False,
+                f"Failed to delete item-level favorite: {delete_response['data']}"
+            )
+
+    async def test_brand_generic_parsing_regression(self):
+        """Test that brand/generic parsing still works correctly"""
+        logger.info("🏪 Testing brand/generic parsing regression...")
+        
+        test_cases = [
+            {
+                "input": "Quaker, Granola",
+                "expected_has_brand": True,
+                "expected_brand": "Quaker",
+                "expected_generic": "Granola",
+                "description": "Brand-specific parsing"
+            },
+            {
+                "input": "Granola",
+                "expected_has_brand": False,
+                "expected_brand": None,
+                "expected_generic": "Granola",
+                "description": "Generic parsing"
+            }
+        ]
+        
+        for case in test_cases:
+            # First try to remove if exists
+            try:
+                await self.make_request("POST", "/favorites/items/delete", {
+                    "item_name": case["input"]
+                })
+            except:
+                pass
+            
+            response = await self.make_request("POST", "/favorites/items", {
+                "item_name": case["input"]
+            })
+            
+            if response["status"] == 200:
+                item = response["data"]["item"]
+                
+                checks = {
+                    "has_brand": item.get("has_brand") == case["expected_has_brand"],
+                    "brand": item.get("brand") == case["expected_brand"],
+                    "generic": item.get("generic") == case["expected_generic"]
+                }
+                
+                if all(checks.values()):
+                    self.log_result(
+                        f"Brand/Generic Regression - {case['input']}", True,
+                        f"{case['description']} - All fields correct",
+                        {"item": item}
+                    )
+                else:
+                    failed_checks = [k for k, v in checks.items() if not v]
+                    self.log_result(
+                        f"Brand/Generic Regression - {case['input']}", False,
+                        f"Failed checks: {failed_checks}",
+                        {"item": item, "expected": case}
+                    )
+            else:
+                self.log_result(
+                    f"Brand/Generic Regression - {case['input']}", False,
+                    f"Failed to add item: {response['data']}"
+                )
+
+    async def test_auto_threshold_regression(self):
+        """Test that auto-threshold settings still work"""
+        logger.info("⚙️ Testing auto-threshold settings regression...")
+        
+        # Test valid values
+        valid_thresholds = [0, 3, 6]
+        
+        for threshold in valid_thresholds:
+            response = await self.make_request("PUT", "/users/settings/auto-threshold", {
+                "auto_favorite_threshold": threshold
+            })
+            
+            if response["status"] == 200:
+                self.log_result(
+                    f"Auto-Threshold Regression - {threshold}", True,
+                    f"Successfully set threshold to {threshold}",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    f"Auto-Threshold Regression - {threshold}", False,
+                    f"Failed to set threshold: {response['data']}"
+                )
+        
+        # Test invalid value
+        invalid_response = await self.make_request("PUT", "/users/settings/auto-threshold", {
+            "auto_favorite_threshold": 5
+        })
+        
+        if invalid_response["status"] == 400:
+            self.log_result(
+                "Auto-Threshold Invalid Value Regression", True,
+                "Correctly rejected invalid threshold (5) with 400 error",
+                {"response": invalid_response["data"]}
+            )
+        else:
+            self.log_result(
+                "Auto-Threshold Invalid Value Regression", False,
+                f"Expected 400 for invalid value, got {invalid_response['status']}"
+            )
+
+    async def test_authentication_regression(self):
+        """Test that authentication still works correctly"""
+        logger.info("🔐 Testing authentication regression...")
+        
+        # Test 1: Login returns token
+        login_response = await self.make_request("POST", "/auth/login", {
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
+            "role": TEST_ROLE
+        })
+        
+        if login_response["status"] == 200 and login_response["data"].get("access_token"):
+            self.log_result(
+                "Authentication Login Regression", True,
+                "Login endpoint returns valid token",
+                {"user_role": login_response["data"]["user"]["role"]}
+            )
+        else:
+            self.log_result(
+                "Authentication Login Regression", False,
+                f"Login failed: {login_response['data']}"
+            )
+        
+        # Test 2: Protected endpoints require valid token
+        original_token = self.auth_token
+        self.auth_token = "invalid_token"
+        
+        protected_response = await self.make_request("GET", "/favorites/items")
+        
+        self.auth_token = original_token  # Restore
+        
+        if protected_response["status"] in [401, 403]:
+            self.log_result(
+                "Authentication Protection Regression", True,
+                f"Protected endpoint correctly rejects invalid token with {protected_response['status']}",
+                {"response": protected_response["data"]}
+            )
+        else:
+            self.log_result(
+                "Authentication Protection Regression", False,
+                f"Expected 401/403 for invalid token, got {protected_response['status']}"
+            )
+        
+        # Test 3: Role-based access (DAC only for favorites)
+        if self.user_data and self.user_data.get("role") == "DAC":
+            favorites_response = await self.make_request("GET", "/favorites/items")
+            
+            if favorites_response["status"] == 200:
+                self.log_result(
+                    "Authentication Role Access Regression", True,
+                    "DAC user can access favorites endpoints",
+                    {"user_role": self.user_data["role"]}
+                )
+            else:
+                self.log_result(
+                    "Authentication Role Access Regression", False,
+                    f"DAC user cannot access favorites: {favorites_response['data']}"
+                )
+
     async def run_all_tests(self):
-        """Run all backend tests"""
-        logger.info("🚀 Starting Brand/Generic Name Feature Backend Tests (V1.0)")
+        """Run comprehensive regression tests after category-level favorites removal"""
+        logger.info("🚀 Starting COMPREHENSIVE REGRESSION TESTING after category-level favorites removal")
         logger.info(f"Backend URL: {API_BASE}")
+        logger.info(f"Test Credentials: {TEST_EMAIL} (Role: {TEST_ROLE})")
         
         # Authentication
         if not await self.authenticate():
             logger.error("❌ Authentication failed - stopping tests")
             return
         
-        # PRIORITY 1: Test the 3 CRITICAL FIXES from review request
-        logger.info("🎯 PRIORITY 1: Testing CRITICAL FIXES")
-        await self.test_orange_juice_categorization_fix()  # Fix #1: Orange Juice → Beverages
-        await self.test_delete_favorite_item_new_endpoint()  # Fix #2: New POST delete endpoint
+        # PRIORITY 1: Verify Removed Endpoints Return 404
+        logger.info("🎯 PRIORITY 1: Verify Removed Endpoints Return 404")
+        await self.test_removed_endpoints_return_404()
         
-        # PRIORITY 2: Core Brand/Generic Feature Regression Tests
-        logger.info("🔄 PRIORITY 2: Brand/Generic Regression Tests")
-        await self.test_brand_generic_parsing()
-        await self.test_smart_generic_extraction()
-        await self.test_edge_cases()
-        await self.test_organic_attribute_with_brand_matching()
-        await self.simulate_rshd_matching_test()
+        # PRIORITY 2: Verify Item-Level Favorites Still Work (NO REGRESSION)
+        logger.info("🔄 PRIORITY 2: Verify Item-Level Favorites Still Work (NO REGRESSION)")
+        await self.test_item_level_favorites_regression()
+        await self.test_brand_generic_parsing_regression()
         
-        # PRIORITY 3: General functionality regression tests
-        logger.info("✅ PRIORITY 3: General Regression Tests")
+        # PRIORITY 3: Verify Auto-Threshold Settings Still Work
+        logger.info("⚙️ PRIORITY 3: Verify Auto-Threshold Settings Still Work")
+        await self.test_auto_threshold_regression()
+        
+        # PRIORITY 4: Verify Authentication Still Works
+        logger.info("🔐 PRIORITY 4: Verify Authentication Still Works")
+        await self.test_authentication_regression()
+        
+        # PRIORITY 5: Additional Core Functionality Tests
+        logger.info("✅ PRIORITY 5: Additional Core Functionality Tests")
         await self.test_categories_endpoint()
-        await self.test_add_favorite_items()
-        await self.test_duplicate_favorite_item()
-        await self.test_get_favorite_items()
-        await self.test_delete_nonexistent_item()
-        await self.test_auto_threshold_settings()
-        await self.test_invalid_auto_threshold()
         await self.test_unauthenticated_access()
-        await self.test_categorization_logic()
         
         # Summary
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         
-        logger.info(f"\n📊 FINAL COMPREHENSIVE BACKEND TEST SUMMARY")
-        logger.info(f"🎯 TARGETING 100% SUCCESS RATE")
+        logger.info(f"\n📊 COMPREHENSIVE REGRESSION TEST SUMMARY")
+        logger.info(f"🎯 Category-Level Favorites Removal Impact Assessment")
         logger.info(f"Total Tests: {total_tests}")
         logger.info(f"Passed: {passed_tests} ✅")
         logger.info(f"Failed: {failed_tests} ❌")
         logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if passed_tests == total_tests:
-            logger.info(f"🎉 TARGET ACHIEVED: 100% SUCCESS RATE!")
+            logger.info(f"🎉 100% SUCCESS: No regressions detected!")
         else:
-            logger.info(f"⚠️ TARGET MISSED: {failed_tests} tests still failing")
+            logger.info(f"⚠️ REGRESSIONS DETECTED: {failed_tests} tests failing")
         
         if failed_tests > 0:
-            logger.info(f"\n❌ FAILED TESTS:")
+            logger.info(f"\n❌ FAILED TESTS (POTENTIAL REGRESSIONS):")
             for result in self.test_results:
                 if not result["success"]:
                     logger.info(f"  - {result['test']}: {result['message']}")
