@@ -318,37 +318,41 @@ def initialize_dacdrlp_list(dac_id, location, radius):
 **When DRLP posts RSHD:**
 ```python
 async def dispatch_notifications(rshd, drlp_id):
-    # Step 1: Get DRLPDAC-List (all DACs who consider this DRLP local)
-    drlpdac_list = []
+    # Step 1: Get DRLPDAC-List directly (pre-computed, bidirectionally synced)
+    # This list contains all DACs who have this DRLP in their DACDRLP-List
+    drlpdac_list_doc = await db.drlpdac_list.find_one({"drlp_id": drlp_id})
     
-    # Find all DACs with this DRLP in their DACDRLP-List
-    dacdrlp_lists = await db.dacdrlp_list.find().to_list(10000)
+    if not drlpdac_list_doc:
+        return  # No DACs interested in this DRLP
     
-    for dac_list in dacdrlp_lists:
-        # Check if this DRLP is in DAC's list
-        has_drlp = any(
-            r["drlp_id"] == drlp_id and not r.get("manually_removed", False)
-            for r in dac_list["retailers"]
-        )
-        if has_drlp:
-            drlpdac_list.append(dac_list["dac_id"])
+    dac_ids = drlpdac_list_doc.get("dac_ids", [])
     
     # Step 2: Generate DRLPDAC-SNL (Subset Notification List)
-    # Filter to DACs whose DACFI-List matches RSHD category
+    # Filter to DACs whose DACFI-List (favorite_items) matches the RSHD
     drlpdac_snl = []
     
-    for dac_id in drlpdac_list:
-        has_category = await db.favorites.find_one({
-            "dac_id": dac_id,
-            "category": rshd["category"]
-        })
-        if has_category:
-            drlpdac_snl.append(dac_id)
+    for dac_id in dac_ids:
+        user = await db.users.find_one({"id": dac_id}, {"favorite_items": 1})
+        if not user:
+            continue
+        
+        # Check if any favorite item matches this RSHD
+        # (using item-level matching with brand/generic logic)
+        for fav_item in user.get("favorite_items", []):
+            if matches_rshd(fav_item, rshd):  # Category + keywords + attributes
+                drlpdac_snl.append(dac_id)
+                break  # Stop after first match (stop-after-first-hit)
     
     # Step 3: Send notifications to DACs in SNL
     for dac_id in drlpdac_snl:
         await create_notification(dac_id, rshd)
 ```
+
+**Key Points:**
+1. DRLPDAC-List is queried directly - no need to scan all DACDRLP-Lists
+2. Bidirectional sync ensures DRLPDAC-List is always up-to-date
+3. Only DACs in the DRLPDAC-List are considered (geographic filter already applied)
+4. DACFI-List (favorite_items) provides the preference filter
 
 ### Notification Delivery
 
