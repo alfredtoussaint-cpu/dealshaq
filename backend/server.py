@@ -526,12 +526,12 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail=f"Email already registered as {user_data.role}")
     
-    # Validate DACSAI radius for DAC users
-    if user_data.role == "DAC" and user_data.dacsai_radius:
-        if not (0.1 <= user_data.dacsai_radius <= 9.9):
+    # Validate DACSAI-Rad for DAC users
+    if user_data.role == "DAC" and user_data.dacsai_rad:
+        if not (0.1 <= user_data.dacsai_rad <= 9.9):
             raise HTTPException(
                 status_code=400,
-                detail="DACSAI radius must be between 0.1 and 9.9 miles"
+                detail="DACSAI-Rad must be between 0.1 and 9.9 miles"
             )
     
     user_dict = user_data.model_dump()
@@ -549,9 +549,11 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(user_dict)
     
-    # For DAC users, initialize DACDRLP-List (v1.0: simplified, all DRLPs visible)
+    # For DAC users, initialize DACDRLP-List with geographic filtering
     if user_data.role == "DAC":
-        await initialize_dacdrlp_list(user_dict["id"])
+        delivery_location = user_data.delivery_location
+        dacsai_rad = user_data.dacsai_rad or 5.0
+        await initialize_dacdrlp_list(user_dict["id"], delivery_location, dacsai_rad)
     
     access_token = create_access_token(data={"sub": user_dict["id"]})
     
