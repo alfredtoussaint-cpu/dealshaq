@@ -292,20 +292,172 @@ def calculate_charity_contributions(net_proceed: float) -> Dict[str, float]:
     drlp_share = round(net_proceed * 0.0045, 2)
     return {"dac_share": dac_share, "drlp_share": drlp_share}
 
-async def initialize_dacdrlp_list(dac_id: str):
-    """Initialize DACDRLP-List for new DAC
+import math
+
+def calculate_distance_miles(coord1: Dict[str, float], coord2: Dict[str, float]) -> float:
+    """Calculate distance between two coordinates using Haversine formula
     
-    V1.0: Simplified - all DRLPs visible to all DACs
-    V2.0: Will use DACSAI radius to filter DRLPs geographically
+    Args:
+        coord1: {lat, lng} - First coordinate (e.g., DAC's delivery location)
+        coord2: {lat, lng} - Second coordinate (e.g., DRLP's location)
+    
+    Returns:
+        Distance in miles
     """
-    # For now, create empty DACDRLP-List
-    # In v2.0, this will populate with DRLPs within DACSAI
+    R = 3959  # Earth's radius in miles
+    
+    lat1 = math.radians(coord1["lat"])
+    lat2 = math.radians(coord2["lat"])
+    dlat = math.radians(coord2["lat"] - coord1["lat"])
+    dlng = math.radians(coord2["lng"] - coord1["lng"])
+    
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlng/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return round(R * c, 2)
+
+async def initialize_dacdrlp_list(dac_id: str, delivery_location: Dict[str, Any], dacsai_rad: float):
+    """Initialize DACDRLP-List for new DAC with geographic filtering
+    
+    Populates DACDRLP-List with all DRLPs domiciled inside the DAC's DACSAI.
+    Also updates each DRLP's DRLPDAC-List to include this DAC (bidirectional sync).
+    
+    Args:
+        dac_id: The DAC's user ID
+        delivery_location: {address, coordinates: {lat, lng}} - Center of DACSAI
+        dacsai_rad: Radius in miles (0.1 - 9.9) - Defines DACSAI size
+    """
+    retailers = []
+    dac_coords = delivery_location.get("coordinates") if delivery_location else None
+    
+    if dac_coords:
+        # Find all DRLP locations
+        all_drlp_locations = await db.drlp_locations.find({}, {"_id": 0}).to_list(10000)
+        
+        for drlp_loc in all_drlp_locations:
+            drlp_coords = drlp_loc.get("coordinates")
+            if not drlp_coords:
+                continue
+            
+            # Calculate distance from DAC to DRLP
+            distance = calculate_distance_miles(dac_coords, drlp_coords)
+            
+            # Check if DRLP is inside DACSAI
+            if distance <= dacsai_rad:
+                retailers.append({
+                    "drlp_id": drlp_loc["user_id"],
+                    "drlp_name": drlp_loc["name"],
+                    "drlp_location": drlp_coords,
+                    "distance": distance,
+                    "inside_dacsai": True,
+                    "manually_added": False,
+                    "manually_removed": False,
+                    "added_at": datetime.now(timezone.utc).isoformat()
+                })
+                
+                # Bidirectional sync: Add DAC to this DRLP's DRLPDAC-List
+                await add_dac_to_drlpdac_list(drlp_loc["user_id"], dac_id)
+    
+    # Create DACDRLP-List document
     await db.dacdrlp_list.insert_one({
         "dac_id": dac_id,
-        "retailers": [],  # Will be populated in v2.0 based on DACSAI
+        "retailers": retailers,
+        "dacsai_rad": dacsai_rad,
+        "dacsai_center": dac_coords,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
     })
+    
+    logger.info(f"Initialized DACDRLP-List for DAC {dac_id} with {len(retailers)} retailers inside DACSAI (radius: {dacsai_rad} miles)")
+
+async def add_dac_to_drlpdac_list(drlp_id: str, dac_id: str):
+    """Add a DAC to a DRLP's DRLPDAC-List (bidirectional sync)"""
+    result = await db.drlpdac_list.update_one(
+        {"drlp_id": drlp_id},
+        {
+            "$addToSet": {"dac_ids": dac_id},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        },
+        upsert=True
+    )
+    logger.info(f"Added DAC {dac_id} to DRLP {drlp_id}'s DRLPDAC-List")
+
+async def remove_dac_from_drlpdac_list(drlp_id: str, dac_id: str):
+    """Remove a DAC from a DRLP's DRLPDAC-List (bidirectional sync)"""
+    result = await db.drlpdac_list.update_one(
+        {"drlp_id": drlp_id},
+        {
+            "$pull": {"dac_ids": dac_id},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    logger.info(f"Removed DAC {dac_id} from DRLP {drlp_id}'s DRLPDAC-List")
+
+async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float]):
+    """Initialize DRLPDAC-List for a new DRLP
+    
+    Finds all DACs whose DACSAI contains this DRLP's location and adds them.
+    Also updates each DAC's DACDRLP-List to include this DRLP (bidirectional sync).
+    """
+    dac_ids = []
+    
+    # Find all DACs with delivery locations
+    all_dacs = await db.users.find(
+        {"role": "DAC", "delivery_location.coordinates": {"$exists": True}},
+        {"_id": 0, "id": 1, "delivery_location": 1, "dacsai_rad": 1}
+    ).to_list(10000)
+    
+    for dac in all_dacs:
+        dac_coords = dac.get("delivery_location", {}).get("coordinates")
+        dacsai_rad = dac.get("dacsai_rad", 5.0)
+        
+        if not dac_coords:
+            continue
+        
+        # Calculate distance from DAC to this DRLP
+        distance = calculate_distance_miles(dac_coords, drlp_location)
+        
+        # Check if this DRLP is inside DAC's DACSAI
+        if distance <= dacsai_rad:
+            dac_ids.append(dac["id"])
+            
+            # Bidirectional sync: Add this DRLP to DAC's DACDRLP-List
+            await add_drlp_to_dacdrlp_list(dac["id"], drlp_id, drlp_location, distance)
+    
+    # Create DRLPDAC-List document
+    await db.drlpdac_list.insert_one({
+        "drlp_id": drlp_id,
+        "dac_ids": dac_ids,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    logger.info(f"Initialized DRLPDAC-List for DRLP {drlp_id} with {len(dac_ids)} DACs")
+
+async def add_drlp_to_dacdrlp_list(dac_id: str, drlp_id: str, drlp_location: Dict[str, float], distance: float):
+    """Add a DRLP to a DAC's DACDRLP-List (called during DRLP registration)"""
+    # Get DRLP name
+    drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0, "name": 1})
+    drlp_name = drlp_loc.get("name", "Unknown") if drlp_loc else "Unknown"
+    
+    retailer_entry = {
+        "drlp_id": drlp_id,
+        "drlp_name": drlp_name,
+        "drlp_location": drlp_location,
+        "distance": distance,
+        "inside_dacsai": True,
+        "manually_added": False,
+        "manually_removed": False,
+        "added_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.dacdrlp_list.update_one(
+        {"dac_id": dac_id},
+        {
+            "$push": {"retailers": retailer_entry},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
 
 def calculate_discount_mapping(discount_level: int, regular_price: float) -> Dict[str, float]:
     """
