@@ -725,28 +725,17 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
     return item_dict
 
 async def create_matching_notifications(item: Dict):
-    """Match RSHD with DAC favorites and create notifications
+    """Match RSHD with DAC item-level favorites and create notifications
     
-    Enhanced Matching Logic:
-    1. First check category-level favorites (old DACFI-List)
-    2. Then check item-level favorites (new enhanced DACFI-List)
-    3. Match on: keywords + organic attribute
+    Enhanced Matching Logic (DACFI-List V1.0):
+    1. Match on category, keywords, and attributes
+    2. Brand-specific favorites require brand + generic match
+    3. Generic favorites match any brand
     4. STOP after first match per DAC (efficiency optimization)
     """
     notified_dacs = set()  # Track DACs already notified
     
-    # 1. Find DACs with matching category-level favorites (backward compatibility)
-    matching_category_favs = await db.favorites.find({
-        "category": item["category"]
-    }, {"_id": 0}).to_list(1000)
-    
-    for fav in matching_category_favs:
-        dac_id = fav["dac_id"]
-        if dac_id not in notified_dacs:
-            await _create_notification(dac_id, item)
-            notified_dacs.add(dac_id)
-    
-    # 2. Find DACs with matching item-level favorites
+    # Find DACs with matching item-level favorites
     users_with_item_favs = await db.users.find({
         "role": "DAC",
         "favorite_items": {"$exists": True, "$ne": []}
@@ -880,50 +869,6 @@ async def delete_rshd_item(item_id: str, current_user: Dict = Depends(get_curren
         raise HTTPException(status_code=404, detail="Item not found")
     
     return {"message": "Item deleted successfully"}
-
-# ===== FAVORITE ROUTES =====
-
-@api_router.post("/favorites", response_model=Favorite)
-async def create_favorite(favorite_data: FavoriteCreate, current_user: Dict = Depends(get_current_user)):
-    if current_user["role"] != "DAC":
-        raise HTTPException(status_code=403, detail="Only DAC users can create favorites")
-    
-    # Validate category (must be one of 20 valid categories)
-    if favorite_data.category not in VALID_CATEGORIES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"
-        )
-    
-    # Check if already exists
-    existing = await db.favorites.find_one({
-        "dac_id": current_user["id"],
-        "category": favorite_data.category
-    })
-    if existing:
-        raise HTTPException(status_code=400, detail="Category already in favorites")
-    
-    favorite_dict = favorite_data.model_dump()
-    favorite_dict["id"] = str(uuid.uuid4())
-    favorite_dict["dac_id"] = current_user["id"]
-    
-    await db.favorites.insert_one(favorite_dict)
-    return favorite_dict
-
-@api_router.get("/favorites", response_model=List[Favorite])
-async def get_favorites(current_user: Dict = Depends(get_current_user)):
-    if current_user["role"] != "DAC":
-        raise HTTPException(status_code=403, detail="Only DAC users can view favorites")
-    
-    favorites = await db.favorites.find({"dac_id": current_user["id"]}, {"_id": 0}).to_list(1000)
-    return favorites
-
-@api_router.delete("/favorites/{favorite_id}")
-async def delete_favorite(favorite_id: str, current_user: Dict = Depends(get_current_user)):
-    result = await db.favorites.delete_one({"id": favorite_id, "dac_id": current_user["id"]})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Favorite not found")
-    return {"message": "Favorite removed"}
 
 # ===== ITEM-LEVEL FAVORITES ROUTES (Enhanced DACFI-List) =====
 
