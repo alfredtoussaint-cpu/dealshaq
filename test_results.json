@@ -1,14 +1,14 @@
 {
   "total": 14,
-  "passed": 11,
-  "failed": 3,
+  "passed": 9,
+  "failed": 5,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-18T22:26:20.967910+00:00"
+      "timestamp": "2025-12-18T22:26:55.905032+00:00"
     },
     {
       "test": "DACDRLP-List GET Endpoint",
@@ -18,7 +18,7 @@
         "retailers_count": 0,
         "dacsai_rad": null
       },
-      "timestamp": "2025-12-18T22:26:20.982986+00:00"
+      "timestamp": "2025-12-18T22:26:55.916265+00:00"
     },
     {
       "test": "DACSAI Update - No Delivery Location",
@@ -29,58 +29,35 @@
           "detail": "Delivery location not set. Please update your profile first."
         }
       },
-      "timestamp": "2025-12-18T22:26:21.032386+00:00"
-    },
-    {
-      "test": "Create Test DRLP",
-      "success": true,
-      "message": "Successfully created DRLP with location",
-      "details": {
-        "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-        "location": {
-          "id": "f1585e6c-4779-48a9-9b66-a02a7b9b3c1c",
-          "user_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-          "name": "Test Geo Store Location",
-          "address": "456 Store St, New York, NY",
-          "coordinates": {
-            "lat": 40.7589,
-            "lng": -73.9851
-          },
-          "charity_id": "test-charity-id",
-          "operating_hours": "9 AM - 9 PM"
-        }
-      },
-      "timestamp": "2025-12-18T22:26:21.345842+00:00"
-    },
-    {
-      "test": "Create Test DAC with Delivery Location",
-      "success": true,
-      "message": "Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
-      "details": {
-        "dac_id": "eb0a4ede-4d73-4810-929c-a4b70b87ee32",
-        "delivery_location": {
-          "address": "123 Test St, New York, NY",
-          "coordinates": {
-            "lat": 40.7128,
-            "lng": -74.006
-          }
-        }
-      },
-      "timestamp": "2025-12-18T22:26:21.636171+00:00"
+      "timestamp": "2025-12-18T22:26:55.965652+00:00"
     },
     {
       "test": "Create Test DRLP",
       "success": false,
       "message": "Failed to register DRLP: {'detail': 'Email already registered as DRLP'}",
       "details": {},
-      "timestamp": "2025-12-18T22:26:21.684760+00:00"
+      "timestamp": "2025-12-18T22:26:55.975267+00:00"
+    },
+    {
+      "test": "Create Test DAC with Delivery Location",
+      "success": false,
+      "message": "Failed to register DAC: {'detail': 'Email already registered as DAC'}",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:55.984173+00:00"
+    },
+    {
+      "test": "Create Test DRLP",
+      "success": false,
+      "message": "Failed to register DRLP: {'detail': 'Email already registered as DRLP'}",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:56.033938+00:00"
     },
     {
       "test": "Add/Remove Retailers - Setup",
       "success": false,
       "message": "Failed to create test DRLP for testing",
       "details": {},
-      "timestamp": "2025-12-18T22:26:21.684840+00:00"
+      "timestamp": "2025-12-18T22:26:56.034034+00:00"
     },
     {
       "test": "Geographic Filter - DACDRLP-List Check",
@@ -94,7 +71,7 @@
           "updated_at": "2025-12-16T19:15:03.066061+00:00"
         }
       },
-      "timestamp": "2025-12-18T22:26:21.699432+00:00"
+      "timestamp": "2025-12-18T22:26:56.042584+00:00"
     },
     {
       "test": "Existing Functionality - Item Favorites",
@@ -122,19 +99,14 @@
           "auto_added_date": null
         }
       },
-      "timestamp": "2025-12-18T22:26:24.222531+00:00"
+      "timestamp": "2025-12-18T22:26:57.374260+00:00"
     },
     {
       "test": "Existing Functionality - Auto Threshold",
-      "success": true,
-      "message": "Auto-threshold settings still working correctly",
-      "details": {
-        "response": {
-          "message": "Auto-add settings updated",
-          "threshold": 3
-        }
-      },
-      "timestamp": "2025-12-18T22:26:24.240675+00:00"
+      "success": false,
+      "message": "Auto-threshold settings broken: {'detail': 'Failed to update auto-add settings'}",
+      "details": {},
+      "timestamp": "2025-12-18T22:26:57.390280+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -164,7 +136,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-18T22:26:24.248517+00:00"
+      "timestamp": "2025-12-18T22:26:57.436934+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -173,14 +145,18 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:26:24.500260+00:00"
+      "timestamp": "2025-12-18T22:26:57.689738+00:00"
     },
     {
       "test": "Authentication Protection Regression",
-      "success": false,
-      "message": "Expected 401/403 for invalid token, got 520",
-      "details": {},
-      "timestamp": "2025-12-18T22:26:24.506209+00:00"
+      "success": true,
+      "message": "Protected endpoint correctly rejects invalid token with 401",
+      "details": {
+        "response": {
+          "detail": "Could not validate credentials"
+        }
+      },
+      "timestamp": "2025-12-18T22:26:57.737182+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -189,7 +165,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-18T22:26:24.514982+00:00"
+      "timestamp": "2025-12-18T22:26:57.745375+00:00"
     }
   ]
 }
