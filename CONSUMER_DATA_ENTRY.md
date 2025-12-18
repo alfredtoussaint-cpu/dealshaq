@@ -507,27 +507,30 @@ PUT /api/users/dacsai
 ```
 POST /api/favorites/items
     - Input: item_name (e.g., "Organic 2% Milk" or "Quaker, Granola")
-    - Validation: Category in VALID_CATEGORIES, no duplicates
+    - Output: Item added with auto-categorization
+    - Validation: No duplicates, valid category assignment
 
-GET /api/favorites
-    - Output: DAC's full DACFI-List
+GET /api/favorites/items
+    - Output: DAC's favorite_items organized by category
 
-DELETE /api/favorites/{id}
-    - Remove category from DACFI-List
+POST /api/favorites/items/delete
+    - Input: item_name
+    - Output: Item removed from favorite_items
 
 POST /api/favorites/scan-barcode
     - Input: Barcode image or string
-    - Output: Category mapped, added to DACFI-List
+    - Output: Item name extracted, categorized, added to favorite_items
 ```
 
 ### DACDRLP-List
 ```
 GET /api/dac/retailers
-    - Output: DACDRLP-List for current DAC
+    - Output: DACDRLP-List for current DAC (all retailers they receive notifications from)
 
 POST /api/dac/retailers/add
-    - Input: DRLP ID
+    - Input: DRLP ID (for a DRLP outside DACSAI)
     - Output: DRLP added to DACDRLP-List (manually_added: true)
+    - Side effect: Add DAC to that DRLP's DRLPDAC-List (bidirectional sync)
 
 DELETE /api/dac/retailers/{drlp_id}
     - Output: DRLP removed (manually_removed: true)
