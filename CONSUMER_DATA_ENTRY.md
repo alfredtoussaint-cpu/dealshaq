@@ -392,27 +392,37 @@ async def dispatch_notifications(rshd, drlp_id):
 }
 ```
 
-### DACSAI (Embedded in User or Separate Collection)
+### DACSAI (Embedded in User Document)
 ```json
 {
-  "dac_id": "uuid",
-  "radius": 5.0,  // miles
-  "center": {"lat": 40.7128, "lng": -74.0060},
-  "updated_at": "2025-01-01T00:00:00Z"
+  "dacsai_rad": 5.0,  // DACSAI-Rad: radius in miles (0.1 - 9.9)
+  "delivery_location": {
+    "address": "123 Main St, City, State 12345",
+    "coordinates": {"lat": 40.7128, "lng": -74.0060}  // DACSAI center
+  }
+}
+```
+Note: DACSAI is the circular area defined by delivery_location (center) + dacsai_rad (radius)
+
+### DACFI-List (Embedded in User Document as favorite_items)
+```json
+{
+  "favorite_items": [
+    {
+      "item_name": "Quaker, Granola",
+      "brand": "Quaker",
+      "generic": "Granola",
+      "has_brand": true,
+      "category": "Breakfast & Cereal",
+      "keywords": ["quaker", "granola"],
+      "attributes": {"organic": false},
+      "auto_added_date": null  // null = explicit, date = implicit
+    }
+  ]
 }
 ```
 
-### DACFI-List (Favorites Collection)
-```json
-{
-  "id": "uuid",
-  "dac_id": "uuid",
-  "category": "Fruits",  // One of 20 categories
-  "created_at": "2025-01-01T00:00:00Z"
-}
-```
-
-### DACDRLP-List
+### DACDRLP-List (Separate Collection)
 ```json
 {
   "id": "uuid",
@@ -421,53 +431,82 @@ async def dispatch_notifications(rshd, drlp_id):
     {
       "drlp_id": "uuid",
       "drlp_name": "Store A",
+      "drlp_location": {"lat": 40.7200, "lng": -74.0100},
       "distance": 1.2,
-      "auto_added": true,
-      "manually_added": false,
-      "manually_removed": false,
+      "inside_dacsai": true,      // Domiciled inside DACSAI
+      "manually_added": false,    // User added from outside DACSAI
+      "manually_removed": false,  // User removed despite inside DACSAI
       "added_at": "2025-01-01T00:00:00Z"
     }
   ],
-  "dacsai_radius": 5.0,
+  "dacsai_rad": 5.0,
   "dacsai_center": {"lat": 40.7128, "lng": -74.0060},
   "updated_at": "2025-01-01T00:00:00Z"
 }
 ```
 
+### DRLPDAC-List (Separate Collection - NEW)
+```json
+{
+  "id": "uuid",
+  "drlp_id": "uuid",
+  "dac_ids": ["dac_uuid_1", "dac_uuid_2", "dac_uuid_3"],
+  "updated_at": "2025-01-01T00:00:00Z"
+}
+```
+Note: This list is the inverse of DACDRLP-List. Contains all DACs who have this DRLP in their DACDRLP-List. Must be kept in **bidirectional sync** with DACDRLP-Lists.
+
 ## Validation Rules
 
-### DACSAI
-- ✅ Radius: 0.1 ≤ radius ≤ 9.9 miles
+### DACSAI-Rad
+- ✅ Radius: 0.1 ≤ dacsai_rad ≤ 9.9 miles
+- ✅ Default: 5.0 miles
+
+### Delivery Location (DACSAI Center)
 - ✅ Address: Must be valid and geocodable
 - ✅ Coordinates: Required (lat, lng)
 
-### DACFI-List
+### DACFI-List (favorite_items)
+- ✅ Item name: Required, non-empty
 - ✅ Category: Must be in VALID_CATEGORIES (20 only)
-- ✅ No duplicates: Each category once only
-- ✅ At least 1 category recommended
+- ✅ No duplicates: Each item_name once only
+- ✅ Brand parsing: Comma delimiter for brand-specific ("Brand, Item")
 
 ### DACDRLP-List
 - ✅ Manual overrides respected (never auto-revert)
-- ✅ Removed DRLPs never re-added automatically
+- ✅ Removed DRLPs (manually_removed=true) never re-added automatically
 - ✅ Manually added DRLPs always preserved
+- ✅ **Bidirectional sync**: Changes must update corresponding DRLPDAC-List
+
+### DRLPDAC-List
+- ✅ Must mirror DACDRLP-List entries
+- ✅ Add DAC when DAC adds this DRLP to their DACDRLP-List
+- ✅ Remove DAC when DAC removes this DRLP from their DACDRLP-List
 
 ## API Endpoints
 
 ### Onboarding
 ```
-POST /api/dac/onboard
-    - Input: User details, delivery location, DACSAI radius
-    - Output: User created, DACDRLP-List initialized
+POST /api/auth/register
+    - Input: User details, delivery location, dacsai_rad
+    - Output: User created
+    - Side effects: 
+      - DACDRLP-List initialized with DRLPs inside DACSAI
+      - Each DRLP's DRLPDAC-List updated to include this DAC
 
-POST /api/dac/dacsai
-    - Input: Radius, center coordinates
-    - Output: DACDRLP-List updated with DRLPs in radius
+PUT /api/users/dacsai
+    - Input: New dacsai_rad and/or delivery_location
+    - Output: Updated DACSAI settings
+    - Side effects:
+      - Recalculate which DRLPs are inside DACSAI
+      - Update DACDRLP-List (respecting manual overrides)
+      - Update affected DRLPDAC-Lists (bidirectional sync)
 ```
 
-### DACFI-List
+### DACFI-List (Item-Level Favorites)
 ```
-POST /api/favorites
-    - Input: Category (1 of 20)
+POST /api/favorites/items
+    - Input: item_name (e.g., "Organic 2% Milk" or "Quaker, Granola")
     - Validation: Category in VALID_CATEGORIES, no duplicates
 
 GET /api/favorites
