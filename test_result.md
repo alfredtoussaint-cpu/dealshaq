@@ -906,7 +906,7 @@ test_plan:
 - **Backend API:** /app/backend/server.py
 - **Categorization Service:** /app/backend/categorization_service.py
 - **Test Suite:** /app/backend_test.py
-- **Environment:** Production URL (https://surplus-shop-1.preview.emergentagent.com)
+- **Environment:** Production URL (https://itemfinder-30.preview.emergentagent.com)
 
 #====================================================================================================
 # End of Final Comprehensive Backend Testing Results

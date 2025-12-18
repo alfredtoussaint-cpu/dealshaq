@@ -93,7 +93,7 @@
 
 ## Consumer App Testing
 
-**Application URL:** https://surplus-shop-1.preview.emergentagent.com/consumer
+**Application URL:** https://itemfinder-30.preview.emergentagent.com/consumer
 
 **Estimated Time:** 45-60 minutes
 
@@ -478,7 +478,7 @@
 
 ## Retailer App Testing
 
-**Application URL:** https://surplus-shop-1.preview.emergentagent.com/retailer
+**Application URL:** https://itemfinder-30.preview.emergentagent.com/retailer
 
 **Estimated Time:** 30-45 minutes
 
@@ -622,7 +622,7 @@
 
 ## Admin App Testing
 
-**Application URL:** https://surplus-shop-1.preview.emergentagent.com/admin
+**Application URL:** https://itemfinder-30.preview.emergentagent.com/admin
 
 **Estimated Time:** 30-40 minutes
 

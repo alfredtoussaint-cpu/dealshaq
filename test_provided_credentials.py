@@ -8,7 +8,7 @@ import aiohttp
 import json
 import os
 
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://surplus-shop-1.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://itemfinder-30.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Provided credentials from review request

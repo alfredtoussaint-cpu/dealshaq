@@ -291,7 +291,7 @@ CORS_ORIGINS=*
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://surplus-shop-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://itemfinder-30.preview.emergentagent.com
 ```
 
 ## Deployment Architecture
