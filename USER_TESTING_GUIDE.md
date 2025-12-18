@@ -552,13 +552,14 @@
 #### Test 8.3: Edit Item
 **Steps:**
 1. From Inventory, find the test item
-2. Click "Edit" button
-3. Change discount to 30%
+2. Click "Edit" button (if available)
+3. Change discount level from 2 to 3
 4. Save changes
 
 **Expected Results:**
 - ✅ Item updates successfully
-- ✅ New discount shown in inventory
+- ✅ New discounts shown: DRLP 90%, Consumer 75% OFF
+- ✅ Deal price recalculated correctly
 
 **Actual Results:**
 - [ ] Pass
