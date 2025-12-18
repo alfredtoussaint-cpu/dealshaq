@@ -1277,12 +1277,12 @@ class BackendTester:
         """Test POST /api/dac/retailers/add and DELETE /api/dac/retailers/{drlp_id}"""
         logger.info("➕➖ Testing Add/Remove Retailers endpoints...")
         
-        # First create a test DRLP
-        drlp_data = await self.create_test_drlp_with_location()
+        # Get existing DRLP
+        drlp_data = await self.get_existing_drlp_with_location()
         if not drlp_data:
             self.log_result(
                 "Add/Remove Retailers - Setup", False,
-                "Failed to create test DRLP for testing"
+                "Failed to get existing DRLP for testing"
             )
             return
         
