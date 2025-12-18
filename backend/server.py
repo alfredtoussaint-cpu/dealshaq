@@ -1333,7 +1333,8 @@ async def update_dacsai(dacsai_rad: float, current_user: Dict = Depends(get_curr
         raise HTTPException(status_code=400, detail="DACSAI-Rad must be between 0.1 and 9.9 miles")
     
     dac_id = current_user["id"]
-    dac_coords = current_user.get("delivery_location", {}).get("coordinates")
+    delivery_location = current_user.get("delivery_location")
+    dac_coords = delivery_location.get("coordinates") if delivery_location else None
     
     if not dac_coords:
         raise HTTPException(status_code=400, detail="Delivery location not set. Please update your profile first.")
