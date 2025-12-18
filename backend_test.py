@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Enhanced DACFI-List Feature
-Tests item-level favorites system with auto-categorization and implicit auto-add functionality.
+Comprehensive Backend Testing for Geographic Filtering Implementation
+Tests DACSAI, DACDRLP-List, and DRLPDAC-List with bidirectional sync functionality.
 """
 
 import asyncio
