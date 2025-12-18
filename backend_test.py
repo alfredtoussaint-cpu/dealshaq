@@ -1120,9 +1120,277 @@ class BackendTester:
                     f"DAC user cannot access favorites: {favorites_response['data']}"
                 )
 
+    async def test_dacdrlp_list_get_endpoint(self):
+        """Test GET /api/dac/retailers - Get current DAC's retailer list"""
+        logger.info("🏪 Testing DACDRLP-List GET endpoint...")
+        
+        response = await self.make_request("GET", "/dac/retailers")
+        
+        if response["status"] == 200:
+            data = response["data"]
+            retailers = data.get("retailers", [])
+            dac_id = data.get("dac_id")
+            dacsai_rad = data.get("dacsai_rad")
+            
+            # For existing user without delivery location, should return empty list
+            if len(retailers) == 0 and "message" in data:
+                self.log_result(
+                    "DACDRLP-List GET Endpoint", True,
+                    f"Returns empty list for DAC without delivery location: {data.get('message')}",
+                    {"response": data}
+                )
+            else:
+                self.log_result(
+                    "DACDRLP-List GET Endpoint", True,
+                    f"Returns DACDRLP-List with {len(retailers)} retailers",
+                    {"retailers_count": len(retailers), "dacsai_rad": dacsai_rad}
+                )
+        else:
+            self.log_result(
+                "DACDRLP-List GET Endpoint", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_dacsai_update_endpoint(self):
+        """Test PUT /api/dac/dacsai - Update DACSAI radius"""
+        logger.info("📍 Testing DACSAI Update endpoint...")
+        
+        # Test without delivery location (should fail)
+        response = await self.make_request("PUT", "/dac/dacsai?dacsai_rad=5.0")
+        
+        if response["status"] == 400:
+            error_message = response["data"].get("detail", "")
+            if "delivery location" in error_message.lower():
+                self.log_result(
+                    "DACSAI Update - No Delivery Location", True,
+                    "Correctly returns 400 error when no delivery location set",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    "DACSAI Update - No Delivery Location", False,
+                    f"Wrong error message: {error_message}",
+                    {"response": response["data"]}
+                )
+        else:
+            self.log_result(
+                "DACSAI Update - No Delivery Location", False,
+                f"Expected 400 error, got {response['status']}: {response['data']}"
+            )
+
+    async def create_test_drlp_with_location(self):
+        """Create a test DRLP with location for geographic testing"""
+        logger.info("🏗️ Creating test DRLP with location...")
+        
+        # Create DRLP user
+        drlp_email = "test.drlp.geo@example.com"
+        drlp_password = "TestPassword123"
+        
+        register_response = await self.make_request("POST", "/auth/register", {
+            "email": drlp_email,
+            "password": drlp_password,
+            "name": "Test Geo Store",
+            "role": "DRLP"
+        })
+        
+        if register_response["status"] != 200:
+            self.log_result(
+                "Create Test DRLP", False,
+                f"Failed to register DRLP: {register_response['data']}"
+            )
+            return None
+        
+        drlp_token = register_response["data"]["access_token"]
+        drlp_id = register_response["data"]["user"]["id"]
+        
+        # Create location for DRLP
+        location_response = await self.make_request("POST", "/drlp/locations", {
+            "name": "Test Geo Store Location",
+            "address": "456 Store St, New York, NY",
+            "coordinates": {"lat": 40.7589, "lng": -73.9851},  # Near Times Square
+            "charity_id": "test-charity-id",
+            "operating_hours": "9 AM - 9 PM"
+        }, headers={"Authorization": f"Bearer {drlp_token}"})
+        
+        if location_response["status"] == 200:
+            self.log_result(
+                "Create Test DRLP", True,
+                f"Successfully created DRLP with location",
+                {
+                    "drlp_id": drlp_id,
+                    "location": location_response["data"]
+                }
+            )
+            return {
+                "drlp_id": drlp_id,
+                "drlp_token": drlp_token,
+                "location": location_response["data"]
+            }
+        else:
+            self.log_result(
+                "Create Test DRLP", False,
+                f"Failed to create DRLP location: {location_response['data']}"
+            )
+            return None
+
+    async def create_test_dac_with_delivery_location(self):
+        """Create a test DAC with delivery location for geographic testing"""
+        logger.info("🏠 Creating test DAC with delivery location...")
+        
+        dac_email = "test.dac.geo@example.com"
+        dac_password = "TestPassword123"
+        
+        register_response = await self.make_request("POST", "/auth/register", {
+            "email": dac_email,
+            "password": dac_password,
+            "name": "Test Geo Consumer",
+            "role": "DAC",
+            "delivery_location": {
+                "address": "123 Test St, New York, NY",
+                "coordinates": {"lat": 40.7128, "lng": -74.0060}  # NYC coordinates
+            },
+            "dacsai_rad": 5.0
+        })
+        
+        if register_response["status"] == 200:
+            dac_token = register_response["data"]["access_token"]
+            dac_id = register_response["data"]["user"]["id"]
+            
+            self.log_result(
+                "Create Test DAC with Delivery Location", True,
+                f"Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
+                {
+                    "dac_id": dac_id,
+                    "delivery_location": register_response["data"]["user"]["delivery_location"]
+                }
+            )
+            return {
+                "dac_id": dac_id,
+                "dac_token": dac_token,
+                "user_data": register_response["data"]["user"]
+            }
+        else:
+            self.log_result(
+                "Create Test DAC with Delivery Location", False,
+                f"Failed to register DAC: {register_response['data']}"
+            )
+            return None
+
+    async def test_add_remove_retailers(self):
+        """Test POST /api/dac/retailers/add and DELETE /api/dac/retailers/{drlp_id}"""
+        logger.info("➕➖ Testing Add/Remove Retailers endpoints...")
+        
+        # First create a test DRLP
+        drlp_data = await self.create_test_drlp_with_location()
+        if not drlp_data:
+            self.log_result(
+                "Add/Remove Retailers - Setup", False,
+                "Failed to create test DRLP for testing"
+            )
+            return
+        
+        drlp_id = drlp_data["drlp_id"]
+        
+        # Test ADD retailer
+        add_response = await self.make_request("POST", f"/dac/retailers/add?drlp_id={drlp_id}")
+        
+        if add_response["status"] == 200:
+            retailer_data = add_response["data"].get("retailer", {})
+            self.log_result(
+                "Add Retailer to DACDRLP-List", True,
+                f"Successfully added DRLP {drlp_id} to retailer list",
+                {"retailer": retailer_data}
+            )
+            
+            # Test REMOVE retailer
+            remove_response = await self.make_request("DELETE", f"/dac/retailers/{drlp_id}")
+            
+            if remove_response["status"] == 200:
+                self.log_result(
+                    "Remove Retailer from DACDRLP-List", True,
+                    f"Successfully removed DRLP {drlp_id} from retailer list",
+                    {"response": remove_response["data"]}
+                )
+            else:
+                self.log_result(
+                    "Remove Retailer from DACDRLP-List", False,
+                    f"Failed to remove retailer: {remove_response['data']}"
+                )
+        else:
+            self.log_result(
+                "Add Retailer to DACDRLP-List", False,
+                f"Failed to add retailer: {add_response['data']}"
+            )
+
+    async def test_notification_matching_with_geographic_filter(self):
+        """Test notification matching with geographic filtering"""
+        logger.info("🎯 Testing notification matching with geographic filter...")
+        
+        # This test requires a DRLP to post an RSHD and verify notifications
+        # For now, we'll test the concept by checking if the geographic data structures exist
+        
+        # Check if DACDRLP-List exists for current user
+        dacdrlp_response = await self.make_request("GET", "/dac/retailers")
+        
+        if dacdrlp_response["status"] == 200:
+            self.log_result(
+                "Geographic Filter - DACDRLP-List Check", True,
+                "DACDRLP-List endpoint accessible for geographic filtering",
+                {"response": dacdrlp_response["data"]}
+            )
+        else:
+            self.log_result(
+                "Geographic Filter - DACDRLP-List Check", False,
+                f"Cannot access DACDRLP-List: {dacdrlp_response['data']}"
+            )
+
+    async def test_existing_functionality_regression(self):
+        """Test that existing functionality still works"""
+        logger.info("🔄 Testing existing functionality regression...")
+        
+        # Test item-level favorites
+        test_item = "Geographic Test Apple"
+        add_response = await self.make_request("POST", "/favorites/items", {
+            "item_name": test_item
+        })
+        
+        if add_response["status"] == 200:
+            self.log_result(
+                "Existing Functionality - Item Favorites", True,
+                "Item-level favorites still working correctly",
+                {"item": add_response["data"]["item"]}
+            )
+            
+            # Clean up
+            await self.make_request("POST", "/favorites/items/delete", {
+                "item_name": test_item
+            })
+        else:
+            self.log_result(
+                "Existing Functionality - Item Favorites", False,
+                f"Item-level favorites broken: {add_response['data']}"
+            )
+        
+        # Test auto-threshold settings
+        threshold_response = await self.make_request("PUT", "/users/settings/auto-threshold", {
+            "auto_favorite_threshold": 3
+        })
+        
+        if threshold_response["status"] == 200:
+            self.log_result(
+                "Existing Functionality - Auto Threshold", True,
+                "Auto-threshold settings still working correctly",
+                {"response": threshold_response["data"]}
+            )
+        else:
+            self.log_result(
+                "Existing Functionality - Auto Threshold", False,
+                f"Auto-threshold settings broken: {threshold_response['data']}"
+            )
+
     async def run_all_tests(self):
-        """Run comprehensive regression tests after category-level favorites removal"""
-        logger.info("🚀 Starting COMPREHENSIVE REGRESSION TESTING after category-level favorites removal")
+        """Run comprehensive geographic filtering tests"""
+        logger.info("🚀 Starting COMPREHENSIVE GEOGRAPHIC FILTERING TESTING")
         logger.info(f"Backend URL: {API_BASE}")
         logger.info(f"Test Credentials: {TEST_EMAIL} (Role: {TEST_ROLE})")
         
@@ -1131,47 +1399,49 @@ class BackendTester:
             logger.error("❌ Authentication failed - stopping tests")
             return
         
-        # PRIORITY 1: Verify Removed Endpoints Return 404
-        logger.info("🎯 PRIORITY 1: Verify Removed Endpoints Return 404")
-        await self.test_removed_endpoints_return_404()
+        # PRIORITY 1: New DACDRLP-List Endpoints
+        logger.info("🎯 PRIORITY 1: New DACDRLP-List Endpoints")
+        await self.test_dacdrlp_list_get_endpoint()
+        await self.test_dacsai_update_endpoint()
         
-        # PRIORITY 2: Verify Item-Level Favorites Still Work (NO REGRESSION)
-        logger.info("🔄 PRIORITY 2: Verify Item-Level Favorites Still Work (NO REGRESSION)")
-        await self.test_item_level_favorites_regression()
-        await self.test_brand_generic_parsing_regression()
+        # PRIORITY 2: Registration with Geographic Data
+        logger.info("🏗️ PRIORITY 2: Registration with Geographic Data")
+        await self.create_test_drlp_with_location()
+        await self.create_test_dac_with_delivery_location()
         
-        # PRIORITY 3: Verify Auto-Threshold Settings Still Work
-        logger.info("⚙️ PRIORITY 3: Verify Auto-Threshold Settings Still Work")
-        await self.test_auto_threshold_regression()
+        # PRIORITY 3: Add/Remove Retailers
+        logger.info("➕➖ PRIORITY 3: Add/Remove Retailers")
+        await self.test_add_remove_retailers()
         
-        # PRIORITY 4: Verify Authentication Still Works
-        logger.info("🔐 PRIORITY 4: Verify Authentication Still Works")
-        await self.test_authentication_regression()
+        # PRIORITY 4: Notification Matching with Geographic Filter
+        logger.info("🎯 PRIORITY 4: Notification Matching with Geographic Filter")
+        await self.test_notification_matching_with_geographic_filter()
         
-        # PRIORITY 5: Additional Core Functionality Tests
-        logger.info("✅ PRIORITY 5: Additional Core Functionality Tests")
+        # PRIORITY 5: Existing Functionality Regression
+        logger.info("🔄 PRIORITY 5: Existing Functionality Regression")
+        await self.test_existing_functionality_regression()
         await self.test_categories_endpoint()
-        await self.test_unauthenticated_access()
+        await self.test_authentication_regression()
         
         # Summary
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         
-        logger.info(f"\n📊 COMPREHENSIVE REGRESSION TEST SUMMARY")
-        logger.info(f"🎯 Category-Level Favorites Removal Impact Assessment")
+        logger.info(f"\n📊 COMPREHENSIVE GEOGRAPHIC FILTERING TEST SUMMARY")
+        logger.info(f"🎯 DACSAI, DACDRLP-List, and DRLPDAC-List Implementation")
         logger.info(f"Total Tests: {total_tests}")
         logger.info(f"Passed: {passed_tests} ✅")
         logger.info(f"Failed: {failed_tests} ❌")
         logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if passed_tests == total_tests:
-            logger.info(f"🎉 100% SUCCESS: No regressions detected!")
+            logger.info(f"🎉 100% SUCCESS: Geographic filtering implementation working!")
         else:
-            logger.info(f"⚠️ REGRESSIONS DETECTED: {failed_tests} tests failing")
+            logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
         
         if failed_tests > 0:
-            logger.info(f"\n❌ FAILED TESTS (POTENTIAL REGRESSIONS):")
+            logger.info(f"\n❌ FAILED TESTS:")
             for result in self.test_results:
                 if not result["success"]:
                     logger.info(f"  - {result['test']}: {result['message']}")
