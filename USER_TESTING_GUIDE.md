@@ -527,15 +527,21 @@
 2. Fill in item details:
    - Name: "Test Deal Item"
    - Category: Select from dropdown
-   - Original Price: 10.00
-   - Discount Percent: 25
+   - Regular Price: 10.00
+   - Discount Level: 2 (DRLP 75% → Consumer 60% OFF)
    - Quantity: 50
 3. Click "Post Item" button
 
 **Expected Results:**
 - ✅ Success message
-- ✅ Item appears in inventory
+- ✅ Item appears in inventory with correct discounts
+- ✅ Shows: DRLP discount 75%, Consumer sees 60% OFF
 - ✅ Form resets for next item
+
+**Note:** DealShaq uses 3 discount levels:
+- Level 1: DRLP 60% → Consumer 50% OFF
+- Level 2: DRLP 75% → Consumer 60% OFF
+- Level 3: DRLP 90% → Consumer 75% OFF
 
 **Actual Results:**
 - [ ] Pass
