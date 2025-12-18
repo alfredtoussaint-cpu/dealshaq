@@ -1234,7 +1234,8 @@ async def add_retailer_to_dacdrlp_list(drlp_id: str, current_user: Dict = Depend
             raise HTTPException(status_code=400, detail="DRLP already in your retailer list")
     
     # Calculate distance
-    dac_coords = current_user.get("delivery_location", {}).get("coordinates")
+    delivery_location = current_user.get("delivery_location")
+    dac_coords = delivery_location.get("coordinates") if delivery_location else None
     drlp_coords = drlp_loc.get("coordinates")
     distance = 0.0
     inside_dacsai = False
