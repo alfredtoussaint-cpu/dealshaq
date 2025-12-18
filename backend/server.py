@@ -1189,6 +1189,235 @@ async def update_auto_threshold(threshold_data: AutoThresholdUpdate, current_use
         "threshold": threshold_data.auto_favorite_threshold
     }
 
+# ===== DACDRLP-LIST MANAGEMENT ROUTES =====
+
+@api_router.get("/dac/retailers")
+async def get_dacdrlp_list(current_user: Dict = Depends(get_current_user)):
+    """Get current DAC's DACDRLP-List (retailers they receive notifications from)"""
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can view their retailer list")
+    
+    dacdrlp_doc = await db.dacdrlp_list.find_one({"dac_id": current_user["id"]}, {"_id": 0})
+    
+    if not dacdrlp_doc:
+        return {
+            "dac_id": current_user["id"],
+            "retailers": [],
+            "dacsai_rad": current_user.get("dacsai_rad", 5.0),
+            "message": "No DACDRLP-List found"
+        }
+    
+    return dacdrlp_doc
+
+@api_router.post("/dac/retailers/add")
+async def add_retailer_to_dacdrlp_list(drlp_id: str, current_user: Dict = Depends(get_current_user)):
+    """Manually add a DRLP (outside DACSAI) to DAC's DACDRLP-List
+    
+    Bidirectional sync: Also adds DAC to that DRLP's DRLPDAC-List
+    """
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can add retailers")
+    
+    dac_id = current_user["id"]
+    
+    # Get DRLP location info
+    drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0})
+    if not drlp_loc:
+        raise HTTPException(status_code=404, detail="DRLP not found")
+    
+    # Check if already in list
+    dacdrlp_doc = await db.dacdrlp_list.find_one({"dac_id": dac_id})
+    if dacdrlp_doc:
+        existing = any(r["drlp_id"] == drlp_id and not r.get("manually_removed", False) 
+                       for r in dacdrlp_doc.get("retailers", []))
+        if existing:
+            raise HTTPException(status_code=400, detail="DRLP already in your retailer list")
+    
+    # Calculate distance
+    dac_coords = current_user.get("delivery_location", {}).get("coordinates")
+    drlp_coords = drlp_loc.get("coordinates")
+    distance = 0.0
+    inside_dacsai = False
+    
+    if dac_coords and drlp_coords:
+        distance = calculate_distance_miles(dac_coords, drlp_coords)
+        dacsai_rad = current_user.get("dacsai_rad", 5.0)
+        inside_dacsai = distance <= dacsai_rad
+    
+    retailer_entry = {
+        "drlp_id": drlp_id,
+        "drlp_name": drlp_loc.get("name", "Unknown"),
+        "drlp_location": drlp_coords,
+        "distance": distance,
+        "inside_dacsai": inside_dacsai,
+        "manually_added": True,  # User explicitly added this DRLP
+        "manually_removed": False,
+        "added_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Add to DACDRLP-List
+    await db.dacdrlp_list.update_one(
+        {"dac_id": dac_id},
+        {
+            "$push": {"retailers": retailer_entry},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        },
+        upsert=True
+    )
+    
+    # Bidirectional sync: Add DAC to DRLP's DRLPDAC-List
+    await add_dac_to_drlpdac_list(drlp_id, dac_id)
+    
+    logger.info(f"DAC {dac_id} manually added DRLP {drlp_id} to DACDRLP-List")
+    
+    return {
+        "message": "Retailer added to your list",
+        "retailer": retailer_entry
+    }
+
+@api_router.delete("/dac/retailers/{drlp_id}")
+async def remove_retailer_from_dacdrlp_list(drlp_id: str, current_user: Dict = Depends(get_current_user)):
+    """Remove a DRLP from DAC's DACDRLP-List (stop receiving notifications)
+    
+    Bidirectional sync: Also removes DAC from that DRLP's DRLPDAC-List
+    """
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can remove retailers")
+    
+    dac_id = current_user["id"]
+    
+    # Find the retailer in the list
+    dacdrlp_doc = await db.dacdrlp_list.find_one({"dac_id": dac_id})
+    if not dacdrlp_doc:
+        raise HTTPException(status_code=404, detail="DACDRLP-List not found")
+    
+    retailer_found = None
+    for r in dacdrlp_doc.get("retailers", []):
+        if r["drlp_id"] == drlp_id and not r.get("manually_removed", False):
+            retailer_found = r
+            break
+    
+    if not retailer_found:
+        raise HTTPException(status_code=404, detail="DRLP not found in your retailer list")
+    
+    # Mark as manually_removed (preserve record for override tracking)
+    await db.dacdrlp_list.update_one(
+        {"dac_id": dac_id, "retailers.drlp_id": drlp_id},
+        {
+            "$set": {
+                "retailers.$.manually_removed": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    # Bidirectional sync: Remove DAC from DRLP's DRLPDAC-List
+    await remove_dac_from_drlpdac_list(drlp_id, dac_id)
+    
+    logger.info(f"DAC {dac_id} removed DRLP {drlp_id} from DACDRLP-List")
+    
+    return {"message": "Retailer removed from your list. You will no longer receive notifications from this store."}
+
+@api_router.put("/dac/dacsai")
+async def update_dacsai(dacsai_rad: float, current_user: Dict = Depends(get_current_user)):
+    """Update DAC's DACSAI-Rad (shopping area radius)
+    
+    Recalculates which DRLPs are inside DACSAI and updates DACDRLP-List accordingly.
+    Preserves manual overrides (manually_added and manually_removed flags).
+    """
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can update DACSAI")
+    
+    # Validate radius
+    if not (0.1 <= dacsai_rad <= 9.9):
+        raise HTTPException(status_code=400, detail="DACSAI-Rad must be between 0.1 and 9.9 miles")
+    
+    dac_id = current_user["id"]
+    dac_coords = current_user.get("delivery_location", {}).get("coordinates")
+    
+    if not dac_coords:
+        raise HTTPException(status_code=400, detail="Delivery location not set. Please update your profile first.")
+    
+    # Update user's dacsai_rad
+    await db.users.update_one(
+        {"id": dac_id},
+        {"$set": {"dacsai_rad": dacsai_rad}}
+    )
+    
+    # Get current DACDRLP-List
+    dacdrlp_doc = await db.dacdrlp_list.find_one({"dac_id": dac_id})
+    current_retailers = dacdrlp_doc.get("retailers", []) if dacdrlp_doc else []
+    
+    # Track manual overrides
+    manually_added = {r["drlp_id"]: r for r in current_retailers if r.get("manually_added")}
+    manually_removed = {r["drlp_id"] for r in current_retailers if r.get("manually_removed")}
+    
+    # Recalculate which DRLPs are inside new DACSAI
+    all_drlp_locations = await db.drlp_locations.find({}, {"_id": 0}).to_list(10000)
+    new_retailers = []
+    new_dac_ids_for_drlps = {}  # Track which DRLP's DRLPDAC-Lists need updating
+    
+    for drlp_loc in all_drlp_locations:
+        drlp_id = drlp_loc["user_id"]
+        drlp_coords = drlp_loc.get("coordinates")
+        
+        if not drlp_coords:
+            continue
+        
+        distance = calculate_distance_miles(dac_coords, drlp_coords)
+        inside_dacsai = distance <= dacsai_rad
+        
+        # Skip if manually removed (DAC doesn't want notifications)
+        if drlp_id in manually_removed:
+            continue
+        
+        # Check if should be in list
+        if inside_dacsai or drlp_id in manually_added:
+            new_retailers.append({
+                "drlp_id": drlp_id,
+                "drlp_name": drlp_loc.get("name", "Unknown"),
+                "drlp_location": drlp_coords,
+                "distance": distance,
+                "inside_dacsai": inside_dacsai,
+                "manually_added": drlp_id in manually_added,
+                "manually_removed": False,
+                "added_at": manually_added.get(drlp_id, {}).get("added_at", datetime.now(timezone.utc).isoformat())
+            })
+            new_dac_ids_for_drlps[drlp_id] = True
+    
+    # Update DACDRLP-List
+    await db.dacdrlp_list.update_one(
+        {"dac_id": dac_id},
+        {
+            "$set": {
+                "retailers": new_retailers,
+                "dacsai_rad": dacsai_rad,
+                "dacsai_center": dac_coords,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    # Update DRLPDAC-Lists (bidirectional sync)
+    # First, remove DAC from all DRLPDAC-Lists
+    await db.drlpdac_list.update_many(
+        {},
+        {"$pull": {"dac_ids": dac_id}}
+    )
+    
+    # Then add DAC to relevant DRLPDAC-Lists
+    for drlp_id in new_dac_ids_for_drlps:
+        await add_dac_to_drlpdac_list(drlp_id, dac_id)
+    
+    logger.info(f"Updated DACSAI for DAC {dac_id}: radius={dacsai_rad}, {len(new_retailers)} retailers in list")
+    
+    return {
+        "message": "DACSAI updated",
+        "dacsai_rad": dacsai_rad,
+        "retailers_count": len(new_retailers)
+    }
+
 # ===== NOTIFICATION ROUTES =====
 
 @api_router.get("/notifications", response_model=List[Notification])
