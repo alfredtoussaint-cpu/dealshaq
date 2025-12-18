@@ -56,27 +56,37 @@
 ## Key Concepts
 
 ### DACFI-List (DAC Favorites Inventory List)
-- Personalized list of categories/subcategories each DAC cares about
-- Examples: "Produce → Organic", "Dairy → Cheese", "Meat & Seafood → Chicken"
+- Personalized list of item-level favorites each DAC cares about
+- Contains specific items with brand/generic parsing (e.g., "Quaker, Granola" or "Organic 2% Milk")
 - Backend uses this for **existence-check matching** against posted RSHDs
-- Purpose: Ensure DACs only get relevant notifications
+- Purpose: Ensure DACs only get relevant notifications for items they want
 
-### DACSAI (DAC Shopping Area of Interest)
-- Geographic radius (0.1 - 9.9 miles) from DAC's delivery location
-- Defines which DRLPs are considered "local" to this DAC
-- Can be customized: add/remove specific DRLPs even if outside radius
-- Purpose: Geographic anchoring - only notify about nearby stores
+### DACSAI (DAC's Shopping Area of Interest)
+- The **circular geographical AREA** around the DAC's delivery location
+- Defined by: DAC's delivery location (center) + DACSAI-Rad (radius)
+- All DRLPs domiciled within this area are automatically included in the DAC's DACDRLP-List
+- Purpose: Geographic anchoring - defines "local" retailers for this DAC
 
-### DACDRLP-List
-- For each DAC: list of DRLPs considered local
-- Includes: DRLPs within DACSAI + manually added DRLPs - manually removed DRLPs
-- Dynamic: updates when new DRLPs join or leave platform
+### DACSAI-Rad (DACSAI Radius)
+- The **radius value** (0.1 to 9.9 miles) that determines the size of the DACSAI
+- Measured from the DAC's delivery location
+- DAC can adjust this during registration or in settings
+- Purpose: Allows DAC to control how large their shopping area is
+
+### DACDRLP-List (DAC's DRLP List)
+- For each DAC: the list of DRLPs the DAC wants to receive notifications from
+- **Formula:** `DRLPs domiciled inside DACSAI` + `Manually added DRLPs outside DACSAI` - `Manually removed DRLPs inside DACSAI`
+- Dynamic: updates when DAC changes DACSAI-Rad or manually adds/removes DRLPs
 - Purpose: Consumer control over which retailers they want to hear from
+- **Must be kept in bidirectional sync with DRLPDAC-List**
 
-### DRLPDAC-List
-- For each DRLP: full list of DACs in their geographic area
-- All DACs who have this DRLP in their DACDRLP-List
-- Purpose: Pool of potential customers for this retailer
+### DRLPDAC-List (DRLP's DAC List)
+- For each DRLP: the list of DACs who should receive notifications from this retailer
+- Contains all DACs who have this DRLP in their DACDRLP-List
+- **Must be kept in bidirectional sync with DACDRLP-List:**
+  - When DAC removes a DRLP from their DACDRLP-List → remove DAC from that DRLP's DRLPDAC-List
+  - When DAC adds a DRLP to their DACDRLP-List → add DAC to that DRLP's DRLPDAC-List
+- Purpose: Efficient lookup when DRLP posts RSHD - query this list to find eligible DACs
 
 ### DRLPDAC-SNL (Subset Notification List)
 - Generated after RSHD posting
