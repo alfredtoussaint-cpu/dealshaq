@@ -202,69 +202,56 @@ Add delivery location and DACSAI radius to registration flow
 
 ---
 
-## AREA 5: DACSAI (Shopping Area) Implementation ⚠️ PARTIALLY IMPLEMENTED
+## AREA 5: DACSAI (Shopping Area) Implementation ❌ NOT IMPLEMENTED → 🔧 IMPLEMENTING NOW
 
-### Specification:
-**DACSAI:** DealShaq Adjusted Consumer Shopping Area Index
-- DAC sets delivery location (address)
-- DAC selects radius: 0.1 to 9.9 miles
-- System finds all DRLPs within that radius
-- Creates DRLPDAC-List (DAC's local retailers)
+### Correct Definitions (Per Customer Clarification):
 
-### Current Implementation Status:
+**DACSAI (DAC's Shopping Area of Interest):**
+- The **circular geographical AREA** around the DAC's delivery location
+- Defined by: DAC's delivery location (center) + DACSAI-Rad (radius)
+- All DRLPs domiciled within this area are automatically included in the DAC's DACDRLP-List
+
+**DACSAI-Rad (DACSAI Radius):**
+- The **radius value** (0.1 to 9.9 miles) that determines the size of the DACSAI
+- Measured from the DAC's delivery location
+
+**DACDRLP-List (DAC's DRLP List):**
+- Formula: `DRLPs inside DACSAI` + `Manually added DRLPs outside DACSAI` - `Manually removed DRLPs inside DACSAI`
+- Must be kept in **bidirectional sync** with DRLPDAC-List
+
+**DRLPDAC-List (DRLP's DAC List):**
+- Contains all DACs who have this DRLP in their DACDRLP-List
+- **Bidirectional Sync Required:**
+  - When DAC adds DRLP → Add DAC to that DRLP's DRLPDAC-List
+  - When DAC removes DRLP → Remove DAC from that DRLP's DRLPDAC-List
+
+### Previous Implementation Status:
 
 **Backend - User Model:**
 ```python
-delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}}
-dacsai_radius: Optional[float] = 5.0  # ✅ Field exists
-```
-- Fields defined: ✅
-- Captured during registration: ❌ NO
-- Default radius: 5.0 miles (not user-selected)
-
-**Backend - DRLPDAC-List Generation:**
-Searching for DRLPDAC-List logic...
-```bash
-grep -n "dacdrlp\|DRLPDAC\|initialize_dacdrlp" /app/backend/server.py
+delivery_location: Optional[Dict[str, Any]] = None  # ❌ Not captured during registration
+dacsai_radius: Optional[float] = 5.0  # ❌ Renamed to dacsai_rad, not user-selected
 ```
 
-**Found:** Line 411 - `initialize_dacdrlp_list(user_dict["id"])`
-
-**Function Found:** `initialize_dacdrlp_list()` (line 352)
-
-```python
-async def initialize_dacdrlp_list(dac_id: str):
-    """Initialize DACDRLP-List for new DAC
-    
-    V1.0: Simplified - all DRLPs visible to all DACs  // ⚠️ SIMPLIFIED
-    V2.0: Will use DACSAI radius to filter DRLPs geographically
-    """
-    await db.dacdrlp_list.insert_one({
-        "dac_id": dac_id,
-        "retailers": [],  // ❌ EMPTY - Not populated
-        "created_at": ...,
-        "updated_at": ...
-    })
-```
-
-### Issue Found: ⚠️ **DACSAI NOT FULLY IMPLEMENTED**
-
-**Current Status:**
-- Comment says "V1.0: Simplified - all DRLPs visible to all DACs"
-- DRLPDAC-List created but remains EMPTY
+**Issues Found:**
+- DACDRLP-List created but remains EMPTY
+- No DRLPDAC-List collection exists
 - No geographic filtering implemented
-- DACSAI radius not used for anything
+- No bidirectional sync between lists
+- DACSAI-Rad not captured during registration
 
-**Impact:**
-- DACs see deals from ALL retailers regardless of location
-- Shopping area preference (DACSAI) is ignored
-- Delivery location not captured or used
-- Notification matching doesn't consider geography
+### Implementation Plan (In Progress):
 
-**Status:** ⚠️ **MAJOR SIMPLIFICATION FROM ORIGINAL SPEC**
+1. ✅ Update documentation with correct definitions
+2. 🔧 Rename `dacsai_radius` to `dacsai_rad` in User model
+3. 🔧 Implement proper DACDRLP-List initialization (populate with DRLPs inside DACSAI)
+4. 🔧 Create DRLPDAC-List collection and logic
+5. 🔧 Implement bidirectional sync on add/remove operations
+6. 🔧 Update notification matching to use DRLPDAC-List
+7. 🔧 Create API endpoints for DACDRLP-List management
+8. 🔧 Add distance calculation utility (Haversine formula)
 
-**Question for Customer:**
-Was this simplification approved? Or should V1.0 include geographic filtering?
+**Status:** 🔧 **IMPLEMENTATION IN PROGRESS**
 
 ---
 
