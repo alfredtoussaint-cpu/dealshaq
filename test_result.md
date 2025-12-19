@@ -283,74 +283,89 @@ backend:
           comment: "✅ PASS - Edge cases handled correctly. 'Quaker, Simply, Granola' splits on first comma only (brand='Quaker', generic='Simply, Granola'). 'Quaker , Granola' trims spaces properly. Multiple comma handling and whitespace normalization working as expected."
 
 frontend:
-  - task: "Consumer Settings Page - Smart Favorites Configuration"
+  - task: "Consumer Retailers Page - Navigation Integration"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/consumer/ConsumerSettings.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "testing"
-          comment: "Frontend implementation found. Ready for comprehensive testing of Smart Favorites configuration with radio buttons (6/3/Never days), verbose question text, save functionality, and account information display."
-        - working: false
-          agent: "testing"
-          comment: "❌ CRITICAL ISSUE - Cannot test due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system. Frontend appears properly implemented but untestable without authentication."
-        - working: true
-          agent: "testing"
-          comment: "✅ COMPREHENSIVE TESTING COMPLETED - Settings page working perfectly with provided test credentials (test.brand.generic@example.com). ✅ Smart Favorites section present with verbose question 'How many separate days would you want to be buying a non-favorite item, before you want DealShaq to add that item to your favorites list?'. ✅ All 3 radio button options working (6/3/Never days) with proper descriptions. ✅ Save Settings button functional. ✅ 'How It Works' info section present with all bullet points. ✅ Account Information section showing user details correctly. All functionality working as expected."
-
-  - task: "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/consumer/ConsumerFavorites.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "testing"
-          comment: "Frontend implementation found. Ready for comprehensive testing of add item form, auto-categorization display, Manual/Auto badges, organic indicators, remove functionality, and category organization."
-        - working: false
-          agent: "testing"
-          comment: "❌ CRITICAL ISSUE - Cannot test due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system. Frontend appears properly implemented but untestable without authentication."
-        - working: true
-          agent: "testing"
-          comment: "✅ COMPREHENSIVE BRAND/GENERIC TESTING COMPLETED - Enhanced DACFI-List working perfectly! ✅ Correct placeholder text: 'e.g., \"Granola\" or \"Quaker, Granola\"'. ✅ Helper text about brand-specific items present. ✅ Brand-specific items show '(Brand: Valley Farm)' indicators and '🏷️ Brand-specific' badges. ✅ Generic items work without brand indicators. ✅ Organic items show '🌿 Organic' indicators. ✅ All items show 'Manual' badges. ✅ Auto-categorization working (items categorized to Dairy & Eggs, Miscellaneous, etc.). ✅ Success toasts with categorization info. ✅ Duplicate prevention working. ✅ Items organized by category with proper display. ✅ Remove buttons functional. All brand/generic feature requirements met."
-
-  - task: "Navigation and Layout Integration"
-    implemented: true
-    working: true
+    working: "NA"
     file: "/app/frontend/src/components/consumer/ConsumerLayout.js"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
         - working: "NA"
-          agent: "testing"
-          comment: "Navigation layout includes Settings link with proper testId attributes. Ready for testing navigation between pages and layout consistency."
-        - working: false
-          agent: "testing"
-          comment: "❌ CRITICAL ISSUE - Cannot test navigation due to DAC user registration failure. Backend registration endpoint returns 500 Internal Server Error with MongoDB ObjectId serialization error. No DAC accounts exist in system."
-        - working: true
-          agent: "testing"
-          comment: "✅ NAVIGATION TESTING COMPLETED - All navigation working correctly. ✅ Navigation menu includes Home, Browse, Favorites, Alerts, Orders, Settings. ✅ Navigation between pages working smoothly. ✅ User name displayed correctly ('Brand Generic Tester'). ✅ Logout button functional. ✅ Layout consistent across pages. ✅ Responsive design working. All navigation and layout integration working as expected."
+          agent: "main"
+          comment: "Retailers tab added to navigation between Favorites and Alerts. Ready for testing navigation functionality."
 
-  - task: "DAC User Registration and Authentication"
+  - task: "Consumer Retailers Page - My Retailers UI"
     implemented: true
-    working: true
-    file: "/app/backend/server.py"
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        - working: false
-          agent: "testing"
-          comment: "❌ CRITICAL BACKEND ISSUE - DAC user registration fails with 500 Internal Server Error. Error: 'Unable to serialize unknown type: <class 'bson.objectid.ObjectId'>'. This prevents all consumer frontend testing. DRLP registration works but DAC registration is broken. No DAC accounts exist in system."
-        - working: true
-          agent: "testing"
-          comment: "✅ AUTHENTICATION WORKING - Test credentials (test.brand.generic@example.com / TestPassword123) working perfectly. ✅ Login successful with proper redirect to consumer dashboard. ✅ Session management working. ✅ User data persisted correctly. ✅ Role-based access control working (DAC user accessing consumer features). Authentication system fully functional with provided test account."
+        - working: "NA"
+          agent: "main"
+          comment: "Complete My Retailers page implemented with title, description, stats cards, tabs, and empty states. Ready for comprehensive UI testing."
+
+  - task: "Consumer Retailers Page - Stats Cards"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Three stats cards implemented: Active Retailers, DACSAI Radius, and Manually Added. Ready for testing display and data accuracy."
+
+  - task: "Consumer Retailers Page - Tabs System"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Three tabs implemented: All, In DACSAI, and Manually Added with proper counts and empty states. Ready for testing tab functionality."
+
+  - task: "Consumer Retailers Page - DACSAI Settings Dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "DACSAI Settings dialog implemented with slider (0.1-9.9 miles), delivery location alert, and update functionality. Ready for testing dialog interactions."
+
+  - task: "Consumer Retailers Page - Add Retailer Dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Add Retailer dialog implemented with search functionality and retailer list. Ready for testing dialog interactions and search."
+
+  - task: "Consumer Retailers Page - Backend API Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/utils/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "API integration implemented for GET /api/dac/retailers, POST /api/dac/retailers/add, DELETE /api/dac/retailers/{id}, and PUT /api/dac/dacsai. Ready for testing API calls."
 
 metadata:
   created_by: "testing_agent"
