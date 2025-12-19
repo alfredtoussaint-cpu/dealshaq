@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "COMPREHENSIVE BACKEND TESTING FOR ENHANCED DACFI-LIST FEATURE - Item-level favorites system where DACs can add specific grocery items that get auto-categorized into 20 categories. Also includes implicit auto-add feature based on purchase history."
+user_problem_statement: "COMPREHENSIVE TESTING: DACDRLP-List Management UI (Consumer Retailers Page) - New 'My Retailers' page for managing DACDRLP-List (the list of retailers a consumer receives notifications from). Includes navigation, stats cards, tabs, DACSAI settings dialog, add retailer dialog, and backend API integration."
 
 backend:
   - task: "Item-Level Favorites API - POST /api/favorites/items"
