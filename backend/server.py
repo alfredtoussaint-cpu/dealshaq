@@ -911,8 +911,8 @@ async def create_drlp_location(location_data: DRLPLocationCreate, current_user: 
     # This finds all DACs whose DACSAI contains this DRLP's location
     # and updates both the DRLPDAC-List and each DAC's DACDRLP-List (bidirectional sync)
     if location_data.coordinates:
-        await initialize_drlpdac_list(current_user["id"], location_data.coordinates)
-        logger.info(f"DRLP {current_user['id']} location created and DRLPDAC-List initialized")
+        await initialize_drlpdac_list(current_user["id"], location_data.coordinates, location_data.name)
+        logger.info(f"DRLP {current_user['id']} location '{location_data.name}' created and DRLPDAC-List initialized")
     
     return location_dict
 
