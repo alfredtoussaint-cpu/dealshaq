@@ -283,22 +283,42 @@ export default function ConsumerAuth({ onLogin }) {
                     </button>
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="delivery-address">Delivery Address</Label>
-                  <Input
-                    id="delivery-address"
-                    data-testid="register-address"
-                    placeholder="123 Main St, City, State ZIP"
-                    value={formData.delivery_location.address}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      delivery_location: { ...formData.delivery_location, address: e.target.value }
-                    })}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Used as center for your shopping area</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    <Label htmlFor="delivery-address">Delivery Address <span className="text-red-500">*</span></Label>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="delivery-address"
+                      data-testid="register-address"
+                      placeholder="123 Main St, City, State ZIP"
+                      value={formData.delivery_location.address}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        delivery_location: { ...formData.delivery_location, address: e.target.value, coordinates: { lat: null, lng: null } }
+                      })}
+                      onBlur={handleAddressBlur}
+                      required
+                      className={geocodeError ? 'border-red-500' : formData.delivery_location.coordinates?.lat ? 'border-green-500' : ''}
+                    />
+                    {geocoding && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-emerald-600" />
+                    )}
+                    {!geocoding && formData.delivery_location.coordinates?.lat && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-xs">✓ Verified</span>
+                    )}
+                  </div>
+                  {geocodeError && (
+                    <p className="text-xs text-red-500">{geocodeError}</p>
+                  )}
+                  <p className="text-xs text-gray-500">This is the center of your shopping area (DACSAI)</p>
                 </div>
-                <div>
-                  <Label htmlFor="dacsai-radius">Shopping Radius: {formData.dacsai_radius} miles</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-emerald-600" />
+                    <Label htmlFor="dacsai-radius">DACSAI Radius: <span className="font-bold text-emerald-600">{formData.dacsai_rad} miles</span></Label>
+                  </div>
                   <Input
                     id="dacsai-radius"
                     data-testid="register-radius"
@@ -306,15 +326,17 @@ export default function ConsumerAuth({ onLogin }) {
                     min="0.1"
                     max="9.9"
                     step="0.1"
-                    value={formData.dacsai_radius}
-                    onChange={(e) => setFormData({ ...formData, dacsai_radius: parseFloat(e.target.value) })}
-                    className="w-full"
+                    value={formData.dacsai_rad}
+                    onChange={(e) => setFormData({ ...formData, dacsai_rad: parseFloat(e.target.value) })}
+                    className="w-full accent-emerald-600"
                   />
                   <div className="flex justify-between text-xs text-gray-500">
-                    <span>0.1 mi</span>
-                    <span>9.9 mi</span>
+                    <span>0.1 mi (nearby only)</span>
+                    <span>9.9 mi (wider area)</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">DACSAI: Your Shopping Area of Interest</p>
+                  <p className="text-xs text-gray-500">
+                    Retailers within this radius will be added to your list automatically
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="charity">Preferred Charity</Label>
