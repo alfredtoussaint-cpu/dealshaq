@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings } from 'lucide-react';
+import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings, Store } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../Logo';
 
