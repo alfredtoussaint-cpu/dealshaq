@@ -868,11 +868,24 @@ async def create_drlp_location(location_data: DRLPLocationCreate, current_user: 
     if current_user["role"] != "DRLP":
         raise HTTPException(status_code=403, detail="Only DRLP users can create locations")
     
+    # Check if location already exists for this DRLP
+    existing = await db.drlp_locations.find_one({"user_id": current_user["id"]})
+    if existing:
+        raise HTTPException(status_code=400, detail="Location already exists. Use PUT to update.")
+    
     location_dict = location_data.model_dump()
     location_dict["id"] = str(uuid.uuid4())
     location_dict["user_id"] = current_user["id"]
     
     await db.drlp_locations.insert_one(location_dict)
+    
+    # Initialize DRLPDAC-List with geographic filtering
+    # This finds all DACs whose DACSAI contains this DRLP's location
+    # and updates both the DRLPDAC-List and each DAC's DACDRLP-List (bidirectional sync)
+    if location_data.coordinates:
+        await initialize_drlpdac_list(current_user["id"], location_data.coordinates)
+        logger.info(f"DRLP {current_user['id']} location created and DRLPDAC-List initialized")
+    
     return location_dict
 
 @api_router.get("/drlp/locations", response_model=List[DRLPLocation])
