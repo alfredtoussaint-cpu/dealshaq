@@ -24,10 +24,12 @@ export default function ConsumerAuth({ onLogin }) {
     charity_id: '',
     delivery_location: {
       address: '',
-      coordinates: { lat: 0, lng: 0 }
+      coordinates: { lat: null, lng: null }
     },
-    dacsai_radius: 5.0,
+    dacsai_rad: 5.0,
   });
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
