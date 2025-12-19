@@ -1666,7 +1666,8 @@ class BackendTester:
 async def main():
     """Main test runner"""
     async with BackendTester() as tester:
-        results = await tester.run_all_tests()
+        # Run password change tests as requested
+        results = await tester.run_password_change_tests()
         
         # Save results to file
         with open("/app/test_results.json", "w") as f:
