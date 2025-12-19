@@ -33,13 +33,13 @@ export default function RetailerAuth({ onLogin }) {
           password: formData.password,
           role: 'DRLP',
         });
-        onLogin(response.data);
+        onLogin(response.data.access_token, response.data.user);
       } else {
         const response = await auth.register({
           ...formData,
           role: 'DRLP',
         });
-        onLogin(response.data);
+        onLogin(response.data.access_token, response.data.user);
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Authentication failed');
