@@ -444,7 +444,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Change Feature - PUT /api/auth/password/change"
+    - "DRLP Registration Flow with Geographic Filtering"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
