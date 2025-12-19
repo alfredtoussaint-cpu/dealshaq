@@ -488,6 +488,140 @@
 
 ---
 
+### Test Suite NEW-1: My Retailers (DACDRLP-List Management)
+
+#### Test NEW-1.1: View My Retailers
+**Steps:**
+1. Login as Consumer
+2. Click "Retailers" in the navigation menu
+
+**Expected Results:**
+- ✅ "My Retailers" page loads
+- ✅ List of retailers in DACDRLP-List is displayed
+- ✅ Each retailer shows: Name, Distance, Status (auto-added vs manual)
+- ✅ Remove button available for each retailer
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+#### Test NEW-1.2: Remove a Retailer
+**Steps:**
+1. On "My Retailers" page, find a retailer inside your DACSAI
+2. Click "Remove" button for that retailer
+3. Confirm removal
+
+**Expected Results:**
+- ✅ Retailer is marked as "manually_removed"
+- ✅ Retailer no longer appears in active list
+- ✅ You will no longer receive notifications from this retailer
+- ✅ Success toast notification
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+#### Test NEW-1.3: Add a Retailer (Outside DACSAI)
+**Steps:**
+1. On "My Retailers" page, find the "Add Retailer" section
+2. Search for a retailer outside your DACSAI
+3. Click "Add" button
+
+**Expected Results:**
+- ✅ Retailer is added to your DACDRLP-List with "manually_added: true"
+- ✅ You will now receive notifications from this retailer
+- ✅ Success toast notification
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+### Test Suite NEW-2: Radar View
+
+#### Test NEW-2.1: View Radar
+**Steps:**
+1. Login as Consumer
+2. Click "Radar" in the navigation menu
+
+**Expected Results:**
+- ✅ Radar View page loads
+- ✅ Shows RSHDs (deals) from retailers in your DACDRLP-List
+- ✅ Each deal shows: Item name, Retailer name, Discount %, Price, Expiry
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+### Test Suite NEW-3: DACSAI Settings
+
+#### Test NEW-3.1: Update DACSAI Radius
+**Steps:**
+1. Go to Settings page
+2. Find "Shopping Area (DACSAI)" section
+3. Adjust the radius slider (e.g., from 5.0 to 7.5 miles)
+4. Click "Save DACSAI Settings"
+
+**Expected Results:**
+- ✅ DACSAI-Rad is updated
+- ✅ DACDRLP-List is recalculated (retailers added/removed based on new radius)
+- ✅ Manual overrides (added/removed retailers) are preserved
+- ✅ Success toast notification
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+#### Test NEW-3.2: Update Delivery Location
+**Steps:**
+1. Go to Settings page
+2. Find "Delivery Location" section
+3. Enter a new address or coordinates
+4. Click "Update Location"
+
+**Expected Results:**
+- ✅ Delivery location is updated
+- ✅ DACSAI center is recalculated
+- ✅ DACDRLP-List is recalculated based on new location
+- ✅ Success toast notification
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
+### Test Suite NEW-4: Password Change
+
+#### Test NEW-4.1: Change Password
+**Steps:**
+1. Go to Settings page
+2. Find "Change Password" section
+3. Enter current password
+4. Enter new password
+5. Confirm new password
+6. Click "Change Password"
+
+**Expected Results:**
+- ✅ Password is changed successfully
+- ✅ Success toast notification
+- ✅ Can logout and login with new password
+
+**Actual Results:**
+- [ ] Pass
+- [ ] Fail (describe issue):
+
+---
+
 ## Retailer App Testing
 
 **Application URL:** https://shop-radar-app.preview.emergentagent.com/retailer
