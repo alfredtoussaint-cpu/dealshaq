@@ -1,794 +1,338 @@
-# DealShaq System - Data Flow Diagram
+# DealShaq Data Flow Diagram
 
-This document illustrates how data flows through the DealShaq system across all modules and external services.
+This document describes the data flow and system architecture of DealShaq.
 
----
+## System Overview
 
-## High-Level System Data Flow
+```mermaid
+flowchart TB
+    subgraph Users
+        DAC["🛒 Consumer (DAC)"]
+        DRLP["🏪 Retailer (DRLP)"]
+        ADMIN["👤 Admin"]
+    end
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          External Services                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
-│  │ Barcode  │  │   OCR    │  │ DoorDash │  │  Stripe  │  │  Email   │ │
-│  │   API    │  │   API    │  │   API    │  │   API    │  │ Service  │ │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘ │
-└───────┼─────────────┼─────────────┼─────────────┼─────────────┼────────┘
-        │             │             │             │             │
-        ▼             ▼             ▼             ▼             ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Backend Services Layer                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐ │
-│  │  FastAPI     │  │   Matching   │  │  Aggregation │  │   Queue    │ │
-│  │  REST API    │  │    Engine    │  │   Service    │  │  Manager   │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └─────┬──────┘ │
-│         │                 │                 │                 │        │
-│         └─────────────────┼─────────────────┼─────────────────┘        │
-│                           │                 │                          │
-└───────────────────────────┼─────────────────┼──────────────────────────┘
-                            │                 │
-                            ▼                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       MongoDB Database Layer                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
-│  │  Users   │  │   RSHD   │  │Transaction│ │Charities │  │  Audit   │ │
-│  │Collection│  │Collection│  │Collection │ │Collection│  │   Logs   │ │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐               │
-│  │Favorites │  │Notifications│ │Disbursements│ │ Config │               │
-│  │Collection│  │Collection│  │Collection │ │Collection│               │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘               │
-└─────────────────────────────────────────────────────────────────────────┘
-                            ▲
-                            │
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Frontend Applications Layer                       │
-│  ┌──────────────┐       ┌──────────────┐       ┌──────────────┐       │
-│  │  Consumer    │       │   Retailer   │       │    Admin     │       │
-│  │  React App   │       │  React App   │       │  Dashboard   │       │
-│  │    (DAC)     │       │    (DRLP)    │       │              │       │
-│  └──────────────┘       └──────────────┘       └──────────────┘       │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+    subgraph Frontend["Frontend (React)"]
+        CA[Consumer App]
+        RA[Retailer App]
+        AA[Admin App]
+    end
 
----
+    subgraph Backend["Backend (FastAPI)"]
+        AUTH[Auth Service]
+        RSHD[RSHD Service]
+        NOTIF[Notification Service]
+        GEO[Geographic Service]
+        SCHED[Scheduler Service]
+        CAT[Categorization Service]
+    end
 
-## Detailed Data Flows by Feature
+    subgraph Database["MongoDB"]
+        USERS[(users)]
+        DRLPLOC[(drlp_locations)]
+        DACDRLP[(dacdrlp_list)]
+        DRLPDAC[(drlpdac_list)]
+        RSHDITEMS[(rshd_items)]
+        NOTIFS[(notifications)]
+        ORDERS[(orders)]
+    end
 
-### 1. User Registration & Authentication Flow
+    subgraph External
+        GEOCODE[Geocoding API]
+        LLM[OpenAI / Emergent]
+    end
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Registration Flow                                                       │
-└─────────────────────────────────────────────────────────────────────────┘
+    DAC --> CA
+    DRLP --> RA
+    ADMIN --> AA
 
-Frontend (Consumer/Retailer)
-  │
-  │ 1. Submit Registration Form
-  │    - email
-  │    - password (plain text)
-  │    - name
-  │    - role (DAC or DRLP)
-  │    - charity_id
-  │    - additional role-specific data
-  │
-  ▼
-Backend API (/api/auth/register)
-  │
-  │ 2. Validate Input
-  │    - Check email uniqueness
-  │    - Validate password strength
-  │    - Verify charity exists
-  │
-  │ 3. Hash Password
-  │    - Use Passlib bcrypt
-  │
-  │ 4. Create User Document
-  │    {
-  │      email: String,
-  │      password: String (hashed),
-  │      role: String,
-  │      name: String,
-  │      charity_id: String,
-  │      approval_status: "pending" (for DRLP),
-  │      created_at: Date
-  │    }
-  │
-  ▼
-MongoDB (users collection)
-  │
-  │ 5. Insert User Document
-  │
-  │ 6. Return User ID
-  │
-  ▼
-Backend API
-  │
-  │ 7. Generate JWT Token
-  │    - Payload: user_id, email, role
-  │    - Sign with SECRET_KEY
-  │
-  │ 8. If DRLP: Create Notification for Admin
-  │
-  ▼
-Frontend
-  │
-  │ 9. Store JWT in localStorage
-  │
-  │ 10. Redirect to Dashboard
-  │
+    CA --> AUTH
+    CA --> NOTIF
+    CA --> GEO
+    RA --> AUTH
+    RA --> RSHD
+    AA --> AUTH
+
+    AUTH --> USERS
+    RSHD --> RSHDITEMS
+    RSHD --> NOTIF
+    NOTIF --> NOTIFS
+    NOTIF --> DRLPDAC
+    GEO --> DACDRLP
+    GEO --> DRLPDAC
+    GEO --> DRLPLOC
+    SCHED --> USERS
+    SCHED --> ORDERS
+    CAT --> LLM
+
+    CA -.-> GEOCODE
 ```
 
-**Login Flow** (similar but with password verification instead of creation)
+## Data Models
 
----
+### User Document (users collection)
 
-### 2. RSHD Posting Flow (Retailer)
+```mermaid
+erDiagram
+    USER {
+        string id PK
+        string email UK
+        string password_hash
+        string name
+        string role "DAC|DRLP|Admin"
+        string charity_id FK
+        object delivery_location "address, coordinates"
+        float dacsai_rad "0.1 to 9.9 miles"
+        array favorite_items "DACFI-List"
+        int auto_favorite_threshold "0|3|6"
+        object notification_prefs
+        string created_at
+    }
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ RSHD Creation Flow                                                      │
-└─────────────────────────────────────────────────────────────────────────┘
+    FAVORITE_ITEM {
+        string item_name
+        string brand "nullable"
+        string generic
+        boolean has_brand
+        string category
+        array keywords
+        object attributes
+        string auto_added_date "nullable"
+    }
 
-Retailer App
-  │
-  │ 1. Scan Barcode (Optional)
-  │    - Capture barcode image
-  │
-  ▼
-Barcode API (External)
-  │
-  │ 2. Return Product Info
-  │    - product_name
-  │    - category
-  │    - standard_price
-  │
-  ▼
-Retailer App
-  │
-  │ 3. Scan Expiry Date (Optional)
-  │    - Capture expiry date image
-  │
-  ▼
-OCR API (External)
-  │
-  │ 4. Return Expiry Date
-  │    - expiry_date (parsed)
-  │
-  ▼
-Retailer App
-  │
-  │ 5. Complete RSHD Form
-  │    - name
-  │    - category
-  │    - original_price
-  │    - discount_level (33%, 66%, or 99%)
-  │    - quantity
-  │    - expiry_date
-  │    - contribution_percentage
-  │    - image (optional)
-  │
-  │ 6. Submit RSHD
-  │
-  ▼
-Backend API (/api/rshd/items)
-  │
-  │ 7. Validate RSHD Data
-  │    - discount_level in [33, 66, 99]
-  │    - quantity > 0
-  │    - expiry_date > today
-  │    - category in taxonomy
-  │
-  │ 8. Calculate Discounted Price
-  │    discounted_price = original_price × (1 - discount_level/100)
-  │
-  │ 9. Get Retailer Location
-  │    - From user profile
-  │
-  │ 10. Create RSHD Document
-  │     {
-  │       id: UUID,
-  │       retailer_id: String,
-  │       name: String,
-  │       category: String,
-  │       original_price: Number,
-  │       discounted_price: Number,
-  │       discount_level: Number,
-  │       quantity: Number,
-  │       expiry_date: Date,
-  │       contribution_percentage: Number,
-  │       location: { lat, lng },
-  │       status: "active",
-  │       created_at: Date
-  │     }
-  │
-  ▼
-MongoDB (rshd_items collection)
-  │
-  │ 11. Insert RSHD
-  │
-  │ 12. Create Geospatial Index (if not exists)
-  │     - db.rshd_items.createIndex({ location: "2dsphere" })
-  │
-  ▼
-Matching Engine (Background Job)
-  │
-  │ 13. Query Matching Consumers
-  │     - Find users with role = "DAC"
-  │     - WHERE RSHD.location within user.dacsai_radius
-  │     - AND RSHD.category IN user.favorite_categories
-  │     - AND (user.dac_drlp_list is empty OR RSHD.retailer_id IN user.dac_drlp_list)
-  │
-  ▼
-MongoDB (users collection)
-  │
-  │ 14. Return Matched Consumers
-  │
-  ▼
-Notification Service
-  │
-  │ 15. For Each Matched Consumer:
-  │     - Create Notification Document
-  │       {
-  │         user_id: String,
-  │         type: "new_rshd",
-  │         title: "New Deal Near You!",
-  │         message: "...",
-  │         rshd_id: String,
-  │         read: false,
-  │         created_at: Date
-  │       }
-  │
-  ▼
-MongoDB (notifications collection)
-  │
-  │ 16. Insert Notifications (Batch)
-  │
-  ▼
-Push Notification Service
-  │
-  │ 17. Send Push Notifications
-  │     - To web browsers (Web Push API)
-  │     - Or mobile devices (FCM)
-  │
-  ▼
-Consumer App
-  │
-  │ 18. Display Notification Banner
-  │
+    USER ||--o{ FAVORITE_ITEM : contains
 ```
 
----
+### Geographic Data Models
 
-### 3. Consumer Discovery & Radar View Flow
+```mermaid
+erDiagram
+    DACDRLP_LIST {
+        string id PK
+        string dac_id FK
+        array retailers
+        float dacsai_rad
+        object dacsai_center "lat, lng"
+        string updated_at
+    }
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Radar View Data Flow                                                    │
-└─────────────────────────────────────────────────────────────────────────┘
+    RETAILER_ENTRY {
+        string drlp_id FK
+        string drlp_name
+        object drlp_location "lat, lng"
+        float distance
+        boolean inside_dacsai
+        boolean manually_added
+        boolean manually_removed
+        string added_at
+    }
 
-Consumer App
-  │
-  │ 1. Load Radar View
-  │    - Get user location from profile
-  │
-  │ 2. Request RSHDs in Area
-  │
-  ▼
-Backend API (/api/consumer/radar)
-  │
-  │ 3. Get User Preferences
-  │    - dacsai_radius (from users collection)
-  │    - favorite_categories (from favorites collection)
-  │    - dac_drlp_list (from users collection)
-  │
-  ▼
-MongoDB (users + favorites collections)
-  │
-  │ 4. Return User Data
-  │
-  ▼
-Backend API
-  │
-  │ 5. Geospatial Query
-  │    db.rshd_items.find({
-  │      location: {
-  │        $near: {
-  │          $geometry: { type: "Point", coordinates: [user.lng, user.lat] },
-  │          $maxDistance: user.dacsai_radius * 1609.34  // miles to meters
-  │        }
-  │      },
-  │      category: { $in: user.favorite_categories },
-  │      status: "active",
-  │      quantity: { $gt: 0 },
-  │      expiry_date: { $gte: new Date() }
-  │    })
-  │
-  ▼
-MongoDB (rshd_items collection with 2dsphere index)
-  │
-  │ 6. Return Matching RSHDs
-  │
-  ▼
-Backend API
-  │
-  │ 7. For Each RSHD:
-  │    - Calculate distance from consumer
-  │    - Enrich with retailer info
-  │    - Calculate potential savings
-  │
-  │ 8. Sort RSHDs
-  │    - By distance, discount_level, or expiry_date
-  │
-  │ 9. Return Response
-  │    {
-  │      rshds: [
-  │        {
-  │          id, name, category,
-  │          original_price, discounted_price, discount_level,
-  │          quantity, expiry_date,
-  │          retailer: { id, name, location },
-  │          distance: Number (miles),
-  │          savings: Number
-  │        }
-  │      ]
-  │    }
-  │
-  ▼
-Consumer App
-  │
-  │ 10. Render RSHD Cards
-  │     - Show on map (pins)
-  │     - Show in list view
-  │
-  │ 11. Apply Client-Side Filters
-  │     - By discount level
-  │     - By category
-  │     - By retailer
-  │
-  │ 12. Real-Time Updates
-  │     - Poll /api/consumer/radar every 30 seconds
-  │     - Or use WebSocket for live updates
-  │
+    DRLPDAC_LIST {
+        string id PK
+        string drlp_id FK
+        array dac_ids "list of DAC IDs"
+        string updated_at
+    }
+
+    DRLP_LOCATION {
+        string id PK
+        string user_id FK
+        string name
+        string address
+        object coordinates "lat, lng"
+        string store_type
+        array operating_hours
+    }
+
+    DACDRLP_LIST ||--o{ RETAILER_ENTRY : contains
+    DRLP_LOCATION ||--|| DRLPDAC_LIST : has
 ```
 
----
+### RSHD and Notification Models
 
-### 4. Checkout & Transaction Flow
+```mermaid
+erDiagram
+    RSHD_ITEM {
+        string id PK
+        string drlp_id FK
+        string name
+        string category
+        float original_price
+        float discounted_price
+        int discount_level "1|2|3"
+        int quantity
+        string expiry_date
+        object attributes
+        string status "active|sold|expired"
+        string created_at
+    }
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Complete Checkout Flow                                                  │
-└─────────────────────────────────────────────────────────────────────────┘
+    NOTIFICATION {
+        string id PK
+        string dac_id FK
+        string rshd_id FK
+        string type "rshd_match"
+        string title
+        string message
+        object data
+        boolean is_read
+        string created_at
+    }
 
-Consumer App
-  │
-  │ 1. Add Items to Cart
-  │    - Store in localStorage/state
-  │    cart = [
-  │      { rshd_id, quantity }
-  │    ]
-  │
-  │ 2. Navigate to Checkout
-  │
-  │ 3. Select Fulfillment Method
-  │    - "delivery" or "pickup"
-  │
-  │ 4. If Delivery: Enter Delivery Address
-  │
-  │ 5. Submit Checkout Request
-  │
-  ▼
-Backend API (/api/checkout)
-  │
-  │ 6. Validate Cart Items
-  │    - Check RSHD availability
-  │    - Verify quantities
-  │    - Lock inventory (pessimistic lock)
-  │
-  ▼
-MongoDB (rshd_items collection)
-  │
-  │ 7. Return RSHD Details
-  │
-  ▼
-Backend API
-  │
-  │ 8. Calculate Order Totals
-  │    For each item:
-  │      item_total = rshd.discounted_price × quantity
-  │      item_savings = (rshd.original_price - rshd.discounted_price) × quantity
-  │      item_contribution = item_savings × rshd.contribution_percentage
-  │    
-  │    subtotal = sum(item_total)
-  │    total_savings = sum(item_savings)
-  │    total_contribution = sum(item_contribution)
-  │
-  │ 9. If Delivery: Call DoorDash API
-  │
-  ▼
-DoorDash API (External)
-  │
-  │ 10. Return Delivery Quote
-  │     {
-  │       delivery_fee: Number,
-  │       estimated_time: Number (minutes)
-  │     }
-  │
-  ▼
-Backend API
-  │
-  │ 11. Calculate Round-Up (if opted in)
-  │     current_total = subtotal + total_contribution + delivery_fee
-  │     round_up = Math.ceil(current_total) - current_total
-  │
-  │ 12. Calculate Net Proceed
-  │     net_proceed = subtotal + total_contribution + round_up + delivery_fee
-  │
-  │ 13. Get User's Charity
-  │
-  ▼
-MongoDB (users collection)
-  │
-  │ 14. Return Charity ID
-  │
-  ▼
-Backend API
-  │
-  │ 15. Create Stripe Payment Intent
-  │
-  ▼
-Stripe API (External)
-  │
-  │ 16. Return Payment Intent
-  │     {
-  │       client_secret: String,
-  │       payment_intent_id: String
-  │     }
-  │
-  ▼
-Backend API
-  │
-  │ 17. Return Checkout Summary to Frontend
-  │     {
-  │       items: [...],
-  │       subtotal, total_savings, total_contribution, round_up,
-  │       delivery_fee (if delivery),
-  │       net_proceed,
-  │       charity: { id, name },
-  │       payment_client_secret
-  │     }
-  │
-  ▼
-Consumer App
-  │
-  │ 18. Display Order Summary
-  │
-  │ 19. User Confirms & Enters Payment
-  │
-  │ 20. Submit Payment to Stripe
-  │
-  ▼
-Stripe API
-  │
-  │ 21. Process Payment
-  │
-  │ 22. Return Payment Confirmation
-  │
-  ▼
-Consumer App
-  │
-  │ 23. Confirm Payment with Backend
-  │
-  ▼
-Backend API (/api/checkout/confirm)
-  │
-  │ 24. Verify Payment with Stripe
-  │
-  ▼
-Stripe API
-  │
-  │ 25. Return Payment Status
-  │
-  ▼
-Backend API
-  │
-  │ 26. If Payment Successful:
-  │     a. Create Transaction Document
-  │        {
-  │          id: UUID,
-  │          consumer_id, retailer_id,
-  │          items: [...],
-  │          subtotal, savings, contribution, round_up,
-  │          net_proceed,
-  │          charity_id,
-  │          payment_method, payment_id,
-  │          status: "completed",
-  │          fulfillment_type: "delivery" | "pickup",
-  │          delivery_details: {...},
-  │          created_at: Date
-  │        }
-  │
-  ▼
-MongoDB (transactions collection)
-  │
-  │ 27. Insert Transaction
-  │
-  ▼
-Backend API
-  │
-  │ 28. Update RSHD Quantities
-  │     For each item:
-  │       db.rshd_items.updateOne(
-  │         { id: rshd_id },
-  │         { $inc: { quantity: -quantity } }
-  │       )
-  │
-  │ 29. If quantity = 0: Set status = "sold_out"
-  │
-  ▼
-MongoDB (rshd_items collection)
-  │
-  │ 30. Update Complete
-  │
-  ▼
-Backend API
-  │
-  │ 31. Release Inventory Lock
-  │
-  │ 32. Create Audit Log Entry
-  │
-  ▼
-MongoDB (audit_logs collection)
-  │
-  │ 33. Log Transaction
-  │
-  ▼
-Email Service (External)
-  │
-  │ 34. Send Confirmation Email to Consumer
-  │     - Order details
-  │     - Receipt PDF
-  │
-  │ 35. Send Notification to Retailer
-  │     - New order alert
-  │     - Order details
-  │
-  ▼
-Consumer App & Retailer App
-  │
-  │ 36. Display Success Message
-  │
+    ORDER {
+        string id PK
+        string dac_id FK
+        string drlp_id FK
+        array items
+        float subtotal
+        float tax
+        float total
+        string status
+        string created_at
+    }
+
+    RSHD_ITEM ||--o{ NOTIFICATION : triggers
+    ORDER }o--|| RSHD_ITEM : contains
 ```
 
----
+## Data Flow: RSHD Notification Matching
 
-### 5. Contribution Aggregation & Disbursement Flow
+```mermaid
+flowchart LR
+    subgraph Input
+        RSHD["RSHD Posted<br/>(category, name, attributes)"]
+    end
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Charity Disbursement Flow                                               │
-└─────────────────────────────────────────────────────────────────────────┘
+    subgraph Geographic_Filter["Step 1: Geographic Filter"]
+        DRLPDAC[(DRLPDAC-List)]
+        ELIGIBLE["Eligible DACs<br/>(have DRLP in DACDRLP-List)"]
+    end
 
-Background Job (Daily/Weekly Cron)
-  │
-  │ 1. Trigger Aggregation Job
-  │
-  ▼
-Backend Aggregation Service
-  │
-  │ 2. Query Transactions
-  │    - WHERE created_at >= last_disbursement_date
-  │    - AND status = "completed"
-  │
-  ▼
-MongoDB (transactions collection)
-  │
-  │ 3. Return Transactions
-  │
-  ▼
-Backend Aggregation Service
-  │
-  │ 4. Aggregate by Charity
-  │    charity_totals = transactions.reduce((acc, txn) => {
-  │      if (!acc[txn.charity_id]) {
-  │        acc[txn.charity_id] = {
-  │          total_contribution: 0,
-  │          total_round_up: 0,
-  │          transaction_count: 0
-  │        }
-  │      }
-  │      acc[txn.charity_id].total_contribution += txn.contribution
-  │      acc[txn.charity_id].total_round_up += txn.round_up
-  │      acc[txn.charity_id].transaction_count++
-  │      return acc
-  │    }, {})
-  │
-  │ 5. For Each Charity:
-  │     total_amount = total_contribution + total_round_up
-  │
-  │ 6. Create Disbursement Documents
-  │    {
-  │      id: UUID,
-  │      charity_id: String,
-  │      amount: Number,
-  │      period_start: Date,
-  │      period_end: Date,
-  │      transaction_count: Number,
-  │      status: "pending",
-  │      created_at: Date
-  │    }
-  │
-  ▼
-MongoDB (disbursements collection)
-  │
-  │ 7. Insert Disbursements
-  │
-  ▼
-Backend Aggregation Service
-  │
-  │ 8. Generate Report
-  │    - CSV file with all transactions
-  │    - PDF summary by charity
-  │
-  │ 9. Notify Admin
-  │
-  ▼
-Admin Dashboard
-  │
-  │ 10. Admin Reviews Disbursements
-  │     - Verify amounts
-  │     - Check transaction details
-  │
-  │ 11. Admin Approves Disbursement
-  │
-  ▼
-Backend API (/api/admin/disbursement/execute)
-  │
-  │ 12. Process Payment to Charity
-  │
-  ▼
-Stripe API (or Wire Transfer)
-  │
-  │ 13. Execute Payment
-  │
-  │ 14. Return Payment Confirmation
-  │
-  ▼
-Backend API
-  │
-  │ 15. Update Disbursement Status
-  │     - status = "completed"
-  │     - processed_date = Date
-  │     - processed_by = admin_id
-  │
-  ▼
-MongoDB (disbursements collection)
-  │
-  │ 16. Update Document
-  │
-  ▼
-Backend API
-  │
-  │ 17. Generate Donation Receipts
-  │     - PDF for each contributing consumer
-  │
-  ▼
-Email Service
-  │
-  │ 18. Send Receipts to Consumers
-  │     - Email with PDF attachment
-  │
-  │ 19. Send Summary to Charity
-  │     - Disbursement details
-  │     - Transaction breakdown
-  │
-  ▼
-Admin Dashboard
-  │
-  │ 20. Update Dashboard Metrics
-  │     - Total disbursed
-  │     - Disbursement history chart
-  │
+    subgraph Preference_Filter["Step 2: Preference Filter"]
+        DACFI["DACFI-List<br/>(favorite_items)"]
+        MATCH{"Match?"}
+    end
+
+    subgraph Output
+        NOTIF[(Notifications)]
+        SNL["DRLPDAC-SNL<br/>(Subset Notification List)"]
+    end
+
+    RSHD --> DRLPDAC
+    DRLPDAC --> ELIGIBLE
+    ELIGIBLE --> DACFI
+    DACFI --> MATCH
+    MATCH -->|Yes| SNL
+    MATCH -->|No| SKIP[Skip DAC]
+    SNL --> NOTIF
 ```
 
----
+## Data Flow: DACSAI Update
 
-## Data Storage & Retrieval Patterns
+```mermaid
+flowchart TB
+    subgraph Input
+        UPDATE["DAC updates DACSAI-Rad"]
+        COORDS["DAC Coordinates"]
+        RADIUS["New Radius"]
+    end
 
-### Read-Heavy Operations
-- **Radar View** (frequent polling)
-  - Cache RSHD listings per location
-  - Use Redis for 30-second TTL cache
-  - Invalidate on RSHD updates
+    subgraph Processing
+        QUERY["Query all DRLP locations"]
+        CALC["Calculate distances"]
+        FILTER{"Inside DACSAI?"}
+        CHECK{"Manual override?"}
+    end
 
-- **Consumer Preferences** (every API call)
-  - Cache in-memory after login
-  - Invalidate on preference update
+    subgraph DACDRLP["DACDRLP-List Update"]
+        ADD_DRLP["Add DRLP"]
+        KEEP_DRLP["Keep DRLP"]
+        REMOVE_DRLP["Remove DRLP"]
+    end
 
-### Write-Heavy Operations
-- **Transaction Creation** (peak times)
-  - Use queue for notification sending
-  - Batch insert audit logs
-  - Async inventory updates
+    subgraph DRLPDAC["DRLPDAC-List Sync"]
+        ADD_DAC["Add DAC to DRLP list"]
+        REMOVE_DAC["Remove DAC from DRLP list"]
+    end
 
-### Real-Time Operations
-- **Notification Delivery**
-  - Use message queue (Redis/RabbitMQ)
-  - Workers process queue in parallel
-  - Retry failed deliveries
+    UPDATE --> QUERY
+    COORDS --> CALC
+    RADIUS --> CALC
+    QUERY --> CALC
+    CALC --> FILTER
 
----
+    FILTER -->|Yes| CHECK
+    FILTER -->|No| CHECK
 
-## Data Consistency & Integrity
+    CHECK -->|manually_removed| KEEP_DRLP
+    CHECK -->|manually_added| KEEP_DRLP
+    CHECK -->|Inside & not removed| ADD_DRLP
+    CHECK -->|Outside & not added| REMOVE_DRLP
 
-### Atomic Operations
-```javascript
-// Example: Update RSHD quantity atomically
-session = client.start_session()
-try {
-  session.start_transaction()
-  
-  // Check quantity
-  rshd = db.rshd_items.find_one({ id: rshd_id }, session=session)
-  if rshd.quantity < order_quantity:
-    throw Error("Insufficient quantity")
-  
-  // Decrement quantity
-  db.rshd_items.update_one(
-    { id: rshd_id },
-    { $inc: { quantity: -order_quantity } },
-    session=session
-  )
-  
-  // Create transaction
-  db.transactions.insert_one(transaction_doc, session=session)
-  
-  session.commit_transaction()
-} catch (error) {
-  session.abort_transaction()
-  throw error
-} finally {
-  session.end_session()
-}
+    ADD_DRLP --> ADD_DAC
+    REMOVE_DRLP --> REMOVE_DAC
 ```
 
-### Eventual Consistency
-- Notification delivery (can be delayed)
-- Dashboard metrics (updated every 5 minutes)
-- Contribution aggregation (daily job)
+## API Endpoints Overview
 
----
+### Authentication
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Register new user (DAC/DRLP) |
+| `/api/auth/login` | POST | Login and get JWT token |
+| `/api/auth/me` | GET | Get current user profile |
+| `/api/auth/password-reset/request` | POST | Request password reset email |
+| `/api/auth/password-reset/confirm` | POST | Confirm password reset |
 
-## Data Retention & Archival
+### DAC Geographic (DACSAI / DACDRLP-List)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/dac/retailers` | GET | Get DAC's DACDRLP-List |
+| `/api/dac/retailers/add` | POST | Add retailer to list |
+| `/api/dac/retailers/{id}` | DELETE | Remove retailer from list |
+| `/api/dac/dacsai` | PUT | Update DACSAI-Rad |
+| `/api/dac/location` | PUT | Update delivery location |
 
-### Active Data (Hot Storage)
-- Users: Indefinite
-- RSHDs: Until expired + 7 days
-- Transactions: Current year
-- Notifications: 30 days
+### DAC Favorites (DACFI-List)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/favorites/items` | GET | Get favorite items by category |
+| `/api/favorites/items` | POST | Add item to favorites |
+| `/api/favorites/items/delete` | POST | Remove item from favorites |
+| `/api/users/settings/auto-threshold` | PUT | Update auto-add threshold |
 
-### Archived Data (Cold Storage)
-- Transactions: Previous years (S3/Cloud Storage)
-- Audit Logs: > 1 year old
-- Disbursements: All historical (for tax purposes)
+### DRLP Operations
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/drlp/locations` | GET | List all DRLP locations |
+| `/api/drlp/locations` | POST | Create DRLP location |
+| `/api/drlp/my-location` | GET | Get current DRLP's location |
 
----
+### RSHD Operations
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/rshd/items` | GET | List RSHD items (by category) |
+| `/api/rshd/items` | POST | Post new RSHD item |
+| `/api/rshd/my-items` | GET | Get DRLP's own items |
+| `/api/rshd/items/{id}` | PUT | Update RSHD item |
+| `/api/rshd/items/{id}` | DELETE | Delete RSHD item |
 
-## Data Privacy & Security
+### Notifications
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/notifications` | GET | Get DAC's notifications |
+| `/api/notifications/{id}/read` | PUT | Mark notification as read |
 
-### PII Protection
-- Passwords: Hashed with bcrypt
-- Payment info: Never stored (Stripe tokens only)
-- Email addresses: Encrypted at rest
-- Location data: Pseudonymized in analytics
+### Orders
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/orders` | GET | Get user's orders |
+| `/api/orders` | POST | Create new order |
 
-### Access Control
-- Row-level security in queries
-- JWT token validation on every API call
-- Role-based access control (RBAC)
-- Audit logging for all data access
+## Key Principles
 
----
-
-This data flow diagram provides a comprehensive view of how data moves through the DealShaq system, from user input through processing, storage, and eventual output across all three applications and external integrations.
+1. **Bidirectional Sync**: DACDRLP-List and DRLPDAC-List must always be in sync
+2. **Manual Override Preservation**: User preferences (add/remove) are never auto-reverted
+3. **Stop-after-first-hit**: Efficiency optimization in notification matching
+4. **Brand/Generic Logic**: Flexible matching based on user preference specificity
+5. **Geographic Anchoring**: All notifications are geographically relevant via DACSAI
