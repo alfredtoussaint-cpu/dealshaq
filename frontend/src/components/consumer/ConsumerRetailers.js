@@ -343,14 +343,14 @@ export default function ConsumerRetailers({ user, onLogout }) {
         {/* Retailers List */}
         <Tabs defaultValue="all" className="w-full">
           <TabsList>
-            <TabsTrigger value="all">All ({retailers.length})</TabsTrigger>
+            <TabsTrigger value="all">All ({activeRetailers.length})</TabsTrigger>
             <TabsTrigger value="local">In DACSAI ({insideDacsai.length})</TabsTrigger>
             <TabsTrigger value="added">Manually Added ({manuallyAdded.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-4">
             <RetailersList 
-              retailers={retailers} 
+              retailers={activeRetailers} 
               onRemove={handleRemoveRetailer}
               updating={updating}
             />
