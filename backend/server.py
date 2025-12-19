@@ -1321,9 +1321,34 @@ async def remove_retailer_from_dacdrlp_list(drlp_id: str, current_user: Dict = D
     
     return {"message": "Retailer removed from your list. You will no longer receive notifications from this store."}
 
+class DeliveryLocationUpdate(BaseModel):
+    address: str
+    coordinates: Dict[str, float]  # {lat, lng}
+
+class DacsaiUpdate(BaseModel):
+    delivery_location: Optional[DeliveryLocationUpdate] = None
+    dacsai_rad: Optional[float] = None
+
+@api_router.put("/dac/location")
+async def update_dac_location(location_data: DeliveryLocationUpdate, current_user: Dict = Depends(get_current_user)):
+    """Update DAC's delivery location (DACSAI center)"""
+    if current_user["role"] != "DAC":
+        raise HTTPException(status_code=403, detail="Only DAC users can update delivery location")
+    
+    dac_id = current_user["id"]
+    
+    # Update user's delivery location
+    await db.users.update_one(
+        {"id": dac_id},
+        {"$set": {"delivery_location": location_data.model_dump()}}
+    )
+    
+    logger.info(f"Updated delivery location for DAC {dac_id}")
+    return {"message": "Delivery location updated", "delivery_location": location_data.model_dump()}
+
 @api_router.put("/dac/dacsai")
-async def update_dacsai(dacsai_rad: float, current_user: Dict = Depends(get_current_user)):
-    """Update DAC's DACSAI-Rad (shopping area radius)
+async def update_dacsai(dacsai_rad: float, delivery_location: Optional[DeliveryLocationUpdate] = None, current_user: Dict = Depends(get_current_user)):
+    """Update DAC's DACSAI-Rad (shopping area radius) and optionally delivery location
     
     Recalculates which DRLPs are inside DACSAI and updates DACDRLP-List accordingly.
     Preserves manual overrides (manually_added and manually_removed flags).
@@ -1336,11 +1361,20 @@ async def update_dacsai(dacsai_rad: float, current_user: Dict = Depends(get_curr
         raise HTTPException(status_code=400, detail="DACSAI-Rad must be between 0.1 and 9.9 miles")
     
     dac_id = current_user["id"]
-    delivery_location = current_user.get("delivery_location")
-    dac_coords = delivery_location.get("coordinates") if delivery_location else None
+    
+    # If delivery location is provided, update it first
+    if delivery_location:
+        await db.users.update_one(
+            {"id": dac_id},
+            {"$set": {"delivery_location": delivery_location.model_dump()}}
+        )
+        dac_coords = delivery_location.coordinates
+    else:
+        existing_location = current_user.get("delivery_location")
+        dac_coords = existing_location.get("coordinates") if existing_location else None
     
     if not dac_coords:
-        raise HTTPException(status_code=400, detail="Delivery location not set. Please update your profile first.")
+        raise HTTPException(status_code=400, detail="Delivery location not set. Please provide delivery_location or update your profile first.")
     
     # Update user's dacsai_rad
     await db.users.update_one(
