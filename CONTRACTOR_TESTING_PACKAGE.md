@@ -9,17 +9,34 @@ This document provides everything a contractor needs to perform extensive user t
 ## Quick Start
 
 ### Access the Application
-**Live URL:** `[To be provided after deployment]`
+**Live URL:** `https://[deployment-url].preview.emergentagent.com`
 
 ### Test Credentials
 
-| Role | Email | Password | Purpose |
-|------|-------|----------|---------|
-| Consumer (DAC) | test.consumer@example.com | TestPassword123 | Test consumer flows |
-| Retailer (DRLP) | test.retailer@example.com | TestPassword123 | Test retailer flows |
-| Admin | admin@dealshaq.com | AdminPassword123 | Test admin flows |
+**Admin:**
+| Email | Password | Purpose |
+|-------|----------|---------|
+| admin@dealshaq.com | AdminPassword123 | Full admin access |
 
-*Note: Create fresh accounts for comprehensive registration testing*
+**Retailers (DRLPs):**
+| Email | Password | Store Name |
+|-------|----------|------------|
+| retailer1@dealshaq.com | TestPassword123 | Fresh Mart Downtown (SF) |
+| retailer2@dealshaq.com | TestPassword123 | Green Grocer SF (SF) |
+| retailer3@dealshaq.com | TestPassword123 | Oakland Natural Foods |
+| retailer4@dealshaq.com | TestPassword123 | Berkeley Organics |
+| retailer5@dealshaq.com | TestPassword123 | Valley Fresh Market (SJ) |
+
+**Consumers (DACs):**
+| Email | Password | Location |
+|-------|----------|----------|
+| consumer1@dealshaq.com | TestPassword123 | San Francisco |
+| consumer2@dealshaq.com | TestPassword123 | Oakland |
+| consumer3@dealshaq.com | TestPassword123 | Berkeley |
+| consumer4@dealshaq.com | TestPassword123 | San Jose |
+| consumer5@dealshaq.com | TestPassword123 | Palo Alto |
+
+*Note: These accounts are pre-configured with delivery locations, favorite items, and DACDRLP-Lists. Create fresh accounts for registration testing.*
 
 ---
 
