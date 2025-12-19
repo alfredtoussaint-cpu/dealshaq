@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { auth, charities as charitiesApi } from '../../utils/api';
 import { toast } from 'sonner';
-import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
+import { ShoppingCart, Eye, EyeOff, MapPin, Navigation, Loader2 } from 'lucide-react';
 import Logo from '../Logo';
 
 export default function ConsumerAuth({ onLogin }) {
