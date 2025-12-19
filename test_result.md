@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "COMPREHENSIVE TESTING: DACDRLP-List Management UI (Consumer Retailers Page) - New 'My Retailers' page for managing DACDRLP-List (the list of retailers a consumer receives notifications from). Includes navigation, stats cards, tabs, DACSAI settings dialog, add retailer dialog, and backend API integration."
+user_problem_statement: "QUICK VERIFICATION: Password Change Feature - Test the new password change endpoint PUT /api/auth/password/change with validation scenarios: wrong current password, same password, short password, and successful change with login verification using test credentials test.brand.generic@example.com / TestPassword123."
 
 backend:
   - task: "Item-Level Favorites API - POST /api/favorites/items"
