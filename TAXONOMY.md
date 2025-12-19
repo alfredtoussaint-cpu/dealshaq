@@ -215,11 +215,10 @@ VALID_CATEGORIES = [
     "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
     "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
     "Snacks & Candy", "Frozen Foods", "Beverages",
-    "Alcoholic Beverages", "Deli & Prepared Foods",
-    "Breakfast & Cereal", "Pasta, Rice & Grains",
-    "Oils, Sauces & Spices", "Baby & Kids",
-    "Health & Nutrition", "Household Essentials",
-    "Personal Care", "Pet Supplies"
+    "Deli & Prepared Foods", "Breakfast & Cereal",
+    "Pasta, Rice & Grains", "Oils, Sauces & Spices",
+    "Baby & Kids", "Health & Nutrition", "Household Essentials",
+    "Personal Care", "Pet Supplies", "Miscellaneous"
 ]
 
 def validate_category(category: str) -> bool:
