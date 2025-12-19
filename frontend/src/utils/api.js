@@ -74,6 +74,14 @@ export const userSettings = {
   updateAutoThreshold: (data) => api.put('/users/settings/auto-threshold', data),
 };
 
+// DAC Retailers (DACDRLP-List management)
+export const dacRetailers = {
+  list: () => api.get('/dac/retailers'),
+  add: (drlpId) => api.post(`/dac/retailers/add?drlp_id=${drlpId}`),
+  remove: (drlpId) => api.delete(`/dac/retailers/${drlpId}`),
+  updateDacsai: (radius) => api.put(`/dac/dacsai?dacsai_rad=${radius}`),
+};
+
 export const notifications = {
   list: () => api.get('/notifications'),
   markRead: (id) => api.put(`/notifications/${id}/read`),
