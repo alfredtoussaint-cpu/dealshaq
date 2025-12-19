@@ -109,57 +109,48 @@ users: {
 
 ## Phase 2: Consumer App Enhancement (DAC)
 
-### 2.1 Consumer Onboarding & Validation
+### 2.1 Consumer Onboarding & Validation ✅ COMPLETED
 **Priority**: High  
 **Estimated Effort**: Medium
+**Status**: ✅ IMPLEMENTED (December 2025)
 
-**Features**:
-- DACSAI (Shopping Area of Interest) setup with map interface
-- Radius selection (configurable, default 5 miles)
-- Address validation and geocoding
-- Favorite categories selection (DACFI-List from 20 categories)
-- Charity selection for donation contributions
-- Round-up percentage selection
+**Features Implemented**:
+- ✅ DACSAI (Shopping Area of Interest) setup - delivery location + radius
+- ✅ Radius selection (0.1 - 9.9 miles, required at registration)
+- ✅ Delivery location required at registration
+- ✅ Favorite items selection (DACFI-List with brand/generic support)
+- ✅ Charity selection for donation contributions
+- ✅ Settings page for updating DACSAI configuration
 
-**Technical Requirements**:
-- Google Maps or Mapbox integration for location selection
-- Geocoding API for address validation
-- Interactive radius circle on map
-- Multi-select for favorite categories
-
-**API Endpoints Needed**:
+**API Endpoints Implemented**:
 ```
-POST   /api/consumer/location      - Set consumer location
-PUT    /api/consumer/preferences   - Update DACFI-List
-GET    /api/consumer/preferences   - Get consumer preferences
-POST   /api/consumer/validate      - Validate onboarding data
+PUT    /api/dac/dacsai              - Update DACSAI-Rad and delivery location
+GET    /api/dac/retailers           - Get DACDRLP-List
+POST   /api/dac/retailers/add       - Add retailer to DACDRLP-List
+DELETE /api/dac/retailers/{drlp_id} - Remove retailer from DACDRLP-List
 ```
 
-### 2.2 Radar View - Local RSHD Discovery
+### 2.2 Radar View - Local RSHD Discovery ✅ COMPLETED
 **Priority**: High  
 **Estimated Effort**: Large
+**Status**: ✅ IMPLEMENTED (December 2025)
 
-**Features**:
-- Real-time display of all RSHDs within consumer's DACSAI
+**Features Implemented**:
+- ✅ Real-time display of all RSHDs from retailers in DACDRLP-List
+- ✅ List view with RSHD cards showing deal details
+- ✅ Distance calculation from consumer location (Haversine formula)
+- ✅ Geographic filtering based on DACSAI
+
+**API Endpoints Implemented**:
+```
+GET    /api/radar                   - Get RSHDs from DACDRLP-List retailers
+```
+
+**Future Enhancements (v2.0)**:
 - Filter by favorite categories
 - Filter by discount level
 - Sort by distance, discount, expiry date
 - Map view showing retailer locations
-- List view with RSHD cards
-- Quick add to cart functionality
-
-**Technical Requirements**:
-- Geospatial queries in MongoDB
-- Real-time updates using WebSocket or polling
-- Map rendering with pins for each retailer
-- Distance calculation from consumer location
-
-**API Endpoints Needed**:
-```
-GET    /api/consumer/radar         - Get RSHDs in DACSAI
-GET    /api/consumer/nearby        - Get nearby retailers
-POST   /api/consumer/filter        - Filter RSHDs
-```
 
 ### 2.3 Notifications System
 **Priority**: High  
