@@ -1,5 +1,8 @@
 # DealShaq Glossary
 
+**Last Updated:** December 19, 2025  
+**Status:** ✅ All terms verified against V1.0 implementation
+
 ## Core Entities
 
 ### DAC (DealShaq Adjusted Consumer)
