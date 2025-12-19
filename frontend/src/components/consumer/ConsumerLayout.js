@@ -11,6 +11,7 @@ export default function ConsumerLayout({ children, user, onLogout }) {
     { path: '/consumer/dashboard', icon: Home, label: 'Home', testId: 'nav-home' },
     { path: '/consumer/browse', icon: ShoppingBag, label: 'Browse', testId: 'nav-browse' },
     { path: '/consumer/favorites', icon: Heart, label: 'Favorites', testId: 'nav-favorites' },
+    { path: '/consumer/retailers', icon: Store, label: 'Retailers', testId: 'nav-retailers' },
     { path: '/consumer/notifications', icon: Bell, label: 'Alerts', testId: 'nav-notifications' },
     { path: '/consumer/orders', icon: Receipt, label: 'Orders', testId: 'nav-orders' },
     { path: '/consumer/settings', icon: Settings, label: 'Settings', testId: 'nav-settings' },
