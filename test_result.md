@@ -463,6 +463,18 @@ frontend:
           agent: "testing"
           comment: "✅ PASS - DACSAI API integration fully working. Geocoding via Nominatim API shows '✓ Verified' indicator. PUT /api/dac/location endpoint returns Status 200. PUT /api/dac/dacsai endpoint functional. Address verification and save functionality complete with success message: 'Location and DACSAI updated! 0 retailers in your area.' All API calls successful during testing."
 
+  - task: "DACDRLP-List Manual Add/Remove UI Testing"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/consumer/ConsumerRetailers.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL FRONTEND AUTHENTICATION ISSUE - UI testing blocked by authentication failure. Backend API verified working: consumer1@dealshaq.com credentials authenticate successfully via direct API calls, GET /api/dac/retailers returns proper data (4 retailers: 3 manually_removed, 1 manually_added Berkeley Organics). Frontend issue: Login form accepts credentials but authentication state not persisting - no token stored in localStorage after login. Cannot access My Retailers page for UI testing. Additional backend issue: GET /api/drlp/locations has Pydantic validation errors affecting Add Retailer dialog. URGENT: Frontend authentication flow needs investigation."
+
 metadata:
   created_by: "testing_agent"
   version: "1.1"
