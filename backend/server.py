@@ -1319,8 +1319,11 @@ async def add_retailer_to_dacdrlp_list(drlp_id: str, current_user: Dict = Depend
     
     dac_id = current_user["id"]
     
-    # Get DRLP location info
-    drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0})
+    # Get DRLP location info (support both user_id and drlp_id schemas)
+    drlp_loc = await db.drlp_locations.find_one(
+        {"$or": [{"user_id": drlp_id}, {"drlp_id": drlp_id}]}, 
+        {"_id": 0}
+    )
     if not drlp_loc:
         raise HTTPException(status_code=404, detail="DRLP not found")
     
