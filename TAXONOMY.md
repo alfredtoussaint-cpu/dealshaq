@@ -272,5 +272,5 @@ Any taxonomy changes must maintain compatibility with existing DACFI-Lists and R
 ---
 
 **Version**: 1.0  
-**Last Updated**: January 2025  
-**Status**: Active - 20 categories in production
+**Last Updated**: December 2025  
+**Status**: Active - 20 categories in production (Miscellaneous replaces Alcoholic Beverages)
