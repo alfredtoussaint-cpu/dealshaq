@@ -258,7 +258,7 @@ export default function ConsumerRetailers({ user, onLogout }) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAddRetailer(retailer.user_id || retailer.drlp_id)}
+                            onClick={() => handleAddRetailer(retailer.user_id || retailer.drlp_id, retailer.name || retailer.drlp_name)}
                             disabled={updating}
                           >
                             {updating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
@@ -411,7 +411,7 @@ function RetailersList({ retailers, onRemove, updating, emptyMessage = 'No retai
                 variant="ghost"
                 size="sm"
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => onRemove(retailer.drlp_id, retailer.drlp_name)}
+                onClick={() => onRemove(retailer.drlp_id, retailer.drlp_name, retailer.inside_dacsai)}
                 disabled={updating}
               >
                 {updating ? (
