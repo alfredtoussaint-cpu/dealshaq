@@ -127,7 +127,7 @@
 
 ---
 
-#### Test 1.2: Registration (New User)
+#### Test 1.2: Registration (New User) - UPDATED
 **Steps:**
 1. Logout from current session
 2. Navigate to Consumer app URL
@@ -137,12 +137,16 @@
    - Email: `testuser.[yourname]@example.com`
    - Password: `Test12345`
    - Select a charity from dropdown
+   - **Delivery Location (REQUIRED):** Enter address or coordinates
+   - **DACSAI Radius (REQUIRED):** Select radius (0.1 - 9.9 miles)
 5. Click "Register" button
 
 **Expected Results:**
 - ✅ Registration successful
 - ✅ Redirected to Dashboard
 - ✅ Welcome message or toast notification
+- ✅ **DACSAI is initialized with selected radius**
+- ✅ **DACDRLP-List is auto-populated with nearby retailers**
 
 **Actual Results:**
 - [ ] Pass
