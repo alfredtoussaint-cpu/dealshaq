@@ -10,6 +10,7 @@ import ConsumerCheckout from '../components/consumer/ConsumerCheckout';
 import ConsumerOrders from '../components/consumer/ConsumerOrders';
 import ConsumerSettings from '../components/consumer/ConsumerSettings';
 import ConsumerRetailers from '../components/consumer/ConsumerRetailers';
+import ConsumerRadar from '../components/consumer/ConsumerRadar';
 
 export default function ConsumerApp() {
   const [user, setUser] = useState(null);
@@ -65,6 +66,7 @@ export default function ConsumerApp() {
       <Route path="/checkout" element={<ConsumerCheckout user={user} onLogout={handleLogout} />} />
       <Route path="/orders" element={<ConsumerOrders user={user} onLogout={handleLogout} />} />
       <Route path="/retailers" element={<ConsumerRetailers user={user} onLogout={handleLogout} />} />
+      <Route path="/radar" element={<ConsumerRadar user={user} onLogout={handleLogout} />} />
       <Route path="/settings" element={<ConsumerSettings user={user} onLogout={handleLogout} />} />
     </Routes>
   );
