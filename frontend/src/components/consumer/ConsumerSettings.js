@@ -147,7 +147,13 @@ export default function ConsumerSettings({ user, onLogout }) {
         }
       }
 
-      // Update DACSAI (which also updates the user's location)
+      // First update delivery location
+      await dacRetailers.updateLocation({
+        address: deliveryAddress,
+        coordinates: coords
+      });
+      
+      // Then update DACSAI radius (this will recalculate DACDRLP-List)
       const response = await dacRetailers.updateDacsai(dacsaiRad);
       
       toast.success(`Location and DACSAI updated! ${response.data.retailers_count} retailers in your area.`);
@@ -160,6 +166,7 @@ export default function ConsumerSettings({ user, onLogout }) {
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
+      setCoordinates(coords);
       
     } catch (error) {
       const message = error.response?.data?.detail || 'Failed to save location settings';
