@@ -171,11 +171,13 @@ DealShaq has three separate applications:
 
 ## Discount Model Reference
 
-| Level | DRLP Sells At | Consumer Pays | DealShaq Margin |
-|-------|---------------|---------------|-----------------|
-| 1 | 40% of retail | 50% of retail | 10% |
-| 2 | 25% of retail | 40% of retail | 15% |
-| 3 | 10% of retail | 25% of retail | 15% |
+| Level | DRLP Discount to DealShaq | Consumer Discount | Consumer Pays | DealShaq Margin |
+|-------|---------------------------|-------------------|---------------|-----------------|
+| 1 | 60% | 50% OFF | 50% of retail | 10% |
+| 2 | 75% | 60% OFF | 40% of retail | 15% |
+| 3 | 90% | 75% OFF | 25% of retail | 15% |
+
+**Example:** $10 item at Level 2 → Consumer pays $4 (60% off)
 
 ---
 
