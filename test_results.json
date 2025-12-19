@@ -1,6 +1,6 @@
 {
-  "total": 15,
-  "passed": 15,
+  "total": 7,
+  "passed": 7,
   "failed": 0,
   "results": [
     {
@@ -8,245 +8,73 @@
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-18T22:29:00.982929+00:00"
+      "timestamp": "2025-12-19T02:35:11.760353+00:00"
     },
     {
-      "test": "DACDRLP-List GET Endpoint",
+      "test": "Password Change - Wrong Current Password",
       "success": true,
-      "message": "Returns DACDRLP-List with 0 retailers",
-      "details": {
-        "retailers_count": 0,
-        "dacsai_rad": null
-      },
-      "timestamp": "2025-12-18T22:29:00.996767+00:00"
-    },
-    {
-      "test": "DACSAI Update - No Delivery Location",
-      "success": true,
-      "message": "Correctly returns 400 error when no delivery location set",
+      "message": "Correctly rejected wrong current password with 400 error",
       "details": {
         "response": {
-          "detail": "Delivery location not set. Please update your profile first."
+          "detail": "Current password is incorrect"
         }
       },
-      "timestamp": "2025-12-18T22:29:01.049695+00:00"
+      "timestamp": "2025-12-19T02:35:12.021193+00:00"
     },
     {
-      "test": "Get Existing DRLP",
+      "test": "Password Change - Same Password",
       "success": true,
-      "message": "Found existing DRLP with location: Test Geo Store Location",
-      "details": {
-        "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-        "location": {
-          "id": "f1585e6c-4779-48a9-9b66-a02a7b9b3c1c",
-          "user_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-          "name": "Test Geo Store Location",
-          "address": "456 Store St, New York, NY",
-          "coordinates": {
-            "lat": 40.7589,
-            "lng": -73.9851
-          },
-          "charity_id": "test-charity-id",
-          "operating_hours": "9 AM - 9 PM"
-        }
-      },
-      "timestamp": "2025-12-18T22:29:01.062497+00:00"
-    },
-    {
-      "test": "Create Test DAC with Delivery Location",
-      "success": true,
-      "message": "Successfully created DAC with delivery location and DACSAI-Rad: 5.0 miles",
-      "details": {
-        "dac_id": "64475ae3-3519-4e5d-80ea-c39964fa44f3",
-        "delivery_location": {
-          "address": "123 Test St, New York, NY",
-          "coordinates": {
-            "lat": 40.7128,
-            "lng": -74.006
-          }
-        }
-      },
-      "timestamp": "2025-12-18T22:29:01.358443+00:00"
-    },
-    {
-      "test": "Get Existing DRLP",
-      "success": true,
-      "message": "Found existing DRLP with location: Test Geo Store Location",
-      "details": {
-        "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-        "location": {
-          "id": "f1585e6c-4779-48a9-9b66-a02a7b9b3c1c",
-          "user_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-          "name": "Test Geo Store Location",
-          "address": "456 Store St, New York, NY",
-          "coordinates": {
-            "lat": 40.7589,
-            "lng": -73.9851
-          },
-          "charity_id": "test-charity-id",
-          "operating_hours": "9 AM - 9 PM"
-        }
-      },
-      "timestamp": "2025-12-18T22:29:01.409610+00:00"
-    },
-    {
-      "test": "Add Retailer to DACDRLP-List",
-      "success": true,
-      "message": "Successfully added DRLP 0a5bc7fd-47c2-4aa9-813b-4eed25f77771 to retailer list",
-      "details": {
-        "retailer": {
-          "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-          "drlp_name": "Test Geo Store Location",
-          "drlp_location": {
-            "lat": 40.7589,
-            "lng": -73.9851
-          },
-          "distance": 0.0,
-          "inside_dacsai": false,
-          "manually_added": true,
-          "manually_removed": false,
-          "added_at": "2025-12-18T22:29:01.417755+00:00"
-        }
-      },
-      "timestamp": "2025-12-18T22:29:01.422864+00:00"
-    },
-    {
-      "test": "Remove Retailer from DACDRLP-List",
-      "success": true,
-      "message": "Successfully removed DRLP 0a5bc7fd-47c2-4aa9-813b-4eed25f77771 from retailer list",
+      "message": "Correctly rejected same password with 400 error",
       "details": {
         "response": {
-          "message": "Retailer removed from your list. You will no longer receive notifications from this store."
+          "detail": "New password must be different from current password"
         }
       },
-      "timestamp": "2025-12-18T22:29:01.436753+00:00"
+      "timestamp": "2025-12-19T02:35:12.518397+00:00"
     },
     {
-      "test": "Geographic Filter - DACDRLP-List Check",
+      "test": "Password Change - Short Password",
       "success": true,
-      "message": "DACDRLP-List endpoint accessible for geographic filtering",
+      "message": "Correctly rejected short password with 400 error",
       "details": {
         "response": {
-          "dac_id": "5f7e6fcb-e5fb-4489-ac95-3f1fd8488249",
-          "retailers": [
-            {
-              "drlp_id": "0a5bc7fd-47c2-4aa9-813b-4eed25f77771",
-              "drlp_name": "Test Geo Store Location",
-              "drlp_location": {
-                "lat": 40.7589,
-                "lng": -73.9851
-              },
-              "distance": 0.0,
-              "inside_dacsai": false,
-              "manually_added": true,
-              "manually_removed": true,
-              "added_at": "2025-12-18T22:29:01.417755+00:00"
-            }
-          ],
-          "created_at": "2025-12-16T19:15:03.066054+00:00",
-          "updated_at": "2025-12-18T22:29:01.432222+00:00"
+          "detail": "New password must be at least 8 characters long"
         }
       },
-      "timestamp": "2025-12-18T22:29:01.448362+00:00"
+      "timestamp": "2025-12-19T02:35:12.531946+00:00"
     },
     {
-      "test": "Existing Functionality - Item Favorites",
+      "test": "Password Change - Success",
       "success": true,
-      "message": "Item-level favorites still working correctly",
-      "details": {
-        "item": {
-          "item_name": "Geographic Test Apple",
-          "brand": null,
-          "generic": "Geographic Test Apple",
-          "has_brand": false,
-          "category": "Fruits",
-          "keywords": [
-            "geographic",
-            "test",
-            "apple"
-          ],
-          "brand_keywords": [],
-          "generic_keywords": [
-            "geographic",
-            "test",
-            "apple"
-          ],
-          "attributes": {},
-          "auto_added_date": null
-        }
-      },
-      "timestamp": "2025-12-18T22:29:03.171242+00:00"
-    },
-    {
-      "test": "Existing Functionality - Auto Threshold",
-      "success": true,
-      "message": "Auto-threshold settings still working correctly",
+      "message": "Successfully changed password",
       "details": {
         "response": {
-          "message": "Auto-add settings updated",
-          "threshold": 3
+          "message": "Password changed successfully",
+          "status": "success"
         }
       },
-      "timestamp": "2025-12-18T22:29:03.611333+00:00"
+      "timestamp": "2025-12-19T02:35:13.272288+00:00"
     },
     {
-      "test": "Categories Endpoint",
+      "test": "Password Change - Login with New Password",
       "success": true,
-      "message": "Returns 20 categories including 'Miscellaneous'",
+      "message": "Successfully logged in with new password",
       "details": {
-        "categories": [
-          "Fruits",
-          "Vegetables",
-          "Meat & Poultry",
-          "Seafood",
-          "Dairy & Eggs",
-          "Bakery & Bread",
-          "Pantry Staples",
-          "Snacks & Candy",
-          "Frozen Foods",
-          "Beverages",
-          "Deli & Prepared Foods",
-          "Breakfast & Cereal",
-          "Pasta, Rice & Grains",
-          "Oils, Sauces & Spices",
-          "Baby & Kids",
-          "Health & Nutrition",
-          "Household Essentials",
-          "Personal Care",
-          "Pet Supplies",
-          "Miscellaneous"
-        ]
+        "user": "test.brand.generic@example.com"
       },
-      "timestamp": "2025-12-18T22:29:03.621008+00:00"
+      "timestamp": "2025-12-19T02:35:13.525278+00:00"
     },
     {
-      "test": "Authentication Login Regression",
+      "test": "Password Change - Change Back to Original",
       "success": true,
-      "message": "Login endpoint returns valid token",
-      "details": {
-        "user_role": "DAC"
-      },
-      "timestamp": "2025-12-18T22:29:04.084430+00:00"
-    },
-    {
-      "test": "Authentication Protection Regression",
-      "success": true,
-      "message": "Protected endpoint correctly rejects invalid token with 401",
+      "message": "Successfully changed password back to original",
       "details": {
         "response": {
-          "detail": "Could not validate credentials"
+          "message": "Password changed successfully",
+          "status": "success"
         }
       },
-      "timestamp": "2025-12-18T22:29:04.092452+00:00"
-    },
-    {
-      "test": "Authentication Role Access Regression",
-      "success": true,
-      "message": "DAC user can access favorites endpoints",
-      "details": {
-        "user_role": "DAC"
-      },
-      "timestamp": "2025-12-18T22:29:04.102778+00:00"
+      "timestamp": "2025-12-19T02:35:14.261609+00:00"
     }
   ]
 }
