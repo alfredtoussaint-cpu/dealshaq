@@ -375,15 +375,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Brand/Generic Parsing and Storage"
-    - "Smart Generic Extraction"
-    - "Hybrid Matching Logic (Option C)"
-    - "Organic Attribute with Brand Matching"
-    - "Edge Cases Handling"
-  stuck_tasks:
-    - "Consumer Settings Page - Smart Favorites Configuration"
-    - "Enhanced Consumer Favorites Page - Item-Level DACFI-List"
-    - "Navigation and Layout Integration"
+    - "Consumer Retailers Page - Navigation Integration"
+    - "Consumer Retailers Page - My Retailers UI"
+    - "Consumer Retailers Page - Stats Cards"
+    - "Consumer Retailers Page - Tabs System"
+    - "Consumer Retailers Page - DACSAI Settings Dialog"
+    - "Consumer Retailers Page - Add Retailer Dialog"
+    - "Consumer Retailers Page - Backend API Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
