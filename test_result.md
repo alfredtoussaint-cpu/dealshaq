@@ -985,7 +985,7 @@ test_plan:
 - **Backend API:** /app/backend/server.py
 - **Categorization Service:** /app/backend/categorization_service.py
 - **Test Suite:** /app/backend_test.py
-- **Environment:** Production URL (https://itemfinder-30.preview.emergentagent.com)
+- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
 
 #====================================================================================================
 # End of Final Comprehensive Backend Testing Results
@@ -1202,7 +1202,7 @@ agent_communication:
 - **Backend API:** /app/backend/server.py (category-level endpoints removed)
 - **Notification Logic:** create_matching_notifications() updated correctly
 - **Test Suite:** /app/backend_test.py (comprehensive regression tests)
-- **Environment:** Production URL (https://itemfinder-30.preview.emergentagent.com)
+- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
 
 #====================================================================================================
 # End of Comprehensive Regression Testing Results
