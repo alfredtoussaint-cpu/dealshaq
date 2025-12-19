@@ -444,9 +444,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Registration Form - DACSAI Required Fields"
-    - "Settings Page - DACSAI Configuration"
-    - "API Integration - DACSAI Location Endpoints"
+    - "Password Change Feature - PUT /api/auth/password/change"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
