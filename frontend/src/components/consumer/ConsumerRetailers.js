@@ -109,8 +109,15 @@ export default function ConsumerRetailers({ user, onLogout }) {
   };
 
   // Filter retailers not already in the list for "Add" dialog
+  // A retailer is available to add if:
+  // 1. Not in the list at all, OR
+  // 2. In the list but marked as manually_removed (can be re-added)
   const retailersNotInList = availableRetailers.filter(
-    ar => !retailers.some(r => r.drlp_id === ar.user_id)
+    ar => {
+      const existingRetailer = retailers.find(r => r.drlp_id === (ar.user_id || ar.drlp_id));
+      // Available if not in list OR if in list but manually removed
+      return !existingRetailer || existingRetailer.manually_removed;
+    }
   );
 
   const filteredAvailable = retailersNotInList.filter(r =>
