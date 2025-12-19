@@ -58,11 +58,11 @@ export default function ConsumerRetailers({ user, onLogout }) {
     }
   };
 
-  const handleAddRetailer = async (drlpId) => {
+  const handleAddRetailer = async (drlpId, drlpName) => {
     try {
       setUpdating(true);
       await dacRetailers.add(drlpId);
-      toast.success('Retailer added to your list');
+      toast.success(`${drlpName} that is domiciled outside your shopping area of interest has been added to your retailer list.`);
       setAddDialogOpen(false);
       loadRetailers();
     } catch (error) {
@@ -73,11 +73,14 @@ export default function ConsumerRetailers({ user, onLogout }) {
     }
   };
 
-  const handleRemoveRetailer = async (drlpId, drlpName) => {
+  const handleRemoveRetailer = async (drlpId, drlpName, insideDacsai) => {
     try {
       setUpdating(true);
       await dacRetailers.remove(drlpId);
-      toast.success(`${drlpName} removed. You'll no longer receive notifications from this store.`);
+      const locationText = insideDacsai 
+        ? 'that is domiciled within your shopping area of interest has been removed from'
+        : 'that is domiciled outside your shopping area of interest has been removed from';
+      toast.success(`${drlpName} ${locationText} your retailer list. You'll no longer receive notifications from this store.`);
       loadRetailers();
     } catch (error) {
       const message = error.response?.data?.detail || 'Failed to remove retailer';
