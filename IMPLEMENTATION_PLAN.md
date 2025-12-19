@@ -17,7 +17,7 @@ DealShaq is a surplus-driven grocery discount marketplace with:
 
 ## Current State vs. Target State
 
-### ✅ Currently Implemented
+### ✅ Currently Implemented (Updated December 2025)
 - Basic authentication (JWT-based, multi-role support)
 - Consumer App with registration and login
 - Retailer App with registration and login
@@ -26,11 +26,22 @@ DealShaq is a surplus-driven grocery discount marketplace with:
 - Forgot password modals on all auth forms
 - MongoDB integration for users, charities, items
 - 20-category taxonomy for groceries
-- 3-level discount model (33%, 66%, 99%)
+- 3-level discount model (DRLP: 60/75/90% → Consumer: 50/60/75%)
 - Basic API structure with FastAPI
+- **DACSAI Geographic Filtering System** ✅ NEW
+  - Delivery location required at registration
+  - DACSAI-Rad (0.1-9.9 miles) configuration
+  - Automatic DACDRLP-List generation
+  - Bidirectional sync with DRLPDAC-List
+- **"My Retailers" Page** ✅ NEW - DACs can manage their DACDRLP-List
+- **"Radar View" Page** ✅ NEW - Real-time local RSHD feed
+- **Enhanced Favorites** ✅ - Item-level favorites with brand/generic distinction
+- **Smart Favorites (Auto-Add)** ✅ - Implicit favorites based on purchase history
+- **Password Change** ✅ - From Settings page
+- **DRLP Location Management** ✅ - Retailers can set their store location
 
 ### 🔨 To Be Implemented
-Based on the seed summary, the following features need to be built:
+Based on the seed summary, the following features still need to be built:
 
 ---
 
