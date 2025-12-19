@@ -1551,6 +1551,53 @@ class BackendTester:
                 f"Auto-threshold settings broken: {threshold_response['data']}"
             )
 
+    async def run_password_change_tests(self):
+        """Run password change feature tests"""
+        logger.info("🚀 Starting PASSWORD CHANGE FEATURE TESTING")
+        logger.info(f"Backend URL: {API_BASE}")
+        logger.info(f"Test Credentials: {TEST_EMAIL} (Role: {TEST_ROLE})")
+        
+        # Authentication
+        if not await self.authenticate():
+            logger.error("❌ Authentication failed - stopping tests")
+            return
+        
+        # Password Change Tests
+        logger.info("🔐 PASSWORD CHANGE VALIDATION TESTS")
+        await self.test_password_change_wrong_current_password()
+        await self.test_password_change_same_password()
+        await self.test_password_change_short_password()
+        await self.test_password_change_successful()
+        
+        # Summary
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        logger.info(f"\n📊 PASSWORD CHANGE FEATURE TEST SUMMARY")
+        logger.info(f"Total Tests: {total_tests}")
+        logger.info(f"Passed: {passed_tests} ✅")
+        logger.info(f"Failed: {failed_tests} ❌")
+        logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if passed_tests == total_tests:
+            logger.info(f"🎉 100% SUCCESS: Password change feature working perfectly!")
+        else:
+            logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
+        
+        if failed_tests > 0:
+            logger.info(f"\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    logger.info(f"  - {result['test']}: {result['message']}")
+        
+        return {
+            "total": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "results": self.test_results
+        }
+
     async def run_all_tests(self):
         """Run comprehensive geographic filtering tests"""
         logger.info("🚀 Starting COMPREHENSIVE GEOGRAPHIC FILTERING TESTING")
