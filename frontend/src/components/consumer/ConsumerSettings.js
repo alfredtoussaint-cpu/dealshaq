@@ -2,35 +2,125 @@ import { useState, useEffect } from 'react';
 import ConsumerLayout from './ConsumerLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { userSettings } from '../../utils/api';
-import { Settings, Save } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { userSettings, dacRetailers, auth } from '../../utils/api';
+import { Settings, Save, MapPin, Navigation, Loader2, CheckCircle, AlertCircle, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConsumerSettings({ user, onLogout }) {
   const [autoThreshold, setAutoThreshold] = useState('0');
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Location settings
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [coordinates, setCoordinates] = useState(null);
+  const [dacsaiRad, setDacsaiRad] = useState(5.0);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState('');
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [currentUser, setCurrentUser] = useState(user);
 
   useEffect(() => {
     // Load current user settings
     if (user?.auto_favorite_threshold !== undefined) {
       setAutoThreshold(String(user.auto_favorite_threshold));
     }
+    if (user?.delivery_location?.address) {
+      setDeliveryAddress(user.delivery_location.address);
+      setCoordinates(user.delivery_location.coordinates);
+    }
+    if (user?.dacsai_rad !== undefined) {
+      setDacsaiRad(user.dacsai_rad);
+    }
+    
+    // Fetch fresh user data
+    fetchCurrentUser();
   }, [user]);
 
-  const handleSave = async () => {
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await auth.me();
+      const userData = response.data;
+      setCurrentUser(userData);
+      
+      if (userData.delivery_location?.address) {
+        setDeliveryAddress(userData.delivery_location.address);
+        setCoordinates(userData.delivery_location.coordinates);
+      }
+      if (userData.dacsai_rad !== undefined) {
+        setDacsaiRad(userData.dacsai_rad);
+      }
+      if (userData.auto_favorite_threshold !== undefined) {
+        setAutoThreshold(String(userData.auto_favorite_threshold));
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
+
+  // Geocode address to coordinates
+  const geocodeAddress = async (address) => {
+    if (!address || address.trim().length < 5) {
+      setGeocodeError('Please enter a complete address');
+      return null;
+    }
+    
+    setGeocoding(true);
+    setGeocodeError('');
+    
+    try {
+      const encodedAddress = encodeURIComponent(address);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`,
+        { headers: { 'User-Agent': 'DealShaq-App' } }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Geocoding service unavailable');
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        const coords = { lat: parseFloat(lat), lng: parseFloat(lon) };
+        setCoordinates(coords);
+        return coords;
+      } else {
+        setGeocodeError('Address not found. Please enter a valid address.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setGeocodeError('Unable to verify address. Please try again.');
+      return null;
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handleAddressBlur = async () => {
+    if (deliveryAddress && deliveryAddress.trim().length >= 5) {
+      await geocodeAddress(deliveryAddress);
+    }
+  };
+
+  const handleSaveAutoThreshold = async () => {
     setSaving(true);
     try {
       await userSettings.updateAutoThreshold({
         auto_favorite_threshold: parseInt(autoThreshold)
       });
-      toast.success('Settings saved successfully!');
+      toast.success('Smart Favorites settings saved!');
       
       // Update user in localStorage
-      const updatedUser = { ...user, auto_favorite_threshold: parseInt(autoThreshold) };
+      const updatedUser = { ...currentUser, auto_favorite_threshold: parseInt(autoThreshold) };
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save settings');
     } finally {
@@ -38,16 +128,160 @@ export default function ConsumerSettings({ user, onLogout }) {
     }
   };
 
+  const handleSaveLocation = async () => {
+    if (!deliveryAddress) {
+      toast.error('Please enter a delivery address');
+      return;
+    }
+
+    setSavingLocation(true);
+    
+    try {
+      // Geocode if not already done
+      let coords = coordinates;
+      if (!coords || !coords.lat) {
+        coords = await geocodeAddress(deliveryAddress);
+        if (!coords) {
+          setSavingLocation(false);
+          return;
+        }
+      }
+
+      // Update DACSAI (which also updates the user's location)
+      const response = await dacRetailers.updateDacsai(dacsaiRad);
+      
+      toast.success(`Location and DACSAI updated! ${response.data.retailers_count} retailers in your area.`);
+      
+      // Update user in localStorage
+      const updatedUser = { 
+        ...currentUser, 
+        delivery_location: { address: deliveryAddress, coordinates: coords },
+        dacsai_rad: dacsaiRad
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Failed to save location settings';
+      toast.error(message);
+    } finally {
+      setSavingLocation(false);
+    }
+  };
+
   return (
-    <ConsumerLayout user={user} onLogout={onLogout}>
+    <ConsumerLayout user={currentUser} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Settings
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600 mt-1">Manage your DealShaq preferences</p>
         </div>
+
+        {/* Location & DACSAI Settings */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-5 h-5 text-emerald-600" />
+              <CardTitle>Shopping Area (DACSAI)</CardTitle>
+            </div>
+            <CardDescription>
+              Set your delivery location and shopping radius to receive notifications from nearby retailers
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Status */}
+            {coordinates?.lat ? (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  Your shopping area is set: {dacsaiRad} mile radius from your delivery location
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  Set your delivery location to start receiving notifications from nearby retailers
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Delivery Address */}
+            <div className="space-y-2">
+              <Label htmlFor="delivery-address" className="text-sm font-medium">
+                Delivery Address
+              </Label>
+              <div className="relative">
+                <Input
+                  id="delivery-address"
+                  placeholder="123 Main St, City, State ZIP"
+                  value={deliveryAddress}
+                  onChange={(e) => {
+                    setDeliveryAddress(e.target.value);
+                    setCoordinates(null); // Reset coordinates when address changes
+                  }}
+                  onBlur={handleAddressBlur}
+                  className={geocodeError ? 'border-red-500 pr-20' : coordinates?.lat ? 'border-green-500 pr-20' : 'pr-20'}
+                />
+                {geocoding && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-emerald-600" />
+                )}
+                {!geocoding && coordinates?.lat && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 text-xs font-medium">✓ Verified</span>
+                )}
+              </div>
+              {geocodeError && (
+                <p className="text-xs text-red-500">{geocodeError}</p>
+              )}
+              <p className="text-xs text-gray-500">This is the center point of your shopping area</p>
+            </div>
+
+            {/* DACSAI Radius */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-emerald-600" />
+                  DACSAI Radius
+                </Label>
+                <span className="text-lg font-bold text-emerald-600">{dacsaiRad} miles</span>
+              </div>
+              <Slider
+                value={[dacsaiRad]}
+                onValueChange={(value) => setDacsaiRad(value[0])}
+                min={0.1}
+                max={9.9}
+                step={0.1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0.1 mi (nearby only)</span>
+                <span>9.9 mi (wider area)</span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Retailers within this radius are automatically added to your DACDRLP-List
+              </p>
+            </div>
+
+            <Button 
+              onClick={handleSaveLocation} 
+              disabled={savingLocation || (!deliveryAddress)}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              {savingLocation ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Location Settings
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Smart Favorites Settings */}
         <Card>
@@ -105,12 +339,12 @@ export default function ConsumerSettings({ user, onLogout }) {
             </div>
 
             <Button 
-              onClick={handleSave} 
+              onClick={handleSaveAutoThreshold} 
               disabled={saving}
               className="w-full bg-emerald-600 hover:bg-emerald-700"
             >
               <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? 'Saving...' : 'Save Smart Favorites Settings'}
             </Button>
           </CardContent>
         </Card>
@@ -118,20 +352,29 @@ export default function ConsumerSettings({ user, onLogout }) {
         {/* Account Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <div className="flex items-center space-x-2">
+              <User className="w-5 h-5 text-emerald-600" />
+              <CardTitle>Account Information</CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm text-gray-500">Email</Label>
-              <p className="text-base font-medium">{user?.email}</p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Name</Label>
-              <p className="text-base font-medium">{user?.name}</p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Role</Label>
-              <p className="text-base font-medium">Consumer (DAC)</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm text-gray-500">Email</Label>
+                <p className="text-base font-medium">{currentUser?.email}</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-500">Name</Label>
+                <p className="text-base font-medium">{currentUser?.name}</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-500">Role</Label>
+                <p className="text-base font-medium">Consumer (DAC)</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-500">DACSAI Radius</Label>
+                <p className="text-base font-medium">{currentUser?.dacsai_rad || 5.0} miles</p>
+              </div>
             </div>
           </CardContent>
         </Card>
