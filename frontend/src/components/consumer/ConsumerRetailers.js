@@ -240,7 +240,7 @@ export default function ConsumerRetailers({ user, onLogout }) {
                     ) : (
                       filteredAvailable.map((retailer) => (
                         <div
-                          key={retailer.user_id}
+                          key={retailer.user_id || retailer.drlp_id}
                           className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
                         >
                           <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function ConsumerRetailers({ user, onLogout }) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAddRetailer(retailer.user_id)}
+                            onClick={() => handleAddRetailer(retailer.user_id || retailer.drlp_id)}
                             disabled={updating}
                           >
                             {updating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
