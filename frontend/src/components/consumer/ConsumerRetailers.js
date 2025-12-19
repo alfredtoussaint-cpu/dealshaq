@@ -128,8 +128,9 @@ export default function ConsumerRetailers({ user, onLogout }) {
   );
 
   // Separate retailers by type
-  const insideDacsai = retailers.filter(r => r.inside_dacsai && !r.manually_added);
-  const manuallyAdded = retailers.filter(r => r.manually_added);
+  const activeRetailers = retailers.filter(r => !r.manually_removed);
+  const insideDacsai = retailers.filter(r => r.inside_dacsai && !r.manually_added && !r.manually_removed);
+  const manuallyAdded = retailers.filter(r => r.manually_added && !r.manually_removed);
   const manuallyRemoved = retailers.filter(r => r.manually_removed);
 
   if (loading) {
