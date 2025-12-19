@@ -790,6 +790,62 @@ async def confirm_password_reset(request: PasswordResetConfirm):
         "status": "success"
     }
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@api_router.put("/auth/password/change")
+async def change_password(request: PasswordChangeRequest, current_user: Dict = Depends(get_current_user)):
+    """Change password for logged-in user (requires current password verification)"""
+    
+    # Validate new password length
+    if len(request.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters long"
+        )
+    
+    # Get user with password hash
+    user = await db.users.find_one({"id": current_user["id"]})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(request.current_password, user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Check if new password is same as current
+    if verify_password(request.new_password, user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Hash and save new password
+    new_password_hash = hash_password(request.new_password)
+    
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {
+            "password_hash": new_password_hash,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Password changed for user {current_user['id']}")
+    
+    return {
+        "message": "Password changed successfully",
+        "status": "success"
+    }
+
 # ===== CHARITY ROUTES =====
 
 @api_router.post("/charities", response_model=Charity)
