@@ -184,6 +184,52 @@ export default function ConsumerSettings({ user, onLogout }) {
     }
   };
 
+  const handleChangePassword = async () => {
+    // Validation
+    if (!currentPassword) {
+      toast.error('Please enter your current password');
+      return;
+    }
+    if (!newPassword) {
+      toast.error('Please enter a new password');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (currentPassword === newPassword) {
+      toast.error('New password must be different from current password');
+      return;
+    }
+
+    setChangingPassword(true);
+    
+    try {
+      await auth.changePassword({
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      
+      toast.success('Password changed successfully!');
+      
+      // Clear form
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Failed to change password';
+      toast.error(message);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   return (
     <ConsumerLayout user={currentUser} onLogout={onLogout}>
       <div className="space-y-6">
