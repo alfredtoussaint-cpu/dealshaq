@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { userSettings, dacRetailers, auth } from '../../utils/api';
-import { Settings, Save, MapPin, Navigation, Loader2, CheckCircle, AlertCircle, User } from 'lucide-react';
+import { Settings, Save, MapPin, Navigation, Loader2, CheckCircle, AlertCircle, User, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConsumerSettings({ user, onLogout }) {
@@ -18,6 +18,14 @@ export default function ConsumerSettings({ user, onLogout }) {
   // Location settings
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [coordinates, setCoordinates] = useState(null);
+  
+  // Password change settings
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [dacsaiRad, setDacsaiRad] = useState(5.0);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState('');
