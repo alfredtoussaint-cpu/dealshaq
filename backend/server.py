@@ -434,11 +434,29 @@ async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float])
     
     logger.info(f"Initialized DRLPDAC-List for DRLP {drlp_id} with {len(dac_ids)} DACs")
 
-async def add_drlp_to_dacdrlp_list(dac_id: str, drlp_id: str, drlp_location: Dict[str, float], distance: float):
-    """Add a DRLP to a DAC's DACDRLP-List (called during DRLP registration)"""
-    # Get DRLP name
-    drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0, "name": 1})
-    drlp_name = drlp_loc.get("name", "Unknown") if drlp_loc else "Unknown"
+async def add_drlp_to_dacdrlp_list(dac_id: str, drlp_id: str, drlp_location: Dict[str, float], distance: float, drlp_name: str = None):
+    """Add a DRLP to a DAC's DACDRLP-List (called during DRLP registration)
+    
+    Respects manual overrides: If DAC previously removed this DRLP, don't re-add.
+    """
+    # Check if DAC has a DACDRLP-List and if this DRLP was manually removed
+    dacdrlp_doc = await db.dacdrlp_list.find_one({"dac_id": dac_id})
+    
+    if dacdrlp_doc:
+        # Check if this DRLP was manually removed - respect the DAC's preference
+        for retailer in dacdrlp_doc.get("retailers", []):
+            if retailer.get("drlp_id") == drlp_id:
+                if retailer.get("manually_removed"):
+                    logger.info(f"Skipping DRLP {drlp_id} for DAC {dac_id} - previously manually removed")
+                    return  # Don't re-add
+                else:
+                    # Already exists and not removed - no action needed
+                    return
+    
+    # Get DRLP name if not provided
+    if not drlp_name:
+        drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0, "name": 1})
+        drlp_name = drlp_loc.get("name", "Unknown") if drlp_loc else "Unknown"
     
     retailer_entry = {
         "drlp_id": drlp_id,
@@ -456,8 +474,11 @@ async def add_drlp_to_dacdrlp_list(dac_id: str, drlp_id: str, drlp_location: Dic
         {
             "$push": {"retailers": retailer_entry},
             "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
-        }
+        },
+        upsert=True  # Create DACDRLP-List if it doesn't exist
     )
+    
+    logger.info(f"Added DRLP {drlp_id} ({drlp_name}) to DAC {dac_id}'s DACDRLP-List (distance: {distance} mi)")
 
 def calculate_discount_mapping(discount_level: int, regular_price: float) -> Dict[str, float]:
     """
