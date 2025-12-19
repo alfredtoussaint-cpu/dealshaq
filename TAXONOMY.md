@@ -47,19 +47,17 @@ Chips, crackers, candy, nuts, and snack foods
 Frozen meals, pizzas, ice cream, and frozen desserts
 - Examples: Frozen pizza, ice cream, frozen dinners, popsicles
 
-### 10. Beverages (Non-Alcoholic)
+### 10. Beverages
 Juices, sodas, water, coffee, tea, and non-alcoholic drinks
 - Examples: Orange juice, Coca-Cola, bottled water, coffee
 
-### 11. Alcoholic Beverages
-Beer, wine, spirits, and alcoholic drinks
-- Examples: Beer, red wine, vodka, whiskey
-
-### 12. Deli & Prepared Foods
+### 11. Deli & Prepared Foods
 Deli meats, cheeses, prepared meals, and ready-to-eat foods
 - Examples: Sliced turkey, rotisserie chicken, potato salad
 
-### 13. Breakfast & Cereal
+**Note:** "Alcoholic Beverages" has been replaced with additional categories in V1.0
+
+### 12. Breakfast & Cereal
 Cereals, oatmeal, breakfast bars, and morning foods
 - Examples: Corn flakes, granola, oatmeal, breakfast bars
 

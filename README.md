@@ -4,7 +4,14 @@ A surplus-driven grocery discount marketplace connecting retailers with time-sen
 
 ## 🔥 What is DealShaq?
 
-DealShaq is a revolutionary marketplace where retailers post surplus inventory at deep discounts (33%, 66%, or 99% off), and consumers in the area get notified of hot deals near them. It's not just about saving money - a portion of each purchase goes to charity!
+DealShaq is a revolutionary marketplace where retailers post surplus inventory at deep discounts (50%, 60%, or 75% off for consumers), and consumers in the area get notified of hot deals near them. It's not just about saving money - a portion of each purchase goes to charity!
+
+### Discount Levels
+| Level | Consumer Discount | Description |
+|-------|------------------|-------------|
+| 1 | 50% OFF | Standard Deal |
+| 2 | 60% OFF | Hot Deal |
+| 3 | 75% OFF | Sizzling Hot Deal |
 
 ## 🛠️ Tech Stack
 
