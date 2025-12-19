@@ -432,13 +432,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Consumer Retailers Page - Navigation Integration"
-    - "Consumer Retailers Page - My Retailers UI"
-    - "Consumer Retailers Page - Stats Cards"
-    - "Consumer Retailers Page - Tabs System"
-    - "Consumer Retailers Page - DACSAI Settings Dialog"
-    - "Consumer Retailers Page - Add Retailer Dialog"
-    - "Consumer Retailers Page - Backend API Integration"
+    - "Registration Form - DACSAI Required Fields"
+    - "Settings Page - DACSAI Configuration"
+    - "API Integration - DACSAI Location Endpoints"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
