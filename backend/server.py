@@ -121,12 +121,15 @@ class DRLPLocationCreate(BaseModel):
 class DRLPLocation(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    user_id: str
+    user_id: Optional[str] = None  # Legacy schema
+    drlp_id: Optional[str] = None  # New schema
+    drlp_name: Optional[str] = None  # New schema
     name: str
-    address: str
-    coordinates: Dict[str, float]
-    charity_id: str
-    operating_hours: str
+    address: Optional[str] = None
+    coordinates: Optional[Dict[str, float]] = None  # Legacy schema
+    location: Optional[Dict[str, float]] = None  # New schema
+    charity_id: Optional[str] = None
+    operating_hours: Optional[str] = None
 
 # DealShaq 20-Category Taxonomy
 VALID_CATEGORIES = [
