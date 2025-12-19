@@ -35,9 +35,8 @@ export default function ConsumerRetailers({ user, onLogout }) {
       const response = await dacRetailers.list();
       const data = response.data;
       
-      // Filter out manually_removed retailers for display
-      const activeRetailers = (data.retailers || []).filter(r => !r.manually_removed);
-      setRetailers(activeRetailers);
+      // Keep full list for stats, but display logic will filter active ones
+      setRetailers(data.retailers || []);
       setDacsaiRad(data.dacsai_rad || 5.0);
       setPendingRadius(data.dacsai_rad || 5.0);
       setHasDeliveryLocation(!!data.dacsai_center);
