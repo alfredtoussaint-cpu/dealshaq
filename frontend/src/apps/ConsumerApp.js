@@ -9,6 +9,7 @@ import ConsumerNotifications from '../components/consumer/ConsumerNotifications'
 import ConsumerCheckout from '../components/consumer/ConsumerCheckout';
 import ConsumerOrders from '../components/consumer/ConsumerOrders';
 import ConsumerSettings from '../components/consumer/ConsumerSettings';
+import ConsumerRetailers from '../components/consumer/ConsumerRetailers';
 
 export default function ConsumerApp() {
   const [user, setUser] = useState(null);
