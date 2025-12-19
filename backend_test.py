@@ -1341,6 +1341,172 @@ class BackendTester:
                 f"Cannot access DACDRLP-List: {dacdrlp_response['data']}"
             )
 
+    async def test_password_change_wrong_current_password(self):
+        """Test password change with wrong current password - should return 400"""
+        logger.info("🔐 Testing password change with wrong current password...")
+        
+        response = await self.make_request("PUT", "/auth/password/change", {
+            "current_password": "WrongPassword",
+            "new_password": "NewPass123"
+        })
+        
+        if response["status"] == 400:
+            error_detail = response["data"].get("detail", "")
+            if "current password is incorrect" in error_detail.lower():
+                self.log_result(
+                    "Password Change - Wrong Current Password", True,
+                    "Correctly rejected wrong current password with 400 error",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    "Password Change - Wrong Current Password", False,
+                    f"Wrong error message: {error_detail}",
+                    {"response": response["data"]}
+                )
+        else:
+            self.log_result(
+                "Password Change - Wrong Current Password", False,
+                f"Expected 400 error, got {response['status']}: {response['data']}"
+            )
+
+    async def test_password_change_same_password(self):
+        """Test password change with same password - should return 400"""
+        logger.info("🔐 Testing password change with same password...")
+        
+        response = await self.make_request("PUT", "/auth/password/change", {
+            "current_password": TEST_PASSWORD,
+            "new_password": TEST_PASSWORD
+        })
+        
+        if response["status"] == 400:
+            error_detail = response["data"].get("detail", "")
+            if "new password must be different" in error_detail.lower():
+                self.log_result(
+                    "Password Change - Same Password", True,
+                    "Correctly rejected same password with 400 error",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    "Password Change - Same Password", False,
+                    f"Wrong error message: {error_detail}",
+                    {"response": response["data"]}
+                )
+        else:
+            self.log_result(
+                "Password Change - Same Password", False,
+                f"Expected 400 error, got {response['status']}: {response['data']}"
+            )
+
+    async def test_password_change_short_password(self):
+        """Test password change with short password - should return 400"""
+        logger.info("🔐 Testing password change with short password...")
+        
+        response = await self.make_request("PUT", "/auth/password/change", {
+            "current_password": TEST_PASSWORD,
+            "new_password": "short"
+        })
+        
+        if response["status"] == 400:
+            error_detail = response["data"].get("detail", "")
+            if "at least 8 characters" in error_detail.lower():
+                self.log_result(
+                    "Password Change - Short Password", True,
+                    "Correctly rejected short password with 400 error",
+                    {"response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    "Password Change - Short Password", False,
+                    f"Wrong error message: {error_detail}",
+                    {"response": response["data"]}
+                )
+        else:
+            self.log_result(
+                "Password Change - Short Password", False,
+                f"Expected 400 error, got {response['status']}: {response['data']}"
+            )
+
+    async def test_password_change_successful(self):
+        """Test successful password change and login with new password, then change back"""
+        logger.info("🔐 Testing successful password change...")
+        
+        new_password = "NewPassword456"
+        
+        # Step 1: Change password successfully
+        change_response = await self.make_request("PUT", "/auth/password/change", {
+            "current_password": TEST_PASSWORD,
+            "new_password": new_password
+        })
+        
+        if change_response["status"] == 200:
+            self.log_result(
+                "Password Change - Success", True,
+                "Successfully changed password",
+                {"response": change_response["data"]}
+            )
+            
+            # Step 2: Test login with new password
+            login_response = await self.make_request("POST", "/auth/login", {
+                "email": TEST_EMAIL,
+                "password": new_password,
+                "role": TEST_ROLE
+            })
+            
+            if login_response["status"] == 200:
+                new_token = login_response["data"]["access_token"]
+                self.log_result(
+                    "Password Change - Login with New Password", True,
+                    "Successfully logged in with new password",
+                    {"user": login_response["data"]["user"]["email"]}
+                )
+                
+                # Update our auth token for the change back
+                old_token = self.auth_token
+                self.auth_token = new_token
+                
+                # Step 3: Change password back to original
+                change_back_response = await self.make_request("PUT", "/auth/password/change", {
+                    "current_password": new_password,
+                    "new_password": TEST_PASSWORD
+                })
+                
+                if change_back_response["status"] == 200:
+                    self.log_result(
+                        "Password Change - Change Back to Original", True,
+                        "Successfully changed password back to original",
+                        {"response": change_back_response["data"]}
+                    )
+                    
+                    # Restore original token for remaining tests
+                    self.auth_token = old_token
+                    
+                else:
+                    self.log_result(
+                        "Password Change - Change Back to Original", False,
+                        f"Failed to change back: {change_back_response['data']}"
+                    )
+                    # Keep new token since change back failed
+                    
+            else:
+                self.log_result(
+                    "Password Change - Login with New Password", False,
+                    f"Failed to login with new password: {login_response['data']}"
+                )
+                
+                # Try to change back anyway using old token
+                change_back_response = await self.make_request("PUT", "/auth/password/change", {
+                    "current_password": new_password,
+                    "new_password": TEST_PASSWORD
+                })
+                
+        else:
+            self.log_result(
+                "Password Change - Success", False,
+                f"Failed to change password: {change_response['data']}"
+            )
+
     async def test_existing_functionality_regression(self):
         """Test that existing functionality still works"""
         logger.info("🔄 Testing existing functionality regression...")
