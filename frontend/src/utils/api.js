@@ -41,6 +41,7 @@ export const auth = {
   me: () => api.get('/auth/me'),
   requestPasswordReset: (data) => api.post('/auth/password-reset/request', data),
   confirmPasswordReset: (data) => api.post('/auth/password-reset/confirm', data),
+  changePassword: (data) => api.put('/auth/password/change', data),
 };
 
 export const charities = {
