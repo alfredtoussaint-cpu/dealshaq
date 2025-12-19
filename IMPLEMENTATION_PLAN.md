@@ -175,30 +175,50 @@ PUT    /api/notifications/read     - Mark notifications as read
 POST   /api/notifications/settings - Update notification preferences
 ```
 
-### 2.4 DACDRLP-List Management
+### 2.4 DACDRLP-List Management ✅ COMPLETED
 **Priority**: Medium  
 **Estimated Effort**: Small
+**Status**: ✅ IMPLEMENTED (December 2025)
 
-**Features**:
-- Manual retailer selection (add/remove from preferred list)
-- View list of available retailers in DACSAI
-- Priority notifications for preferred retailers
+**Features Implemented**:
+- ✅ "My Retailers" page for managing DACDRLP-List
+- ✅ View list of retailers in DACSAI (auto-populated)
+- ✅ Manual add retailers outside DACSAI
+- ✅ Manual remove retailers inside DACSAI
+- ✅ Bidirectional sync with DRLPDAC-List
+- ✅ Manual overrides preserved during DACSAI updates
 
-**Technical Requirements**:
-- Many-to-many relationship between consumers and retailers
-
-**Database Schema Updates**:
+**Database Schema Implemented**:
 ```javascript
-users: {
-  dac_drlp_list: [String], // Array of retailer IDs
+// dacdrlp_list collection
+{
+  id: String,
+  dac_id: String,
+  retailers: [{
+    drlp_id: String,
+    drlp_name: String,
+    drlp_location: {lat, lng},
+    distance: Number,
+    inside_dacsai: Boolean,
+    manually_added: Boolean,
+    manually_removed: Boolean
+  }],
+  dacsai_rad: Number,
+  dacsai_center: {lat, lng}
+}
+
+// drlp_locations collection (DRLPDAC-List stored here)
+{
+  drlp_id: String,
+  drlpdac_list: [dac_id]  // DACs who have this DRLP in their DACDRLP-List
 }
 ```
 
-**API Endpoints Needed**:
+**API Endpoints Implemented**:
 ```
-GET    /api/consumer/retailers     - Get available retailers
-POST   /api/consumer/retailers     - Add retailer to list
-DELETE /api/consumer/retailers/{id} - Remove from list
+GET    /api/dac/retailers           - Get DAC's DACDRLP-List
+POST   /api/dac/retailers/add       - Add retailer (bidirectional sync)
+DELETE /api/dac/retailers/{drlp_id} - Remove retailer (bidirectional sync)
 ```
 
 ### 2.5 Enhanced Checkout & Net Proceed
