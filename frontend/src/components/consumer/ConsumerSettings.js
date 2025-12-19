@@ -328,7 +328,7 @@ export default function ConsumerSettings({ user, onLogout }) {
                   <RadioGroupItem value="0" id="threshold-never" />
                   <Label htmlFor="threshold-never" className="flex-1 cursor-pointer">
                     <div className="font-medium">Never (0 days)</div>
-                    <div className="text-sm text-gray-500">I'll manage my favorites manually</div>
+                    <div className="text-sm text-gray-500">I will manage my favorites manually</div>
                   </Label>
                 </div>
               </RadioGroup>
@@ -337,8 +337,8 @@ export default function ConsumerSettings({ user, onLogout }) {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-medium text-blue-900 mb-2">How It Works</h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• DealShaq tracks items you purchase that aren't in your favorites</li>
-                <li>• When you buy an item on {autoThreshold === '0' ? 'N/A (disabled)' : `${autoThreshold} separate days`}, it's automatically added</li>
+                <li>• DealShaq tracks items you purchase that are not in your favorites</li>
+                <li>• When you buy an item on {autoThreshold === '0' ? 'N/A (disabled)' : `${autoThreshold} separate days`}, it is automatically added</li>
                 <li>• Auto-added items appear with a date stamp in your favorites list</li>
                 <li>• You can remove any item (manual or auto-added) at any time</li>
                 <li>• This feature runs daily at 11 PM</li>
