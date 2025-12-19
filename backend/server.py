@@ -393,13 +393,19 @@ async def remove_dac_from_drlpdac_list(drlp_id: str, dac_id: str):
     )
     logger.info(f"Removed DAC {dac_id} from DRLP {drlp_id}'s DRLPDAC-List")
 
-async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float]):
+async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float], drlp_name: str = None):
     """Initialize DRLPDAC-List for a new DRLP
     
     Finds all DACs whose DACSAI contains this DRLP's location and adds them.
     Also updates each DAC's DACDRLP-List to include this DRLP (bidirectional sync).
+    Respects manual overrides: If DAC previously removed a DRLP, don't re-add.
     """
     dac_ids = []
+    
+    # Get DRLP name if not provided
+    if not drlp_name:
+        drlp_loc = await db.drlp_locations.find_one({"user_id": drlp_id}, {"_id": 0, "name": 1})
+        drlp_name = drlp_loc.get("name", "New Store") if drlp_loc else "New Store"
     
     # Find all DACs with delivery locations
     all_dacs = await db.users.find(
@@ -422,7 +428,8 @@ async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float])
             dac_ids.append(dac["id"])
             
             # Bidirectional sync: Add this DRLP to DAC's DACDRLP-List
-            await add_drlp_to_dacdrlp_list(dac["id"], drlp_id, drlp_location, distance)
+            # This respects manual overrides (won't re-add if DAC previously removed)
+            await add_drlp_to_dacdrlp_list(dac["id"], drlp_id, drlp_location, distance, drlp_name)
     
     # Create DRLPDAC-List document
     await db.drlpdac_list.insert_one({
@@ -432,7 +439,7 @@ async def initialize_drlpdac_list(drlp_id: str, drlp_location: Dict[str, float])
         "updated_at": datetime.now(timezone.utc).isoformat()
     })
     
-    logger.info(f"Initialized DRLPDAC-List for DRLP {drlp_id} with {len(dac_ids)} DACs")
+    logger.info(f"Initialized DRLPDAC-List for DRLP {drlp_id} ({drlp_name}) with {len(dac_ids)} DACs")
 
 async def add_drlp_to_dacdrlp_list(dac_id: str, drlp_id: str, drlp_location: Dict[str, float], distance: float, drlp_name: str = None):
     """Add a DRLP to a DAC's DACDRLP-List (called during DRLP registration)
