@@ -79,7 +79,14 @@ export const dacRetailers = {
   list: () => api.get('/dac/retailers'),
   add: (drlpId) => api.post(`/dac/retailers/add?drlp_id=${drlpId}`),
   remove: (drlpId) => api.delete(`/dac/retailers/${drlpId}`),
-  updateDacsai: (radius) => api.put(`/dac/dacsai?dacsai_rad=${radius}`),
+  updateDacsai: (radius, deliveryLocation = null) => {
+    let url = `/dac/dacsai?dacsai_rad=${radius}`;
+    if (deliveryLocation) {
+      return api.put(url, deliveryLocation);
+    }
+    return api.put(url);
+  },
+  updateLocation: (deliveryLocation) => api.put('/dac/location', deliveryLocation),
 };
 
 export const notifications = {
