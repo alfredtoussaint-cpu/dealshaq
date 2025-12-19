@@ -1,9 +1,10 @@
 # DealShaq User Testing Guide
 ## Complete Step-by-Step Testing Procedures
 
-**Version:** 1.0  
+**Version:** 1.1 (Updated)  
 **Date:** December 2025  
 **Purpose:** Comprehensive user acceptance testing for all three DealShaq applications
+**Last Updated:** December 19, 2025 - Added tests for DACSAI, My Retailers, Radar View, Password Change
 
 ---
 
