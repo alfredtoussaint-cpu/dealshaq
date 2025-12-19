@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings, Store } from 'lucide-react';
+import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings, Store, Radar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../Logo';
 
@@ -10,6 +10,7 @@ export default function ConsumerLayout({ children, user, onLogout }) {
   const navItems = [
     { path: '/consumer/dashboard', icon: Home, label: 'Home', testId: 'nav-home' },
     { path: '/consumer/browse', icon: ShoppingBag, label: 'Browse', testId: 'nav-browse' },
+    { path: '/consumer/radar', icon: Radar, label: 'Radar', testId: 'nav-radar' },
     { path: '/consumer/favorites', icon: Heart, label: 'Favorites', testId: 'nav-favorites' },
     { path: '/consumer/retailers', icon: Store, label: 'Retailers', testId: 'nav-retailers' },
     { path: '/consumer/notifications', icon: Bell, label: 'Alerts', testId: 'nav-notifications' },
