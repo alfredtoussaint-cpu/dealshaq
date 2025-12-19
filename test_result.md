@@ -483,9 +483,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "DealShaq Retailer App Frontend Testing"
+    - "DACDRLP-List Manual Add/Remove UI Testing"
+    - "Frontend Authentication Issue Investigation"
   stuck_tasks:
-    - "Retailer (DRLP) Endpoints Testing"
+    - "DACDRLP-List Manual Add/Remove UI Testing"
+    - "GET /api/drlp/locations Pydantic Validation Errors"
   test_all: false
   test_priority: "high_first"
 
