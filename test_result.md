@@ -388,6 +388,42 @@ frontend:
           agent: "testing"
           comment: "✅ PASS - Backend API integration working. GET /api/dac/retailers endpoint accessible and returns proper data structure. Page loads without console errors and displays data correctly."
 
+  - task: "Registration Form - DACSAI Required Fields"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/consumer/ConsumerAuth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Registration form fully updated with required DACSAI fields. Delivery address field shows 'Delivery Address *' label and is marked required. DACSAI radius slider (0.1-9.9 miles) with live value display. Address verification shows '✓ Verified' after geocoding. Help text explains DACSAI functionality: 'Retailers within this radius will be added to your list automatically'."
+
+  - task: "Settings Page - DACSAI Configuration"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/consumer/ConsumerSettings.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Settings page DACSAI section fully functional. 'Shopping Area (DACSAI)' card positioned at top with description. Delivery address input field with placeholder. DACSAI radius slider with live value display (5 miles). Status alerts working: amber when no location set ('Set your delivery location to start receiving notifications'), green when location configured. 'Save Location Settings' button properly disabled/enabled based on address input."
+
+  - task: "API Integration - DACSAI Location Endpoints"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/utils/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - DACSAI API integration fully working. Geocoding via Nominatim API shows '✓ Verified' indicator. PUT /api/dac/location endpoint returns Status 200. PUT /api/dac/dacsai endpoint functional. Address verification and save functionality complete with success message: 'Location and DACSAI updated! 0 retailers in your area.' All API calls successful during testing."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
