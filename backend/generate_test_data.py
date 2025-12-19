@@ -13,9 +13,12 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Configuration
+# Configuration - loads from backend/.env
+from dotenv import load_dotenv
+load_dotenv()
+
 MONGO_URL = os.environ.get('MONGO_URL')
-DB_NAME = os.environ.get('DB_NAME', 'dealshaq')
+DB_NAME = os.environ.get('DB_NAME', 'dealshaq_db')
 
 # Sample locations around San Francisco Bay Area
 SAMPLE_LOCATIONS = [
