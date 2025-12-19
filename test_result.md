@@ -444,8 +444,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "DRLP Registration Flow with Geographic Filtering"
-  stuck_tasks: []
+    - "RSHD Items Validation Error Fix"
+  stuck_tasks:
+    - "Retailer (DRLP) Endpoints Testing"
   test_all: false
   test_priority: "high_first"
 
