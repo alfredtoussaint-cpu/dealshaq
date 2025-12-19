@@ -282,6 +282,18 @@ backend:
           agent: "testing"
           comment: "✅ PASS - Edge cases handled correctly. 'Quaker, Simply, Granola' splits on first comma only (brand='Quaker', generic='Simply, Granola'). 'Quaker , Granola' trims spaces properly. Multiple comma handling and whitespace normalization working as expected."
 
+  - task: "Password Change Feature - PUT /api/auth/password/change"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Password change feature working perfectly. All validation tests passed: ✅ Wrong current password correctly rejected with 400 error 'Current password is incorrect'. ✅ Same password correctly rejected with 400 error 'New password must be different from current password'. ✅ Short password correctly rejected with 400 error 'New password must be at least 8 characters long'. ✅ Successful password change returns 200 with 'Password changed successfully'. ✅ Login with new password works correctly. ✅ Password change back to original successful. All test cases completed successfully (7/7 tests passed, 100% success rate)."
+
 frontend:
   - task: "Consumer Retailers Page - Navigation Integration"
     implemented: true
