@@ -45,6 +45,62 @@ export default function ConsumerAuth({ onLogin }) {
     }
   };
 
+  // Geocode address to coordinates using a free geocoding service
+  const geocodeAddress = async (address) => {
+    if (!address || address.trim().length < 5) {
+      return null;
+    }
+    
+    setGeocoding(true);
+    setGeocodeError('');
+    
+    try {
+      // Using Nominatim (OpenStreetMap) for geocoding - free, no API key required
+      const encodedAddress = encodeURIComponent(address);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`,
+        { headers: { 'User-Agent': 'DealShaq-App' } }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Geocoding service unavailable');
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        return { lat: parseFloat(lat), lng: parseFloat(lon) };
+      } else {
+        setGeocodeError('Address not found. Please enter a valid address.');
+        return null;
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setGeocodeError('Unable to verify address. Please try again.');
+      return null;
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handleAddressBlur = async () => {
+    const address = formData.delivery_location.address;
+    if (address && address.trim().length >= 5) {
+      const coordinates = await geocodeAddress(address);
+      if (coordinates) {
+        setFormData({
+          ...formData,
+          delivery_location: { 
+            address: address,
+            coordinates 
+          }
+        });
+        setGeocodeError('');
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -54,13 +110,35 @@ export default function ConsumerAuth({ onLogin }) {
         const response = await auth.login({
           email: formData.email,
           password: formData.password,
-          role: 'DAC',  // Filter by Consumer role
+          role: 'DAC',
         });
         onLogin(response.data.access_token, response.data.user);
         toast.success('Welcome back!');
       } else {
+        // Validate required fields for registration
+        if (!formData.delivery_location.address) {
+          toast.error('Delivery address is required');
+          setLoading(false);
+          return;
+        }
+        
+        // Geocode address if not already done
+        let coordinates = formData.delivery_location.coordinates;
+        if (!coordinates || !coordinates.lat || !coordinates.lng) {
+          coordinates = await geocodeAddress(formData.delivery_location.address);
+          if (!coordinates) {
+            toast.error('Please enter a valid delivery address');
+            setLoading(false);
+            return;
+          }
+        }
+        
         const response = await auth.register({
           ...formData,
+          delivery_location: {
+            address: formData.delivery_location.address,
+            coordinates
+          },
           role: 'DAC',
         });
         onLogin(response.data.access_token, response.data.user);
