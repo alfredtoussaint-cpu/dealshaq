@@ -377,7 +377,7 @@ export default function ConsumerAuth({ onLogin }) {
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
-              Enter your email address and we'll send you password reset instructions.
+              Enter your email address and we will send you password reset instructions.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleForgotPassword} className="space-y-4">
