@@ -456,7 +456,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RSHD Items Validation Error Fix"
+    - "DealShaq Retailer App Frontend Testing"
   stuck_tasks:
     - "Retailer (DRLP) Endpoints Testing"
   test_all: false
