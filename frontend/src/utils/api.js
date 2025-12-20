@@ -115,3 +115,18 @@ export const admin = {
 export const categories = {
   list: () => api.get('/categories'),
 };
+
+// Barcode and OCR services
+export const barcode = {
+  lookup: (barcodeNumber) => api.post('/barcode/lookup', { barcode: barcodeNumber }),
+};
+
+export const ocr = {
+  extractPrice: (imageBase64, prompt = null) => api.post('/ocr/extract-price', { 
+    image_base64: imageBase64,
+    prompt: prompt 
+  }),
+  analyzeProduct: (imageBase64) => api.post('/ocr/analyze-product', { 
+    image_base64: imageBase64 
+  }),
+};
