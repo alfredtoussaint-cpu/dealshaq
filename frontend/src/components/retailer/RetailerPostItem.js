@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import RetailerLayout from './RetailerLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,21 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { rshd, drlp } from '../../utils/api';
+import { rshd, drlp, barcode, ocr } from '../../utils/api';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Package, Camera, Barcode } from 'lucide-react';
+import { Package, Camera, Barcode, Upload, Loader2 } from 'lucide-react';
 
 // DealShaq 20-Category Taxonomy (Top-level only)
 const CATEGORIES = [
   "Fruits", "Vegetables", "Meat & Poultry", "Seafood",
   "Dairy & Eggs", "Bakery & Bread", "Pantry Staples",
   "Snacks & Candy", "Frozen Foods", "Beverages",
-  "Alcoholic Beverages", "Deli & Prepared Foods",
-  "Breakfast & Cereal", "Pasta, Rice & Grains",
-  "Oils, Sauces & Spices", "Baby & Kids",
-  "Health & Nutrition", "Household Essentials",
-  "Personal Care", "Pet Supplies"
+  "Deli & Prepared Foods", "Breakfast & Cereal", 
+  "Pasta, Rice & Grains", "Oils, Sauces & Spices", 
+  "Baby & Kids", "Health & Nutrition", "Household Essentials",
+  "Personal Care", "Pet Supplies", "Miscellaneous"
 ];
 
 export default function RetailerPostItem({ user, onLogout }) {
@@ -41,6 +40,9 @@ export default function RetailerPostItem({ user, onLogout }) {
   });
   const [scanning, setScanning] = useState(false);
   const [ocrProcessing, setOcrProcessing] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState('');
+  const priceImageRef = useRef(null);
+  const productImageRef = useRef(null);
 
   // Calculate discounts based on selected level
   const getDiscountInfo = () => {
@@ -60,9 +62,148 @@ export default function RetailerPostItem({ user, onLogout }) {
     return (price * (1 - discountInfo.consumer / 100)).toFixed(2);
   };
 
-  // Mock barcode scan function
-  const handleBarcodeScan = async () => {
+  // Convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove the data:image/xxx;base64, prefix
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Real barcode lookup using Open Food Facts API
+  const handleBarcodeLookup = async () => {
+    const barcodeToLookup = barcodeInput || formData.barcode;
+    if (!barcodeToLookup) {
+      toast.error('Please enter a barcode number');
+      return;
+    }
+    
     setScanning(true);
+    try {
+      const response = await barcode.lookup(barcodeToLookup);
+      const product = response.data.product;
+      
+      if (product) {
+        setFormData({
+          ...formData,
+          name: product.name || formData.name,
+          category: product.category || formData.category,
+          barcode: barcodeToLookup,
+          weight: product.weight?.toString() || formData.weight,
+          description: product.description || formData.description,
+          image_url: product.image_url || formData.image_url,
+          attributes: {
+            ...formData.attributes,
+            organic: product.is_organic || false,
+            brand: product.brand || '',
+          }
+        });
+        toast.success(`Product found: ${product.name}`);
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || 'Product not found in database';
+      toast.error(errorMsg);
+      // Still set the barcode even if product not found
+      setFormData({ ...formData, barcode: barcodeToLookup });
+    } finally {
+      setScanning(false);
+      setBarcodeInput('');
+    }
+  };
+
+  // OCR price extraction from image
+  const handlePriceImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Please upload a JPEG, PNG, or WEBP image');
+      return;
+    }
+    
+    setOcrProcessing(true);
+    try {
+      const imageBase64 = await fileToBase64(file);
+      const response = await ocr.extractPrice(imageBase64);
+      
+      if (response.data.success && response.data.extracted) {
+        const extracted = response.data.extracted;
+        
+        if (extracted.price) {
+          // Clean the price (remove $ and other characters)
+          const cleanPrice = extracted.price.replace(/[^0-9.]/g, '');
+          setFormData({
+            ...formData,
+            regular_price: cleanPrice,
+            name: extracted.product_name || formData.name,
+          });
+          toast.success(`Price extracted: $${cleanPrice}`);
+        } else if (extracted.raw_text) {
+          toast.info('Could not extract structured price. Please check the image.');
+        }
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || 'Failed to extract price from image';
+      toast.error(errorMsg);
+    } finally {
+      setOcrProcessing(false);
+      // Reset file input
+      if (priceImageRef.current) {
+        priceImageRef.current.value = '';
+      }
+    }
+  };
+
+  // Product image analysis
+  const handleProductImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Please upload a JPEG, PNG, or WEBP image');
+      return;
+    }
+    
+    setScanning(true);
+    try {
+      const imageBase64 = await fileToBase64(file);
+      const response = await ocr.analyzeProduct(imageBase64);
+      
+      if (response.data.success && response.data.product) {
+        const product = response.data.product;
+        
+        setFormData({
+          ...formData,
+          name: product.product_name || formData.name,
+          category: product.category || formData.category,
+          description: product.description || formData.description,
+          attributes: {
+            ...formData.attributes,
+            organic: product.is_organic || false,
+            brand: product.brand || '',
+          }
+        });
+        toast.success('Product information extracted from image');
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || 'Failed to analyze product image';
+      toast.error(errorMsg);
+    } finally {
+      setScanning(false);
+      if (productImageRef.current) {
+        productImageRef.current.value = '';
+      }
+    }
+  };
+
+  // Legacy mock scan (kept for fallback/demo)
     // Simulate barcode scanning
     await new Promise(resolve => setTimeout(resolve, 1500));
     
