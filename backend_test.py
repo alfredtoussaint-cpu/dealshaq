@@ -2242,17 +2242,25 @@ class BackendTester:
             self.log_result("DRLP Authentication", False, f"Failed to authenticate: {response['data']}")
             return False
     
-    async def test_rshd_post_triggers_notification(self):
-        """Test that posting a new RSHD creates notifications for DACs"""
-        logger.info("🔔 Testing RSHD post triggers notification...")
+    async def test_rshd_post_triggers_notification_with_retailer_credentials(self):
+        """Test that posting a new RSHD creates notifications using retailer credentials from review request"""
+        logger.info("🔔 Testing RSHD post triggers notification with retailer credentials...")
         
-        # First authenticate as retailer
-        if not await self.authenticate_as_retailer():
+        # First authenticate as retailer from review request
+        retailer_response = await self.make_request("POST", "/auth/login", {
+            "email": RETAILER_EMAIL,
+            "password": RETAILER_PASSWORD,
+            "role": RETAILER_ROLE
+        })
+        
+        if retailer_response["status"] != 200:
             self.log_result(
-                "RSHD Post Triggers Notification - Setup", False,
-                "Failed to authenticate as retailer"
+                "RSHD Post Triggers Notification - Retailer Auth", False,
+                f"Failed to authenticate retailer: {retailer_response['data']}"
             )
             return
+        
+        retailer_token = retailer_response["data"]["access_token"]
         
         # Get initial notification count for our DAC
         initial_response = await self.make_request("GET", "/notifications")
@@ -2260,21 +2268,21 @@ class BackendTester:
         
         # Switch to retailer token temporarily
         original_token = self.auth_token
-        self.auth_token = self.drlp_auth_token
+        self.auth_token = retailer_token
         
         # Post a new RSHD item
         rshd_data = {
-            "name": "Test WebSocket Notification Item",
-            "description": "Test item for WebSocket notification testing",
+            "name": "WebSocket Test Notification Item",
+            "description": "Test item for WebSocket notification testing with retailer credentials",
             "category": "Snacks & Candy",
-            "regular_price": 10.99,
+            "regular_price": 12.99,
             "discount_level": 2,  # 60% off
-            "quantity": 50,
-            "barcode": "1234567890123",
-            "weight": 1.0,
-            "image_url": "https://example.com/test-item.jpg",
+            "quantity": 25,
+            "barcode": "9876543210987",
+            "weight": 0.5,
+            "image_url": "https://example.com/websocket-test-item.jpg",
             "is_taxable": True,
-            "attributes": {"organic": False, "gluten_free": False}
+            "attributes": {"organic": False, "gluten_free": True}
         }
         
         rshd_response = await self.make_request("POST", "/rshd/items", rshd_data)
@@ -2286,7 +2294,7 @@ class BackendTester:
             rshd_item = rshd_response["data"]
             
             # Wait a moment for notification processing
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             
             # Check if new notifications were created
             final_response = await self.make_request("GET", "/notifications")
@@ -2298,44 +2306,52 @@ class BackendTester:
                 # Look for our specific notification
                 test_notifications = [
                     n for n in final_notifications 
-                    if "Test WebSocket Notification Item" in n.get("message", "")
+                    if "WebSocket Test Notification Item" in n.get("message", "")
                 ]
                 
                 if len(test_notifications) > 0:
                     notification = test_notifications[0]
                     
-                    # Verify notification structure
-                    has_title = "title" in notification or "message" in notification
-                    has_data = "data" in notification or "rshd_id" in notification
-                    has_type = notification.get("type") == "new_rshd" or "deal" in notification.get("message", "").lower()
+                    # Verify notification structure for new_rshd type
+                    required_fields = ["id", "dac_id", "rshd_id", "message", "created_at"]
+                    has_required_fields = all(field in notification for field in required_fields)
+                    
+                    # Check for new_rshd specific structure
+                    has_deal_message = "deal" in notification.get("message", "").lower()
+                    has_discount_info = any(word in notification.get("message", "").lower() 
+                                          for word in ["60%", "off", "discount"])
                     
                     self.log_result(
-                        "RSHD Post Triggers Notification", True,
+                        "RSHD Post Triggers Notification with Retailer Credentials", True,
                         f"Successfully created notification for RSHD post. Notifications: {initial_count} → {final_count}",
                         {
+                            "retailer_email": RETAILER_EMAIL,
                             "rshd_item": rshd_item["name"],
                             "notification": notification,
                             "notification_count_change": final_count - initial_count,
-                            "structure_valid": has_title and has_data and has_type
+                            "structure_valid": has_required_fields,
+                            "deal_message": has_deal_message,
+                            "discount_info": has_discount_info
                         }
                     )
                 else:
                     self.log_result(
-                        "RSHD Post Triggers Notification", False,
+                        "RSHD Post Triggers Notification with Retailer Credentials", False,
                         f"No notification found for test item. Total notifications: {initial_count} → {final_count}",
                         {
+                            "retailer_email": RETAILER_EMAIL,
                             "rshd_item": rshd_item["name"],
-                            "all_notifications": [n.get("message", "") for n in final_notifications[-3:]]
+                            "all_recent_notifications": [n.get("message", "") for n in final_notifications[-5:]]
                         }
                     )
             else:
                 self.log_result(
-                    "RSHD Post Triggers Notification", False,
+                    "RSHD Post Triggers Notification with Retailer Credentials", False,
                     f"Failed to get notifications after RSHD post: {final_response['data']}"
                 )
         else:
             self.log_result(
-                "RSHD Post Triggers Notification", False,
+                "RSHD Post Triggers Notification with Retailer Credentials", False,
                 f"Failed to post RSHD item: {rshd_response['data']}"
             )
 
