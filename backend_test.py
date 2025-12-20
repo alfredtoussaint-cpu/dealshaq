@@ -3184,6 +3184,71 @@ class BackendTester:
             "results": self.test_results
         }
 
+    async def run_retailer_management_tests(self):
+        """Run retailer management API tests specifically"""
+        logger.info("🚀 Starting Retailer Management API Testing...")
+        
+        # Authenticate first
+        if not await self.authenticate():
+            logger.error("❌ Authentication failed - cannot proceed with tests")
+            return
+        
+        # Authenticate admin for retailer management tests
+        admin_auth_success = await self.authenticate_admin()
+        
+        if not admin_auth_success:
+            logger.error("❌ Admin authentication failed - cannot test admin endpoints")
+            # Still test non-admin access
+            await self.test_admin_retailer_non_admin_access()
+            return
+        
+        # Admin Retailer Management tests
+        await self.test_admin_retailers_list()
+        await self.test_admin_retailer_details()
+        await self.test_admin_retailer_analytics()
+        
+        # Test suspend/reactivate flow
+        suspended_retailer_id = await self.test_admin_retailer_status_suspend()
+        if suspended_retailer_id:
+            await self.test_admin_retailer_status_reactivate(suspended_retailer_id)
+        else:
+            await self.test_admin_retailer_status_reactivate()
+        
+        # Test non-admin access
+        await self.test_admin_retailer_non_admin_access()
+        
+        # Print summary
+        self.print_retailer_test_summary()
+
+    def print_retailer_test_summary(self):
+        """Print summary of retailer management tests"""
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        logger.info(f"\n📊 RETAILER MANAGEMENT API TEST SUMMARY")
+        logger.info(f"🏪 DealShaq Admin Dashboard - Retailer Management")
+        logger.info(f"Total Tests: {total_tests}")
+        logger.info(f"Passed: {passed_tests} ✅")
+        logger.info(f"Failed: {failed_tests} ❌")
+        logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if passed_tests == total_tests:
+            logger.info(f"🎉 100% SUCCESS: All retailer management endpoints working!")
+        else:
+            logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
+        
+        if failed_tests > 0:
+            logger.info(f"\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    logger.info(f"  - {result['test']}: {result['message']}")
+        
+        logger.info(f"\n✅ PASSED TESTS:")
+        for result in self.test_results:
+            if result["success"]:
+                logger.info(f"  - {result['test']}: {result['message']}")
+
     async def run_all_tests(self):
         """Run comprehensive WebSocket notification system tests"""
         logger.info("🚀 Starting COMPREHENSIVE WEBSOCKET NOTIFICATION TESTING")
