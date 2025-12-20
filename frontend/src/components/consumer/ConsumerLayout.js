@@ -2,10 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Home, ShoppingBag, Heart, Bell, ShoppingCart, LogOut, Receipt, Settings, Store, Radar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../Logo';
+import NotificationBell from './NotificationBell';
 
 export default function ConsumerLayout({ children, user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get token from localStorage for WebSocket connection
+  const token = localStorage.getItem('token');
 
   const navItems = [
     { path: '/consumer/dashboard', icon: Home, label: 'Home', testId: 'nav-home' },
@@ -35,16 +39,21 @@ export default function ConsumerLayout({ children, user, onLogout }) {
               <p className="text-xs text-gray-500">{user?.name}</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onLogout}
-            data-testid="logout-btn"
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center space-x-2">
+            {/* Real-time Notification Bell */}
+            <NotificationBell token={token} />
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLogout}
+              data-testid="logout-btn"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
