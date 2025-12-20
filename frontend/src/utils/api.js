@@ -110,6 +110,14 @@ export const admin = {
   stats: () => api.get('/admin/stats'),
   users: () => api.get('/admin/users'),
   items: () => api.get('/admin/items'),
+  analytics: () => api.get('/admin/analytics'),
+  userDetails: (userId) => api.get(`/admin/users/${userId}`),
+  updateUserStatus: (userId, status) => api.put(`/admin/users/${userId}/status`, { status }),
+  updateItemStatus: (itemId, status) => api.put(`/admin/items/${itemId}/status`, { status }),
+  alerts: () => api.get('/admin/alerts'),
+  activity: () => api.get('/admin/activity'),
+  charities: () => api.get('/admin/charities'),
+  createAdmin: (userData) => api.post('/admin/create-admin', userData),
 };
 
 export const categories = {
