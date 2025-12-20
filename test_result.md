@@ -1196,7 +1196,7 @@ agent_communication:
 - **Backend API:** /app/backend/server.py
 - **Barcode/OCR Service:** /app/backend/barcode_ocr_service.py  
 - **Test Suite:** /app/barcode_ocr_test.py
-- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
+- **Environment:** Production URL (https://shaq-fix.preview.emergentagent.com)
 
 #====================================================================================================
 # BARCODE & OCR INTEGRATION RE-TEST RESULTS - December 20, 2025
@@ -1285,7 +1285,7 @@ agent_communication:
 **Files Tested:**
 - **Backend API:** /app/backend/server.py ✅ All endpoints functional
 - **Test Suite:** /app/backend_test.py ✅ Comprehensive test coverage
-- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com) ✅ Working
+- **Environment:** Production URL (https://shaq-fix.preview.emergentagent.com) ✅ Working
 
 ## COMPARISON WITH PREVIOUS TEST RESULTS
 
@@ -1415,7 +1415,7 @@ agent_communication:
 - **Backend API:** /app/backend/server.py
 - **Categorization Service:** /app/backend/categorization_service.py
 - **Test Suite:** /app/backend_test.py
-- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
+- **Environment:** Production URL (https://shaq-fix.preview.emergentagent.com)
 
 #====================================================================================================
 # End of Final Comprehensive Backend Testing Results
@@ -1634,7 +1634,7 @@ agent_communication:
 - **Backend API:** /app/backend/server.py (category-level endpoints removed)
 - **Notification Logic:** create_matching_notifications() updated correctly
 - **Test Suite:** /app/backend_test.py (comprehensive regression tests)
-- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
+- **Environment:** Production URL (https://shaq-fix.preview.emergentagent.com)
 
 #====================================================================================================
 # End of Comprehensive Regression Testing Results

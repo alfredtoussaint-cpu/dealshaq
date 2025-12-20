@@ -9,7 +9,7 @@ This document provides everything a contractor needs to perform extensive user t
 ## Quick Start
 
 ### Access the Application
-**Live URL:** `https://[deployment-url].preview.emergentagent.com`
+**Live URL:** `https://shaq-fix.preview.emergentagent.com`
 
 ### Test Credentials
 

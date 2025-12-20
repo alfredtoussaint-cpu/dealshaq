@@ -102,7 +102,7 @@
 
 ## Consumer App Testing
 
-**Application URL:** https://shop-radar-app.preview.emergentagent.com/consumer
+**Application URL:** https://shaq-fix.preview.emergentagent.com/consumer
 
 **Estimated Time:** 45-60 minutes
 
@@ -625,7 +625,7 @@
 
 ## Retailer App Testing
 
-**Application URL:** https://shop-radar-app.preview.emergentagent.com/retailer
+**Application URL:** https://shaq-fix.preview.emergentagent.com/retailer
 
 **Estimated Time:** 30-45 minutes
 
@@ -769,7 +769,7 @@
 
 ## Admin App Testing
 
-**Application URL:** https://shop-radar-app.preview.emergentagent.com/admin
+**Application URL:** https://shaq-fix.preview.emergentagent.com/admin
 
 **Estimated Time:** 30-40 minutes
 

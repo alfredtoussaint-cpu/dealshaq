@@ -291,7 +291,7 @@ CORS_ORIGINS=*
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://shop-radar-app.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://shaq-fix.preview.emergentagent.com
 ```
 
 ## Deployment Architecture
