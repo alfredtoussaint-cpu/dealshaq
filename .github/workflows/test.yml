@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          yarn install
+          yarn install --ignore-engines
 
       - name: Run Jest tests
         run: |
