@@ -1742,6 +1742,283 @@ async def get_all_items(current_user: Dict = Depends(get_current_user)):
     items = await db.rshd_items.find({}, {"_id": 0}).to_list(10000)
     return items
 
+
+# ===== ENHANCED ADMIN ENDPOINTS =====
+
+@api_router.get("/admin/analytics")
+async def get_admin_analytics(current_user: Dict = Depends(get_current_user)):
+    """Get enhanced analytics data for admin dashboard"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from datetime import timedelta
+    from collections import defaultdict
+    
+    now = datetime.now(timezone.utc)
+    
+    # Get orders for time-based analysis
+    orders = await db.orders.find({}, {"_id": 0}).to_list(10000)
+    
+    # Orders over last 30 days
+    orders_by_day = defaultdict(lambda: {"count": 0, "revenue": 0})
+    for order in orders:
+        try:
+            order_date = datetime.fromisoformat(order.get("created_at", "").replace("Z", "+00:00"))
+            if (now - order_date).days <= 30:
+                day_key = order_date.strftime("%Y-%m-%d")
+                orders_by_day[day_key]["count"] += 1
+                orders_by_day[day_key]["revenue"] += order.get("total", 0)
+        except:
+            pass
+    
+    # Get RSHDs for category breakdown
+    items = await db.rshd_items.find({"status": "available"}, {"_id": 0}).to_list(10000)
+    category_breakdown = defaultdict(int)
+    for item in items:
+        category_breakdown[item.get("category", "Unknown")] += 1
+    
+    # Top performing retailers (by number of items)
+    retailer_stats = defaultdict(lambda: {"items": 0, "name": ""})
+    for item in items:
+        drlp_id = item.get("drlp_id", "")
+        retailer_stats[drlp_id]["items"] += 1
+        retailer_stats[drlp_id]["name"] = item.get("drlp_name", "Unknown")
+    
+    top_retailers = sorted(
+        [{"drlp_id": k, "name": v["name"], "items": v["items"]} for k, v in retailer_stats.items()],
+        key=lambda x: x["items"],
+        reverse=True
+    )[:10]
+    
+    # Generate last 30 days data
+    orders_trend = []
+    for i in range(30, -1, -1):
+        day = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        orders_trend.append({
+            "date": day,
+            "orders": orders_by_day[day]["count"],
+            "revenue": round(orders_by_day[day]["revenue"], 2)
+        })
+    
+    return {
+        "orders_trend": orders_trend,
+        "category_breakdown": [{"category": k, "count": v} for k, v in category_breakdown.items()],
+        "top_retailers": top_retailers
+    }
+
+@api_router.get("/admin/users/{user_id}")
+async def get_user_details(user_id: str, current_user: Dict = Depends(get_current_user)):
+    """Get detailed user information"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get additional data based on role
+    extra_data = {}
+    if user["role"] == "DAC":
+        # Get consumer's retailer list
+        dac_list = await db.dacdrlp_list.find_one({"dac_id": user_id}, {"_id": 0})
+        extra_data["retailer_list"] = dac_list.get("retailers", []) if dac_list else []
+        # Get order count
+        order_count = await db.orders.count_documents({"dac_id": user_id})
+        extra_data["order_count"] = order_count
+    elif user["role"] == "DRLP":
+        # Get retailer's items
+        items = await db.rshd_items.find({"drlp_id": user_id}, {"_id": 0}).to_list(1000)
+        extra_data["items"] = items
+        extra_data["item_count"] = len(items)
+        # Get location info
+        location = await db.drlp_locations.find_one({"drlp_id": user_id}, {"_id": 0})
+        extra_data["location"] = location
+    
+    return {**user, **extra_data}
+
+@api_router.put("/admin/users/{user_id}/status")
+async def update_user_status(user_id: str, status: Dict, current_user: Dict = Depends(get_current_user)):
+    """Suspend or activate a user account"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Prevent self-suspension
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot modify your own account status")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_status = status.get("status", "active")
+    if new_status not in ["active", "suspended"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Use 'active' or 'suspended'")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"account_status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    logger.info(f"User {user_id} status changed to {new_status} by admin {current_user['email']}")
+    return {"message": f"User status updated to {new_status}"}
+
+@api_router.put("/admin/items/{item_id}/status")
+async def update_item_status(item_id: str, status: Dict, current_user: Dict = Depends(get_current_user)):
+    """Admin override to deactivate/reactivate items"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    item = await db.rshd_items.find_one({"id": item_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    new_status = status.get("status", "available")
+    if new_status not in ["available", "unavailable", "admin_removed"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    await db.rshd_items.update_one(
+        {"id": item_id},
+        {"$set": {"status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    logger.info(f"Item {item_id} status changed to {new_status} by admin {current_user['email']}")
+    return {"message": f"Item status updated to {new_status}"}
+
+@api_router.get("/admin/alerts")
+async def get_admin_alerts(current_user: Dict = Depends(get_current_user)):
+    """Get system alerts for admin monitoring"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    alerts = []
+    
+    # Low inventory alerts (items with quantity <= 5)
+    low_inventory = await db.rshd_items.find(
+        {"status": "available", "quantity": {"$lte": 5}},
+        {"_id": 0, "id": 1, "name": 1, "quantity": 1, "drlp_name": 1}
+    ).to_list(100)
+    
+    for item in low_inventory:
+        alerts.append({
+            "type": "low_inventory",
+            "severity": "warning",
+            "message": f"{item['name']} at {item['drlp_name']} has only {item['quantity']} left",
+            "item_id": item["id"]
+        })
+    
+    # Expiring deals (within 2 days)
+    items = await db.rshd_items.find({"status": "available"}, {"_id": 0}).to_list(10000)
+    for item in items:
+        try:
+            expiry = datetime.fromisoformat(item.get("expiry_date", "").replace("Z", "+00:00"))
+            days_until = (expiry - now).days
+            if 0 <= days_until <= 2:
+                alerts.append({
+                    "type": "expiring_soon",
+                    "severity": "info" if days_until > 0 else "critical",
+                    "message": f"{item['name']} expires {'today' if days_until == 0 else f'in {days_until} day(s)'}",
+                    "item_id": item["id"],
+                    "drlp_name": item.get("drlp_name", "Unknown")
+                })
+        except:
+            pass
+    
+    # Sort by severity
+    severity_order = {"critical": 0, "warning": 1, "info": 2}
+    alerts.sort(key=lambda x: severity_order.get(x["severity"], 3))
+    
+    return {"alerts": alerts[:50]}  # Limit to 50 alerts
+
+@api_router.get("/admin/activity")
+async def get_recent_activity(current_user: Dict = Depends(get_current_user)):
+    """Get recent system activity log"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    activities = []
+    
+    # Recent orders
+    recent_orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).limit(10).to_list(10)
+    for order in recent_orders:
+        activities.append({
+            "type": "order",
+            "description": f"Order from {order.get('dac_name', 'Unknown')} - ${order.get('total', 0):.2f}",
+            "timestamp": order.get("created_at"),
+            "id": order.get("id")
+        })
+    
+    # Recent user registrations
+    recent_users = await db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).limit(10).to_list(10)
+    for user in recent_users:
+        activities.append({
+            "type": "registration",
+            "description": f"New {user.get('role', 'user')} registered: {user.get('name', 'Unknown')}",
+            "timestamp": user.get("created_at"),
+            "id": user.get("id")
+        })
+    
+    # Recent items posted
+    recent_items = await db.rshd_items.find({}, {"_id": 0}).sort("posted_at", -1).limit(10).to_list(10)
+    for item in recent_items:
+        activities.append({
+            "type": "item",
+            "description": f"New item: {item.get('name', 'Unknown')} by {item.get('drlp_name', 'Unknown')}",
+            "timestamp": item.get("posted_at"),
+            "id": item.get("id")
+        })
+    
+    # Sort all by timestamp
+    activities.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    
+    return {"activities": activities[:20]}
+
+@api_router.get("/admin/charities")
+async def get_charities_with_stats(current_user: Dict = Depends(get_current_user)):
+    """Get all charities with donation statistics"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    charities = await db.charities.find({}, {"_id": 0}).to_list(1000)
+    
+    # Get donation breakdown per charity
+    orders = await db.orders.find({}, {"_id": 0, "charity_id": 1, "charity_dac": 1, "charity_drlp": 1, "charity_roundup": 1}).to_list(10000)
+    
+    charity_donations = {}
+    for order in orders:
+        charity_id = order.get("charity_id")
+        if charity_id:
+            if charity_id not in charity_donations:
+                charity_donations[charity_id] = {"dac": 0, "drlp": 0, "roundup": 0, "total": 0}
+            charity_donations[charity_id]["dac"] += order.get("charity_dac", 0)
+            charity_donations[charity_id]["drlp"] += order.get("charity_drlp", 0)
+            charity_donations[charity_id]["roundup"] += order.get("charity_roundup", 0)
+            charity_donations[charity_id]["total"] += (
+                order.get("charity_dac", 0) + 
+                order.get("charity_drlp", 0) + 
+                order.get("charity_roundup", 0)
+            )
+    
+    # Merge charity info with donations
+    result = []
+    for charity in charities:
+        donations = charity_donations.get(charity["id"], {"dac": 0, "drlp": 0, "roundup": 0, "total": 0})
+        result.append({
+            **charity,
+            "donations_dac": round(donations["dac"], 2),
+            "donations_drlp": round(donations["drlp"], 2),
+            "donations_roundup": round(donations["roundup"], 2),
+            "total_donations": round(donations["total"], 2)
+        })
+    
+    # Sort by total donations
+    result.sort(key=lambda x: x["total_donations"], reverse=True)
+    
+    return result
+
+
+
 # ===== BARCODE & OCR ROUTES =====
 
 class BarcodeRequest(BaseModel):
