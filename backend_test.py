@@ -134,6 +134,25 @@ class BackendTester:
         else:
             self.log_result("Authentication", False, f"Failed to authenticate: {response['data']}")
             return False
+
+    async def authenticate_admin(self):
+        """Authenticate with admin credentials"""
+        logger.info("🔐 Authenticating with admin credentials...")
+        
+        response = await self.make_request("POST", "/auth/login", {
+            "email": ADMIN_EMAIL,
+            "password": ADMIN_PASSWORD,
+            "role": ADMIN_ROLE
+        })
+        
+        if response["status"] == 200:
+            self.admin_auth_token = response["data"]["access_token"]
+            self.admin_user_data = response["data"]["user"]
+            self.log_result("Admin Authentication", True, f"Successfully authenticated as {ADMIN_EMAIL}")
+            return True
+        else:
+            self.log_result("Admin Authentication", False, f"Failed to authenticate: {response['data']}")
+            return False
     
     async def test_categories_endpoint(self):
         """Test /api/categories endpoint returns 20 categories"""
