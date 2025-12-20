@@ -1738,6 +1738,57 @@ async def get_all_items(current_user: Dict = Depends(get_current_user)):
     items = await db.rshd_items.find({}, {"_id": 0}).to_list(10000)
     return items
 
+# ===== BARCODE & OCR ROUTES =====
+
+class BarcodeRequest(BaseModel):
+    barcode: str
+
+class ImageOCRRequest(BaseModel):
+    image_base64: str
+    prompt: Optional[str] = None
+
+@api_router.post("/barcode/lookup")
+async def barcode_lookup(request: BarcodeRequest, current_user: Dict = Depends(get_current_user)):
+    """Look up product information by barcode using Open Food Facts API"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can use barcode lookup")
+    
+    from barcode_ocr_service import lookup_barcode
+    result = await lookup_barcode(request.barcode)
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("error", "Product not found"))
+    
+    return result
+
+@api_router.post("/ocr/extract-price")
+async def ocr_extract_price(request: ImageOCRRequest, current_user: Dict = Depends(get_current_user)):
+    """Extract price information from image using OCR (GPT-4 Vision)"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can use OCR")
+    
+    from barcode_ocr_service import extract_text_from_image
+    result = await extract_text_from_image(request.image_base64, request.prompt)
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=result.get("error", "OCR extraction failed"))
+    
+    return result
+
+@api_router.post("/ocr/analyze-product")
+async def ocr_analyze_product(request: ImageOCRRequest, current_user: Dict = Depends(get_current_user)):
+    """Analyze product image to extract product information using GPT-4 Vision"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can use product analysis")
+    
+    from barcode_ocr_service import analyze_product_image
+    result = await analyze_product_image(request.image_base64)
+    
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=result.get("error", "Product analysis failed"))
+    
+    return result
+
 # Include router
 app.include_router(api_router)
 
