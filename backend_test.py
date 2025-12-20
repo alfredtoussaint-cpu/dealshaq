@@ -1378,10 +1378,7 @@ class BackendTester:
         
         if not retailer_id:
             # Get a retailer ID if not provided
-            original_token = self.auth_token
-            self.auth_token = self.admin_auth_token
-            
-            list_response = await self.make_request("GET", "/admin/retailers")
+            list_response = await self.make_request("GET", "/admin/retailers", token=self.admin_auth_token)
             if list_response["status"] == 200 and list_response["data"]:
                 retailer_id = list_response["data"][0]["id"]
             else:
@@ -1391,14 +1388,10 @@ class BackendTester:
                 )
                 return
         
-        # Use admin token
-        original_token = self.auth_token
-        self.auth_token = self.admin_auth_token
-        
         # Reactivate the retailer
         response = await self.make_request("PUT", f"/admin/retailers/{retailer_id}/status", {
             "status": "active"
-        })
+        }, token=self.admin_auth_token)
         
         if response["status"] == 200:
             self.log_result(
@@ -1408,7 +1401,7 @@ class BackendTester:
             )
             
             # Verify items are restored to available
-            items_response = await self.make_request("GET", "/admin/items")
+            items_response = await self.make_request("GET", "/admin/items", token=self.admin_auth_token)
             if items_response["status"] == 200:
                 self.log_result(
                     "Admin Retailer Status - Items Restored", True,
@@ -1420,9 +1413,6 @@ class BackendTester:
                 "Admin Retailer Status - Reactivate", False,
                 f"Failed with status {response['status']}: {response['data']}"
             )
-        
-        # Restore original token
-        self.auth_token = original_token
 
     async def test_admin_retailer_non_admin_access(self):
         """Test that non-admin users get 403 errors for retailer management endpoints"""
