@@ -1,155 +1,133 @@
 {
   "total": 12,
-  "passed": 12,
-  "failed": 0,
+  "passed": 10,
+  "failed": 2,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:55:51.930051+00:00"
+      "timestamp": "2025-12-20T02:56:15.134465+00:00"
+    },
+    {
+      "test": "WebSocket Status Endpoint",
+      "success": true,
+      "message": "Returns correct status: 0 connections, 0 users, status: active",
+      "details": {
+        "response": {
+          "total_connections": 0,
+          "unique_users": 0,
+          "status": "active"
+        }
+      },
+      "timestamp": "2025-12-20T02:56:15.145753+00:00"
+    },
+    {
+      "test": "WebSocket Connection with Token",
+      "success": false,
+      "message": "WebSocket connection failed: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "details": {},
+      "timestamp": "2025-12-20T02:56:15.190736+00:00"
+    },
+    {
+      "test": "WebSocket Authorization - Invalid Token",
+      "success": true,
+      "message": "Connection rejected as expected: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "details": {},
+      "timestamp": "2025-12-20T02:56:15.211095+00:00"
+    },
+    {
+      "test": "WebSocket Authorization - No Token",
+      "success": true,
+      "message": "Correctly rejected connection without token: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "details": {},
+      "timestamp": "2025-12-20T02:56:15.211347+00:00"
+    },
+    {
+      "test": "Notification Database Structure",
+      "success": true,
+      "message": "No notifications found (empty state is valid)",
+      "details": {
+        "notifications_count": 0
+      },
+      "timestamp": "2025-12-20T02:56:15.224080+00:00"
     },
     {
       "test": "DRLP Authentication",
       "success": true,
       "message": "Successfully authenticated as test.retailer@dealshaq.com",
       "details": {},
-      "timestamp": "2025-12-20T02:55:52.187327+00:00"
+      "timestamp": "2025-12-20T02:56:15.475512+00:00"
     },
     {
-      "test": "Barcode Lookup - Valid Nutella",
-      "success": true,
-      "message": "Successfully retrieved product: Nutella",
+      "test": "RSHD Post Triggers Notification",
+      "success": false,
+      "message": "No notification found for test item. Total notifications: 0 \u2192 0",
       "details": {
-        "product": {
-          "name": "Nutella",
-          "brand": "Nutella,Ferrero",
-          "category": "Breakfast & Cereal",
-          "barcode": "3017620422003",
-          "weight": 0.88,
-          "description": "P\u00e2te \u00e0 tartiner aux noisettes et au cacao",
-          "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.633.400.jpg",
-          "ingredients": "sugar, palm oil, hazelnuts 13%, low-fat cocoa 7.4%, skimmed milk powder 6.6%, whey powder, emulsifiers: lecithins [soya], vanillin, gluten-free,",
-          "nutriscore": "e",
-          "is_organic": false,
-          "raw_data": {
-            "categories": "Petit-d\u00e9jeuners,Produits \u00e0 tartiner,Produits \u00e0 tartiner sucr\u00e9s,P\u00e2tes \u00e0 tartiner,P\u00e2tes \u00e0 tartiner aux noisettes",
-            "labels": "V\u00e9g\u00e9tarien,Sans gluten,Sans conservateurs,Sans mati\u00e8re grasse hydrog\u00e9n\u00e9e,Triman",
-            "quantity": "400 g"
-          }
-        },
-        "brand": "Nutella,Ferrero",
-        "category": "Breakfast & Cereal",
-        "weight": 0.88
+        "rshd_item": "Test WebSocket Notification Item",
+        "all_notifications": []
       },
-      "timestamp": "2025-12-20T02:55:53.200927+00:00"
+      "timestamp": "2025-12-20T02:56:17.516865+00:00"
     },
     {
-      "test": "Barcode Lookup - Invalid Barcode",
+      "test": "Categories Endpoint",
       "success": true,
-      "message": "Correctly returned 404 for invalid barcode",
+      "message": "Returns 20 categories including 'Miscellaneous'",
+      "details": {
+        "categories": [
+          "Fruits",
+          "Vegetables",
+          "Meat & Poultry",
+          "Seafood",
+          "Dairy & Eggs",
+          "Bakery & Bread",
+          "Pantry Staples",
+          "Snacks & Candy",
+          "Frozen Foods",
+          "Beverages",
+          "Deli & Prepared Foods",
+          "Breakfast & Cereal",
+          "Pasta, Rice & Grains",
+          "Oils, Sauces & Spices",
+          "Baby & Kids",
+          "Health & Nutrition",
+          "Household Essentials",
+          "Personal Care",
+          "Pet Supplies",
+          "Miscellaneous"
+        ]
+      },
+      "timestamp": "2025-12-20T02:56:17.524841+00:00"
+    },
+    {
+      "test": "Authentication Login Regression",
+      "success": true,
+      "message": "Login endpoint returns valid token",
+      "details": {
+        "user_role": "DAC"
+      },
+      "timestamp": "2025-12-20T02:56:17.776161+00:00"
+    },
+    {
+      "test": "Authentication Protection Regression",
+      "success": true,
+      "message": "Protected endpoint correctly rejects invalid token with 401",
       "details": {
         "response": {
-          "detail": "Product not found in database"
+          "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-20T02:55:53.625784+00:00"
+      "timestamp": "2025-12-20T02:56:17.787758+00:00"
     },
     {
-      "test": "OCR Price Extraction",
+      "test": "Authentication Role Access Regression",
       "success": true,
-      "message": "Successfully extracted price: $9.99",
+      "message": "DAC user can access favorites endpoints",
       "details": {
-        "extracted": {
-          "price": "9.99",
-          "product_name": null,
-          "original_price": null,
-          "discount_percentage": null
-        }
+        "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:55:56.605965+00:00"
-    },
-    {
-      "test": "OCR Product Analysis",
-      "success": true,
-      "message": "Successfully analyzed product and categorized as 'Dairy & Eggs'",
-      "details": {
-        "product": {
-          "product_name": "Organic Milk 2% Fat",
-          "brand": null,
-          "category": "Dairy & Eggs",
-          "weight": "1 Gallon",
-          "is_organic": true,
-          "description": "Organic milk with 2% fat content"
-        },
-        "organic": null,
-        "name": null
-      },
-      "timestamp": "2025-12-20T02:55:59.104962+00:00"
-    },
-    {
-      "test": "DAC Authorization - /barcode/lookup",
-      "success": true,
-      "message": "Correctly rejected DAC user with 403: Only DRLP users can use barcode lookup",
-      "details": {
-        "endpoint": "/barcode/lookup"
-      },
-      "timestamp": "2025-12-20T02:55:59.159759+00:00"
-    },
-    {
-      "test": "DAC Authorization - /ocr/extract-price",
-      "success": true,
-      "message": "Correctly rejected DAC user with 403: Only DRLP users can use OCR",
-      "details": {
-        "endpoint": "/ocr/extract-price"
-      },
-      "timestamp": "2025-12-20T02:55:59.169780+00:00"
-    },
-    {
-      "test": "DAC Authorization - /ocr/analyze-product",
-      "success": true,
-      "message": "Correctly rejected DAC user with 403: Only DRLP users can use product analysis",
-      "details": {
-        "endpoint": "/ocr/analyze-product"
-      },
-      "timestamp": "2025-12-20T02:55:59.184289+00:00"
-    },
-    {
-      "test": "Unauthenticated Access - /barcode/lookup",
-      "success": true,
-      "message": "Correctly rejected unauthenticated request with 403",
-      "details": {
-        "endpoint": "/barcode/lookup",
-        "response": {
-          "detail": "Not authenticated"
-        }
-      },
-      "timestamp": "2025-12-20T02:55:59.196607+00:00"
-    },
-    {
-      "test": "Unauthenticated Access - /ocr/extract-price",
-      "success": true,
-      "message": "Correctly rejected unauthenticated request with 403",
-      "details": {
-        "endpoint": "/ocr/extract-price",
-        "response": {
-          "detail": "Not authenticated"
-        }
-      },
-      "timestamp": "2025-12-20T02:55:59.246747+00:00"
-    },
-    {
-      "test": "Unauthenticated Access - /ocr/analyze-product",
-      "success": true,
-      "message": "Correctly rejected unauthenticated request with 403",
-      "details": {
-        "endpoint": "/ocr/analyze-product",
-        "response": {
-          "detail": "Not authenticated"
-        }
-      },
-      "timestamp": "2025-12-20T02:55:59.255018+00:00"
+      "timestamp": "2025-12-20T02:56:17.796702+00:00"
     }
   ]
 }
