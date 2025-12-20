@@ -973,8 +973,12 @@ async def create_rshd_item(item_data: RSHDItemCreate, current_user: Dict = Depen
     
     await db.rshd_items.insert_one(item_dict)
     
-    # Create notifications for matching DACs
+    # Create notifications for matching DACs (stores in DB)
     await create_matching_notifications(item_dict)
+    
+    # Send real-time WebSocket notifications to connected DACs
+    from websocket_service import notify_new_rshd
+    await notify_new_rshd(db, item_dict, item_dict["drlp_id"])
     
     return item_dict
 
