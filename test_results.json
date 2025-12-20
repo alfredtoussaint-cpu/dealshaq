@@ -1,14 +1,14 @@
 {
   "total": 12,
-  "passed": 10,
-  "failed": 2,
+  "passed": 8,
+  "failed": 4,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:56:15.134465+00:00"
+      "timestamp": "2025-12-20T02:57:01.800910+00:00"
     },
     {
       "test": "WebSocket Status Endpoint",
@@ -21,28 +21,28 @@
           "status": "active"
         }
       },
-      "timestamp": "2025-12-20T02:56:15.145753+00:00"
+      "timestamp": "2025-12-20T02:57:01.809142+00:00"
     },
     {
       "test": "WebSocket Connection with Token",
       "success": false,
-      "message": "WebSocket connection failed: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "message": "Unexpected welcome message: {'type': 'hot'}",
       "details": {},
-      "timestamp": "2025-12-20T02:56:15.190736+00:00"
+      "timestamp": "2025-12-20T02:57:01.863581+00:00"
     },
     {
       "test": "WebSocket Authorization - Invalid Token",
-      "success": true,
-      "message": "Connection rejected as expected: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "success": false,
+      "message": "Connection accepted with invalid token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:56:15.211095+00:00"
+      "timestamp": "2025-12-20T02:57:01.910716+00:00"
     },
     {
       "test": "WebSocket Authorization - No Token",
-      "success": true,
-      "message": "Correctly rejected connection without token: BaseEventLoop.create_connection() got an unexpected keyword argument 'timeout'",
+      "success": false,
+      "message": "Connection accepted without token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:56:15.211347+00:00"
+      "timestamp": "2025-12-20T02:57:01.937044+00:00"
     },
     {
       "test": "Notification Database Structure",
@@ -51,14 +51,14 @@
       "details": {
         "notifications_count": 0
       },
-      "timestamp": "2025-12-20T02:56:15.224080+00:00"
+      "timestamp": "2025-12-20T02:57:01.953440+00:00"
     },
     {
       "test": "DRLP Authentication",
       "success": true,
       "message": "Successfully authenticated as test.retailer@dealshaq.com",
       "details": {},
-      "timestamp": "2025-12-20T02:56:15.475512+00:00"
+      "timestamp": "2025-12-20T02:57:02.206899+00:00"
     },
     {
       "test": "RSHD Post Triggers Notification",
@@ -68,7 +68,7 @@
         "rshd_item": "Test WebSocket Notification Item",
         "all_notifications": []
       },
-      "timestamp": "2025-12-20T02:56:17.516865+00:00"
+      "timestamp": "2025-12-20T02:57:04.249886+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -98,7 +98,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-20T02:56:17.524841+00:00"
+      "timestamp": "2025-12-20T02:57:04.262257+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -107,7 +107,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:56:17.776161+00:00"
+      "timestamp": "2025-12-20T02:57:04.515714+00:00"
     },
     {
       "test": "Authentication Protection Regression",
@@ -118,7 +118,7 @@
           "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-20T02:56:17.787758+00:00"
+      "timestamp": "2025-12-20T02:57:04.523816+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -127,7 +127,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:56:17.796702+00:00"
+      "timestamp": "2025-12-20T02:57:04.534862+00:00"
     }
   ]
 }
