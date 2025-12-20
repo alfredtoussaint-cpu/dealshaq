@@ -28,12 +28,19 @@ class WebSocketService {
     this.token = token;
     
     // Determine WebSocket URL based on current environment
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = process.env.REACT_APP_BACKEND_URL 
-      ? new URL(process.env.REACT_APP_BACKEND_URL).host 
-      : window.location.host;
+    // Use wss:// for production (https), ws:// for development (http)
+    let wsUrl;
     
-    const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
+    if (process.env.REACT_APP_BACKEND_URL) {
+      // Production: use the backend URL but convert to WebSocket protocol
+      const backendUrl = new URL(process.env.REACT_APP_BACKEND_URL);
+      const wsProtocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${wsProtocol}//${backendUrl.host}/ws?token=${encodeURIComponent(token)}`;
+    } else {
+      // Development: use current page host
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}`;
+    }
     
     console.log('Connecting to WebSocket:', wsUrl.replace(token, 'TOKEN_HIDDEN'));
     
