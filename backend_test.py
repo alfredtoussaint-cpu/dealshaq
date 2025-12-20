@@ -1558,6 +1558,367 @@ class BackendTester:
                 f"Auto-threshold settings broken: {threshold_response['data']}"
             )
 
+    async def authenticate_drlp(self):
+        """Authenticate with DRLP credentials for barcode/OCR testing"""
+        logger.info("🔐 Authenticating with DRLP credentials...")
+        
+        response = await self.make_request("POST", "/auth/login", {
+            "email": DRLP_TEST_EMAIL,
+            "password": DRLP_TEST_PASSWORD,
+            "role": DRLP_TEST_ROLE
+        })
+        
+        if response["status"] == 200:
+            self.drlp_auth_token = response["data"]["access_token"]
+            self.drlp_user_data = response["data"]["user"]
+            self.log_result("DRLP Authentication", True, f"Successfully authenticated as {DRLP_TEST_EMAIL}")
+            return True
+        else:
+            self.log_result("DRLP Authentication", False, f"Failed to authenticate: {response['data']}")
+            return False
+
+    def create_test_image_base64(self, text: str, width: int = 200, height: int = 100):
+        """Create a test image with text using PIL and return base64"""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            import io
+            import base64
+            
+            # Create image with white background
+            img = Image.new('RGB', (width, height), 'white')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use default font, fallback to basic if not available
+            try:
+                font = ImageFont.load_default()
+            except:
+                font = None
+            
+            # Calculate text position (centered)
+            if font:
+                bbox = draw.textbbox((0, 0), text, font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+            else:
+                # Rough estimation if font not available
+                text_width = len(text) * 8
+                text_height = 12
+            
+            x = (width - text_width) // 2
+            y = (height - text_height) // 2
+            
+            # Draw text
+            draw.text((x, y), text, fill='black', font=font)
+            
+            # Convert to base64
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            image_base64 = base64.b64encode(buffer.getvalue()).decode()
+            
+            return image_base64
+        except ImportError:
+            logger.error("PIL (Pillow) not available, using minimal base64 image")
+            # Return a minimal valid PNG base64 (1x1 pixel)
+            return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+
+    async def test_barcode_lookup_valid(self):
+        """Test POST /api/barcode/lookup with valid barcode (Nutella)"""
+        logger.info("🔍 Testing barcode lookup with valid barcode...")
+        
+        # Switch to DRLP token
+        original_token = self.auth_token
+        self.auth_token = self.drlp_auth_token
+        
+        response = await self.make_request("POST", "/barcode/lookup", {
+            "barcode": "3017620422003"  # Nutella barcode
+        })
+        
+        # Restore original token
+        self.auth_token = original_token
+        
+        if response["status"] == 200:
+            data = response["data"]
+            if data.get("success") and data.get("product"):
+                product = data["product"]
+                self.log_result(
+                    "Barcode Lookup - Valid Nutella", True,
+                    f"Successfully retrieved product: {product.get('name')}",
+                    {
+                        "product": product,
+                        "brand": product.get("brand"),
+                        "category": product.get("category"),
+                        "weight": product.get("weight")
+                    }
+                )
+            else:
+                self.log_result(
+                    "Barcode Lookup - Valid Nutella", False,
+                    f"Invalid response structure: {data}"
+                )
+        else:
+            self.log_result(
+                "Barcode Lookup - Valid Nutella", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_barcode_lookup_invalid(self):
+        """Test POST /api/barcode/lookup with invalid barcode"""
+        logger.info("🔍 Testing barcode lookup with invalid barcode...")
+        
+        # Switch to DRLP token
+        original_token = self.auth_token
+        self.auth_token = self.drlp_auth_token
+        
+        response = await self.make_request("POST", "/barcode/lookup", {
+            "barcode": "0000000000000"  # Invalid barcode
+        })
+        
+        # Restore original token
+        self.auth_token = original_token
+        
+        if response["status"] == 404:
+            data = response["data"]
+            if "not found" in data.get("detail", "").lower():
+                self.log_result(
+                    "Barcode Lookup - Invalid Barcode", True,
+                    "Correctly returned 404 for invalid barcode",
+                    {"response": data}
+                )
+            else:
+                self.log_result(
+                    "Barcode Lookup - Invalid Barcode", False,
+                    f"Wrong error message: {data}"
+                )
+        else:
+            self.log_result(
+                "Barcode Lookup - Invalid Barcode", False,
+                f"Expected 404, got {response['status']}: {response['data']}"
+            )
+
+    async def test_ocr_price_extraction(self):
+        """Test POST /api/ocr/extract-price with test image"""
+        logger.info("💰 Testing OCR price extraction...")
+        
+        # Create test image with price text
+        image_base64 = self.create_test_image_base64("Price: $9.99", 200, 100)
+        
+        # Switch to DRLP token
+        original_token = self.auth_token
+        self.auth_token = self.drlp_auth_token
+        
+        response = await self.make_request("POST", "/ocr/extract-price", {
+            "image_base64": image_base64
+        })
+        
+        # Restore original token
+        self.auth_token = original_token
+        
+        if response["status"] == 200:
+            data = response["data"]
+            if data.get("success") and data.get("extracted", {}).get("price"):
+                extracted_price = data["extracted"]["price"]
+                expected_price = "9.99"
+                
+                if extracted_price == expected_price:
+                    self.log_result(
+                        "OCR Price Extraction", True,
+                        f"Successfully extracted price: ${extracted_price}",
+                        {"extracted": data["extracted"]}
+                    )
+                else:
+                    self.log_result(
+                        "OCR Price Extraction", False,
+                        f"Expected price '{expected_price}', got '{extracted_price}'",
+                        {"extracted": data["extracted"]}
+                    )
+            else:
+                self.log_result(
+                    "OCR Price Extraction", False,
+                    f"Invalid response structure or no price extracted: {data}"
+                )
+        else:
+            self.log_result(
+                "OCR Price Extraction", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_ocr_product_analysis(self):
+        """Test POST /api/ocr/analyze-product with test image"""
+        logger.info("🥛 Testing OCR product analysis...")
+        
+        # Create test image with product text
+        image_base64 = self.create_test_image_base64("ORGANIC MILK\n2% Fat - 1 Gallon", 300, 150)
+        
+        # Switch to DRLP token
+        original_token = self.auth_token
+        self.auth_token = self.drlp_auth_token
+        
+        response = await self.make_request("POST", "/ocr/analyze-product", {
+            "image_base64": image_base64
+        })
+        
+        # Restore original token
+        self.auth_token = original_token
+        
+        if response["status"] == 200:
+            data = response["data"]
+            if data.get("success") and data.get("product"):
+                product = data["product"]
+                category = product.get("category")
+                expected_category = "Dairy & Eggs"
+                
+                if category == expected_category:
+                    self.log_result(
+                        "OCR Product Analysis", True,
+                        f"Successfully analyzed product and categorized as '{category}'",
+                        {
+                            "product": product,
+                            "organic": product.get("organic"),
+                            "name": product.get("name")
+                        }
+                    )
+                else:
+                    self.log_result(
+                        "OCR Product Analysis", False,
+                        f"Expected category '{expected_category}', got '{category}'",
+                        {"product": product}
+                    )
+            else:
+                self.log_result(
+                    "OCR Product Analysis", False,
+                    f"Invalid response structure or no product analyzed: {data}"
+                )
+        else:
+            self.log_result(
+                "OCR Product Analysis", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_barcode_ocr_authorization_dac_forbidden(self):
+        """Test that DAC users get 403 Forbidden for barcode/OCR endpoints"""
+        logger.info("🚫 Testing DAC user authorization (should be forbidden)...")
+        
+        # Use DAC token (current auth_token)
+        endpoints_to_test = [
+            ("/barcode/lookup", {"barcode": "3017620422003"}),
+            ("/ocr/extract-price", {"image_base64": self.create_test_image_base64("Price: $5.99")}),
+            ("/ocr/analyze-product", {"image_base64": self.create_test_image_base64("Test Product")})
+        ]
+        
+        for endpoint, data in endpoints_to_test:
+            response = await self.make_request("POST", endpoint, data)
+            
+            if response["status"] == 403:
+                error_detail = response["data"].get("detail", "")
+                if "only drlp users" in error_detail.lower():
+                    self.log_result(
+                        f"DAC Authorization - {endpoint}", True,
+                        f"Correctly rejected DAC user with 403: {error_detail}",
+                        {"endpoint": endpoint}
+                    )
+                else:
+                    self.log_result(
+                        f"DAC Authorization - {endpoint}", False,
+                        f"Wrong error message: {error_detail}",
+                        {"endpoint": endpoint}
+                    )
+            else:
+                self.log_result(
+                    f"DAC Authorization - {endpoint}", False,
+                    f"Expected 403, got {response['status']}: {response['data']}",
+                    {"endpoint": endpoint}
+                )
+
+    async def test_barcode_ocr_authorization_unauthenticated(self):
+        """Test that unauthenticated requests get 401/403"""
+        logger.info("🔒 Testing unauthenticated access to barcode/OCR endpoints...")
+        
+        # Remove auth token temporarily
+        original_token = self.auth_token
+        self.auth_token = None
+        
+        endpoints_to_test = [
+            ("/barcode/lookup", {"barcode": "3017620422003"}),
+            ("/ocr/extract-price", {"image_base64": self.create_test_image_base64("Price: $5.99")}),
+            ("/ocr/analyze-product", {"image_base64": self.create_test_image_base64("Test Product")})
+        ]
+        
+        for endpoint, data in endpoints_to_test:
+            response = await self.make_request("POST", endpoint, data)
+            
+            if response["status"] in [401, 403]:
+                self.log_result(
+                    f"Unauthenticated Access - {endpoint}", True,
+                    f"Correctly rejected unauthenticated request with {response['status']}",
+                    {"endpoint": endpoint, "response": response["data"]}
+                )
+            else:
+                self.log_result(
+                    f"Unauthenticated Access - {endpoint}", False,
+                    f"Expected 401/403, got {response['status']}: {response['data']}",
+                    {"endpoint": endpoint}
+                )
+        
+        # Restore auth token
+        self.auth_token = original_token
+
+    async def run_barcode_ocr_tests(self):
+        """Run comprehensive Barcode/OCR integration tests"""
+        logger.info("🎯 STARTING BARCODE/OCR INTEGRATION TESTS")
+        
+        # Authenticate with both DAC and DRLP credentials
+        if not await self.authenticate():
+            logger.error("❌ Failed to authenticate with DAC credentials")
+            return {"total": 0, "passed": 0, "failed": 0, "results": []}
+        
+        if not await self.authenticate_drlp():
+            logger.error("❌ Failed to authenticate with DRLP credentials")
+            return {"total": 0, "passed": 0, "failed": 0, "results": []}
+        
+        # Run barcode tests
+        logger.info("📊 Testing Barcode Lookup API...")
+        await self.test_barcode_lookup_valid()
+        await self.test_barcode_lookup_invalid()
+        
+        # Run OCR tests
+        logger.info("📊 Testing OCR APIs...")
+        await self.test_ocr_price_extraction()
+        await self.test_ocr_product_analysis()
+        
+        # Run authorization tests
+        logger.info("📊 Testing Authorization...")
+        await self.test_barcode_ocr_authorization_dac_forbidden()
+        await self.test_barcode_ocr_authorization_unauthenticated()
+        
+        # Summary
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        logger.info(f"\n📊 BARCODE/OCR INTEGRATION TEST SUMMARY")
+        logger.info(f"Total Tests: {total_tests}")
+        logger.info(f"Passed: {passed_tests} ✅")
+        logger.info(f"Failed: {failed_tests} ❌")
+        logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if passed_tests == total_tests:
+            logger.info(f"🎉 100% SUCCESS: Barcode/OCR integration working!")
+        else:
+            logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
+        
+        if failed_tests > 0:
+            logger.info(f"\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    logger.info(f"  - {result['test']}: {result['message']}")
+        
+        return {
+            "total": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "results": self.test_results
+        }
+
     async def run_password_change_tests(self):
         """Run password change feature tests"""
         logger.info("🚀 Starting PASSWORD CHANGE FEATURE TESTING")
