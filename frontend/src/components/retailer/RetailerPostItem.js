@@ -301,45 +301,77 @@ export default function RetailerPostItem({ user, onLogout }) {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Barcode className="w-5 h-5" />
-                <span>Step 1: Scan Barcode</span>
+                <span>Step 1: Product Identification</span>
               </CardTitle>
-              <CardDescription>Auto-populate product name and category</CardDescription>
+              <CardDescription>Scan barcode or upload product image to auto-populate details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  onClick={handleBarcodeScan}
-                  disabled={scanning}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  data-testid="scan-barcode-btn"
-                >
-                  {scanning ? (
-                    <>
-                      <span className="animate-spin mr-2">⟳</span>
-                      Scanning...
-                    </>
-                  ) : (
-                    <>
-                      <Barcode className="w-4 h-4 mr-2" />
-                      Scan Barcode
-                    </>
-                  )}
-                </Button>
-                <span className="text-gray-500 py-2">or</span>
-                <Input
-                  placeholder="Enter barcode manually"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  className="flex-1"
-                  data-testid="manual-barcode"
-                />
+              {/* Barcode Lookup */}
+              <div className="space-y-2">
+                <Label>Barcode Lookup (Open Food Facts)</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Enter barcode number (e.g., 3017620422003)"
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    className="flex-1"
+                    data-testid="barcode-input"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleBarcodeLookup}
+                    disabled={scanning}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    data-testid="lookup-barcode-btn"
+                  >
+                    {scanning ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Barcode className="w-4 h-4 mr-2" />
+                        Lookup
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
+
+              {/* Product Image Analysis */}
+              <div className="space-y-2">
+                <Label>Or Upload Product Image (AI Analysis)</Label>
+                <div className="flex space-x-2">
+                  <input
+                    type="file"
+                    ref={productImageRef}
+                    onChange={handleProductImageUpload}
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => productImageRef.current?.click()}
+                    disabled={scanning}
+                    className="flex-1"
+                  >
+                    {scanning ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    Upload Product Photo
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">Upload a photo of the product to extract name, category, and attributes using AI</p>
+              </div>
+
+              {/* Success indicator */}
               {formData.name && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm font-medium text-green-800">✓ Product Found</p>
                   <p className="text-sm text-green-700 mt-1">{formData.name}</p>
-                  <p className="text-xs text-green-600 mt-1">Category: {formData.category}</p>
+                  {formData.category && <p className="text-xs text-green-600 mt-1">Category: {formData.category}</p>}
+                  {formData.barcode && <p className="text-xs text-green-600">Barcode: {formData.barcode}</p>}
                 </div>
               )}
             </CardContent>
