@@ -8,7 +8,7 @@
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:58:09.238736+00:00"
+      "timestamp": "2025-12-20T02:58:23.099577+00:00"
     },
     {
       "test": "WebSocket Status Endpoint",
@@ -21,7 +21,7 @@
           "status": "active"
         }
       },
-      "timestamp": "2025-12-20T02:58:09.287601+00:00"
+      "timestamp": "2025-12-20T02:58:23.112159+00:00"
     },
     {
       "test": "WebSocket Connection with Consumer Token",
@@ -36,21 +36,21 @@
         },
         "consumer_email": "consumer1@dealshaq.com"
       },
-      "timestamp": "2025-12-20T02:58:09.600246+00:00"
+      "timestamp": "2025-12-20T02:58:23.421478+00:00"
     },
     {
       "test": "WebSocket Authorization - Invalid Token",
       "success": false,
       "message": "Connection accepted with invalid token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:58:09.644118+00:00"
+      "timestamp": "2025-12-20T02:58:23.462971+00:00"
     },
     {
       "test": "WebSocket Authorization - No Token",
       "success": false,
       "message": "Connection accepted without token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:58:09.668735+00:00"
+      "timestamp": "2025-12-20T02:58:23.482865+00:00"
     },
     {
       "test": "Notification Database Structure",
@@ -59,7 +59,7 @@
       "details": {
         "notifications_count": 0
       },
-      "timestamp": "2025-12-20T02:58:09.683785+00:00"
+      "timestamp": "2025-12-20T02:58:23.495915+00:00"
     },
     {
       "test": "RSHD Post Triggers Notification with Retailer Credentials",
@@ -70,7 +70,7 @@
         "rshd_item": "WebSocket Test Notification Item",
         "all_recent_notifications": []
       },
-      "timestamp": "2025-12-20T02:58:12.976605+00:00"
+      "timestamp": "2025-12-20T02:58:26.903118+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -100,7 +100,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-20T02:58:13.025221+00:00"
+      "timestamp": "2025-12-20T02:58:26.951019+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -109,7 +109,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:58:13.283284+00:00"
+      "timestamp": "2025-12-20T02:58:27.203312+00:00"
     },
     {
       "test": "Authentication Protection Regression",
@@ -120,7 +120,7 @@
           "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-20T02:58:13.290931+00:00"
+      "timestamp": "2025-12-20T02:58:27.212863+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -129,7 +129,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:58:13.304370+00:00"
+      "timestamp": "2025-12-20T02:58:27.222511+00:00"
     }
   ]
 }
