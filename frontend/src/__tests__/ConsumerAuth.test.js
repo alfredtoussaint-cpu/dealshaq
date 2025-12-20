@@ -112,7 +112,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     });
 
     // Enter email address
-    const emailInput = screen.getByLabelText(/email address/i);
+    const emailInput = screen.getByTestId('reset-email');
     await userEvent.type(emailInput, 'consumer@example.com');
 
     // Click "Send Reset Link" button
@@ -157,7 +157,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     });
 
     // Enter email address
-    const emailInput = screen.getByLabelText(/email address/i);
+    const emailInput = screen.getByTestId('reset-email');
     await userEvent.type(emailInput, 'consumer@example.com');
 
     // Click "Send Reset Link" button
@@ -236,7 +236,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     });
 
     // Enter email and submit
-    const emailInput = screen.getByLabelText(/email address/i);
+    const emailInput = screen.getByTestId('reset-email');
     await userEvent.type(emailInput, 'test@example.com');
     
     const sendButton = screen.getByRole('button', { name: /send reset link/i });
@@ -251,7 +251,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     fireEvent.click(forgotPasswordLink);
 
     await waitFor(() => {
-      const newEmailInput = screen.getByLabelText(/email address/i);
+      const newEmailInput = screen.getByTestId('reset-email');
       expect(newEmailInput).toHaveValue('');
     });
   });
@@ -272,7 +272,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
     });
 
     // Enter email and submit
-    const emailInput = screen.getByLabelText(/email address/i);
+    const emailInput = screen.getByTestId('reset-email');
     await userEvent.type(emailInput, 'consumer@dealshaq.com');
     
     const sendButton = screen.getByRole('button', { name: /send reset link/i });
