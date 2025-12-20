@@ -1,6 +1,6 @@
 {
-  "total": 7,
-  "passed": 7,
+  "total": 12,
+  "passed": 12,
   "failed": 0,
   "results": [
     {
@@ -8,73 +8,148 @@
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-19T02:53:36.635990+00:00"
+      "timestamp": "2025-12-20T02:26:11.468016+00:00"
     },
     {
-      "test": "Password Change - Wrong Current Password",
+      "test": "DRLP Authentication",
       "success": true,
-      "message": "Correctly rejected wrong current password with 400 error",
+      "message": "Successfully authenticated as test.retailer@dealshaq.com",
+      "details": {},
+      "timestamp": "2025-12-20T02:26:11.721813+00:00"
+    },
+    {
+      "test": "Barcode Lookup - Valid Nutella",
+      "success": true,
+      "message": "Successfully retrieved product: Nutella",
+      "details": {
+        "product": {
+          "name": "Nutella",
+          "brand": "Nutella,Ferrero",
+          "category": "Breakfast & Cereal",
+          "barcode": "3017620422003",
+          "weight": 0.88,
+          "description": "P\u00e2te \u00e0 tartiner aux noisettes et au cacao",
+          "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.633.400.jpg",
+          "ingredients": "sugar, palm oil, hazelnuts 13%, low-fat cocoa 7.4%, skimmed milk powder 6.6%, whey powder, emulsifiers: lecithins [soya], vanillin, gluten-free,",
+          "nutriscore": "e",
+          "is_organic": false,
+          "raw_data": {
+            "categories": "Petit-d\u00e9jeuners,Produits \u00e0 tartiner,Produits \u00e0 tartiner sucr\u00e9s,P\u00e2tes \u00e0 tartiner,P\u00e2tes \u00e0 tartiner aux noisettes",
+            "labels": "V\u00e9g\u00e9tarien,Sans gluten,Sans conservateurs,Sans mati\u00e8re grasse hydrog\u00e9n\u00e9e,Triman",
+            "quantity": "400 g"
+          }
+        },
+        "brand": "Nutella,Ferrero",
+        "category": "Breakfast & Cereal",
+        "weight": 0.88
+      },
+      "timestamp": "2025-12-20T02:26:12.632598+00:00"
+    },
+    {
+      "test": "Barcode Lookup - Invalid Barcode",
+      "success": true,
+      "message": "Correctly returned 404 for invalid barcode",
       "details": {
         "response": {
-          "detail": "Current password is incorrect"
+          "detail": "Product not found in database"
         }
       },
-      "timestamp": "2025-12-19T02:53:36.893247+00:00"
+      "timestamp": "2025-12-20T02:26:13.022259+00:00"
     },
     {
-      "test": "Password Change - Same Password",
+      "test": "OCR Price Extraction",
       "success": true,
-      "message": "Correctly rejected same password with 400 error",
+      "message": "Successfully extracted price: $9.99",
       "details": {
+        "extracted": {
+          "price": "9.99",
+          "product_name": null,
+          "original_price": null,
+          "discount_percentage": null
+        }
+      },
+      "timestamp": "2025-12-20T02:26:14.693680+00:00"
+    },
+    {
+      "test": "OCR Product Analysis",
+      "success": true,
+      "message": "Successfully analyzed product and categorized as 'Dairy & Eggs'",
+      "details": {
+        "product": {
+          "product_name": "Organic Milk 2% Fat",
+          "brand": null,
+          "category": "Dairy & Eggs",
+          "weight": "1 Gallon",
+          "is_organic": true,
+          "description": "2% fat organic milk in a 1-gallon container"
+        },
+        "organic": null,
+        "name": null
+      },
+      "timestamp": "2025-12-20T02:26:17.110961+00:00"
+    },
+    {
+      "test": "DAC Authorization - /barcode/lookup",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403: Only DRLP users can use barcode lookup",
+      "details": {
+        "endpoint": "/barcode/lookup"
+      },
+      "timestamp": "2025-12-20T02:26:17.128009+00:00"
+    },
+    {
+      "test": "DAC Authorization - /ocr/extract-price",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403: Only DRLP users can use OCR",
+      "details": {
+        "endpoint": "/ocr/extract-price"
+      },
+      "timestamp": "2025-12-20T02:26:17.177441+00:00"
+    },
+    {
+      "test": "DAC Authorization - /ocr/analyze-product",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403: Only DRLP users can use product analysis",
+      "details": {
+        "endpoint": "/ocr/analyze-product"
+      },
+      "timestamp": "2025-12-20T02:26:17.190288+00:00"
+    },
+    {
+      "test": "Unauthenticated Access - /barcode/lookup",
+      "success": true,
+      "message": "Correctly rejected unauthenticated request with 403",
+      "details": {
+        "endpoint": "/barcode/lookup",
         "response": {
-          "detail": "New password must be different from current password"
+          "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-19T02:53:37.392139+00:00"
+      "timestamp": "2025-12-20T02:26:17.204394+00:00"
     },
     {
-      "test": "Password Change - Short Password",
+      "test": "Unauthenticated Access - /ocr/extract-price",
       "success": true,
-      "message": "Correctly rejected short password with 400 error",
+      "message": "Correctly rejected unauthenticated request with 403",
       "details": {
+        "endpoint": "/ocr/extract-price",
         "response": {
-          "detail": "New password must be at least 8 characters long"
+          "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-19T02:53:37.400473+00:00"
+      "timestamp": "2025-12-20T02:26:17.211978+00:00"
     },
     {
-      "test": "Password Change - Success",
+      "test": "Unauthenticated Access - /ocr/analyze-product",
       "success": true,
-      "message": "Successfully changed password",
+      "message": "Correctly rejected unauthenticated request with 403",
       "details": {
+        "endpoint": "/ocr/analyze-product",
         "response": {
-          "message": "Password changed successfully",
-          "status": "success"
+          "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-19T02:53:38.147307+00:00"
-    },
-    {
-      "test": "Password Change - Login with New Password",
-      "success": true,
-      "message": "Successfully logged in with new password",
-      "details": {
-        "user": "test.brand.generic@example.com"
-      },
-      "timestamp": "2025-12-19T02:53:38.399171+00:00"
-    },
-    {
-      "test": "Password Change - Change Back to Original",
-      "success": true,
-      "message": "Successfully changed password back to original",
-      "details": {
-        "response": {
-          "message": "Password changed successfully",
-          "status": "success"
-        }
-      },
-      "timestamp": "2025-12-19T02:53:39.136395+00:00"
+      "timestamp": "2025-12-20T02:26:17.218724+00:00"
     }
   ]
 }
