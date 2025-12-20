@@ -128,7 +128,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that success toast appears
     await waitFor(() => {
-      expect(mockToastSuccess).toHaveBeenCalledWith('Password reset instructions sent to retailer@example.com');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Password reset link sent! Check your email.');
     });
 
     // Assert that modal closes after success
