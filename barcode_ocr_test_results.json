@@ -1,0 +1,164 @@
+{
+  "total": 15,
+  "passed": 10,
+  "failed": 5,
+  "results": [
+    {
+      "test": "DRLP Authentication",
+      "success": true,
+      "message": "Successfully authenticated as test.retailer@dealshaq.com",
+      "details": {},
+      "timestamp": "2025-12-20T02:19:58.123532+00:00"
+    },
+    {
+      "test": "DAC Authentication",
+      "success": true,
+      "message": "Successfully authenticated as test.brand.generic@example.com",
+      "details": {},
+      "timestamp": "2025-12-20T02:19:58.379847+00:00"
+    },
+    {
+      "test": "Barcode Lookup - Nutella (should return product info)",
+      "success": true,
+      "message": "Successfully retrieved product: Nutella",
+      "details": {
+        "barcode": "3017620422003",
+        "product_name": "Nutella",
+        "brand": "Nutella,Ferrero",
+        "category": "Breakfast & Cereal",
+        "is_organic": false,
+        "weight": 0.88,
+        "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.633.400.jpg"
+      },
+      "timestamp": "2025-12-20T02:19:59.461031+00:00"
+    },
+    {
+      "test": "Barcode Lookup - Coca-Cola (should return product info)",
+      "success": true,
+      "message": "Successfully retrieved product: Coca Cola",
+      "details": {
+        "barcode": "5449000000996",
+        "product_name": "Coca Cola",
+        "brand": "Coca-Cola",
+        "category": "Beverages",
+        "is_organic": false,
+        "weight": 0.07,
+        "image_url": "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.983.400.jpg"
+      },
+      "timestamp": "2025-12-20T02:20:00.357174+00:00"
+    },
+    {
+      "test": "Invalid Barcode - Invalid barcode (should return 'Product not found')",
+      "success": true,
+      "message": "Correctly returned 404 for invalid barcode",
+      "details": {
+        "barcode": "0000000000000",
+        "response": {
+          "detail": "Product not found in database"
+        }
+      },
+      "timestamp": "2025-12-20T02:20:00.795191+00:00"
+    },
+    {
+      "test": "Invalid Barcode - Empty barcode (should return error)",
+      "success": true,
+      "message": "Correctly returned 404 for invalid barcode",
+      "details": {
+        "barcode": "",
+        "response": {
+          "detail": "Product not found in database"
+        }
+      },
+      "timestamp": "2025-12-20T02:20:01.187864+00:00"
+    },
+    {
+      "test": "OCR Price Extraction",
+      "success": false,
+      "message": "Failed with status 520: {'detail': 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o\\nAvailable Model Group Fallbacks=None'}",
+      "details": {},
+      "timestamp": "2025-12-20T02:20:10.091297+00:00"
+    },
+    {
+      "test": "OCR Product Analysis",
+      "success": false,
+      "message": "Failed with status 520: {'detail': 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o\\nAvailable Model Group Fallbacks=None'}",
+      "details": {},
+      "timestamp": "2025-12-20T02:20:14.261618+00:00"
+    },
+    {
+      "test": "Authorization - Barcode Lookup (DAC User)",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403 Forbidden",
+      "details": {
+        "endpoint": "/barcode/lookup",
+        "response": {
+          "detail": "Only DRLP users can use barcode lookup"
+        }
+      },
+      "timestamp": "2025-12-20T02:20:14.272251+00:00"
+    },
+    {
+      "test": "Authorization - OCR Price Extraction (DAC User)",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403 Forbidden",
+      "details": {
+        "endpoint": "/ocr/extract-price",
+        "response": {
+          "detail": "Only DRLP users can use OCR"
+        }
+      },
+      "timestamp": "2025-12-20T02:20:14.281410+00:00"
+    },
+    {
+      "test": "Authorization - OCR Product Analysis (DAC User)",
+      "success": true,
+      "message": "Correctly rejected DAC user with 403 Forbidden",
+      "details": {
+        "endpoint": "/ocr/analyze-product",
+        "response": {
+          "detail": "Only DRLP users can use product analysis"
+        }
+      },
+      "timestamp": "2025-12-20T02:20:14.334606+00:00"
+    },
+    {
+      "test": "Authorization - Barcode Lookup (No Auth)",
+      "success": false,
+      "message": "Expected 401, got 403: {'detail': 'Not authenticated'}",
+      "details": {
+        "endpoint": "/barcode/lookup"
+      },
+      "timestamp": "2025-12-20T02:20:14.344471+00:00"
+    },
+    {
+      "test": "Authorization - OCR Price Extraction (No Auth)",
+      "success": false,
+      "message": "Expected 401, got 403: {'detail': 'Not authenticated'}",
+      "details": {
+        "endpoint": "/ocr/extract-price"
+      },
+      "timestamp": "2025-12-20T02:20:14.352433+00:00"
+    },
+    {
+      "test": "Authorization - OCR Product Analysis (No Auth)",
+      "success": false,
+      "message": "Expected 401, got 403: {'detail': 'Not authenticated'}",
+      "details": {
+        "endpoint": "/ocr/analyze-product"
+      },
+      "timestamp": "2025-12-20T02:20:14.401856+00:00"
+    },
+    {
+      "test": "Category Mapping",
+      "success": true,
+      "message": "Successfully mapped to valid DealShaq category: 'Breakfast & Cereal'",
+      "details": {
+        "product_name": "Nutella",
+        "mapped_category": "Breakfast & Cereal",
+        "valid_categories_count": 20,
+        "raw_categories": "Petit-d\u00e9jeuners,Produits \u00e0 tartiner,Produits \u00e0 tartiner sucr\u00e9s,P\u00e2tes \u00e0 tartiner,P\u00e2tes \u00e0 tartiner aux noisettes"
+      },
+      "timestamp": "2025-12-20T02:20:15.168049+00:00"
+    }
+  ]
+}
