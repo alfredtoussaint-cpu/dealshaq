@@ -127,11 +127,11 @@ class TestWebSocketService:
     def test_websocket_service_import(self):
         """Test that websocket_service can be imported"""
         import websocket_service
-        assert hasattr(websocket_service, 'WebSocketManager')
+        assert hasattr(websocket_service, 'ConnectionManager')
     
-    def test_websocket_manager_instantiation(self):
-        """Test that WebSocketManager can be instantiated"""
+    def test_connection_manager_instantiation(self):
+        """Test that ConnectionManager can be instantiated"""
         import websocket_service
-        manager = websocket_service.WebSocketManager()
+        manager = websocket_service.ConnectionManager()
         assert hasattr(manager, 'active_connections')
         assert len(manager.active_connections) == 0
