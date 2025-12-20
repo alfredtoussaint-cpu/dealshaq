@@ -3306,16 +3306,14 @@ class BackendTester:
 async def main():
     """Main test runner"""
     async with BackendTester() as tester:
-        # Run Admin Dashboard API tests as requested
-        results = await tester.run_admin_dashboard_tests()
+        # Run Retailer Management API tests as requested
+        await tester.run_retailer_management_tests()
         
-        # Save results to file
-        with open("/app/admin_test_results.json", "w") as f:
-            json.dump(results, f, indent=2)
+        # Return success status
+        total_tests = len(tester.test_results)
+        failed_tests = sum(1 for result in tester.test_results if not result["success"])
         
-        logger.info(f"\n📁 Test results saved to /app/admin_test_results.json")
-        
-        return results["failed"] == 0
+        return failed_tests == 0
 
 if __name__ == "__main__":
     success = asyncio.run(main())
