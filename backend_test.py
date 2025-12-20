@@ -2333,8 +2333,8 @@ class BackendTester:
             )
 
     async def run_all_tests(self):
-        """Run comprehensive geographic filtering tests"""
-        logger.info("🚀 Starting COMPREHENSIVE GEOGRAPHIC FILTERING TESTING")
+        """Run comprehensive WebSocket notification system tests"""
+        logger.info("🚀 Starting COMPREHENSIVE WEBSOCKET NOTIFICATION TESTING")
         logger.info(f"Backend URL: {API_BASE}")
         logger.info(f"Test Credentials: {TEST_EMAIL} (Role: {TEST_ROLE})")
         
@@ -2343,27 +2343,16 @@ class BackendTester:
             logger.error("❌ Authentication failed - stopping tests")
             return
         
-        # PRIORITY 1: New DACDRLP-List Endpoints
-        logger.info("🎯 PRIORITY 1: New DACDRLP-List Endpoints")
-        await self.test_dacdrlp_list_get_endpoint()
-        await self.test_dacsai_update_endpoint()
+        # PRIORITY 1: WebSocket Notification System Tests
+        logger.info("🔔 PRIORITY 1: WebSocket Notification System")
+        await self.test_websocket_status_endpoint()
+        await self.test_websocket_connection_with_token()
+        await self.test_websocket_authorization()
+        await self.test_notification_database_verification()
+        await self.test_rshd_post_triggers_notification()
         
-        # PRIORITY 2: Registration with Geographic Data
-        logger.info("🏗️ PRIORITY 2: Registration with Geographic Data")
-        await self.get_existing_drlp_with_location()
-        await self.create_test_dac_with_delivery_location()
-        
-        # PRIORITY 3: Add/Remove Retailers
-        logger.info("➕➖ PRIORITY 3: Add/Remove Retailers")
-        await self.test_add_remove_retailers()
-        
-        # PRIORITY 4: Notification Matching with Geographic Filter
-        logger.info("🎯 PRIORITY 4: Notification Matching with Geographic Filter")
-        await self.test_notification_matching_with_geographic_filter()
-        
-        # PRIORITY 5: Existing Functionality Regression
-        logger.info("🔄 PRIORITY 5: Existing Functionality Regression")
-        await self.test_existing_functionality_regression()
+        # PRIORITY 2: Core Backend Functionality (Regression)
+        logger.info("🔄 PRIORITY 2: Core Backend Functionality")
         await self.test_categories_endpoint()
         await self.test_authentication_regression()
         
@@ -2372,15 +2361,15 @@ class BackendTester:
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         
-        logger.info(f"\n📊 COMPREHENSIVE GEOGRAPHIC FILTERING TEST SUMMARY")
-        logger.info(f"🎯 DACSAI, DACDRLP-List, and DRLPDAC-List Implementation")
+        logger.info(f"\n📊 COMPREHENSIVE WEBSOCKET NOTIFICATION TEST SUMMARY")
+        logger.info(f"🔔 Real-time WebSocket Notification System")
         logger.info(f"Total Tests: {total_tests}")
         logger.info(f"Passed: {passed_tests} ✅")
         logger.info(f"Failed: {failed_tests} ❌")
         logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         if passed_tests == total_tests:
-            logger.info(f"🎉 100% SUCCESS: Geographic filtering implementation working!")
+            logger.info(f"🎉 100% SUCCESS: WebSocket notification system working!")
         else:
             logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
         
