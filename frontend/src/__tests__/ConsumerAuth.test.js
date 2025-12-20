@@ -91,7 +91,7 @@ describe('ConsumerAuth - Forgot Password Flow', () => {
 
     // Assert that email is pre-filled in the modal
     await waitFor(() => {
-      const modalEmailInput = screen.getByLabelText(/email address/i);
+      const modalEmailInput = screen.getByTestId('reset-email');
       expect(modalEmailInput).toHaveValue('test@consumer.com');
     });
   });
