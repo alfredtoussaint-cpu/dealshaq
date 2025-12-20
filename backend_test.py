@@ -1169,14 +1169,7 @@ class BackendTester:
         """Test GET /api/admin/retailers - Get all retailers with stats"""
         logger.info("🏪 Testing Admin Retailers List endpoint...")
         
-        # Use admin token
-        original_token = self.auth_token
-        self.auth_token = self.admin_auth_token
-        
-        response = await self.make_request("GET", "/admin/retailers")
-        
-        # Restore original token
-        self.auth_token = original_token
+        response = await self.make_request("GET", "/admin/retailers", token=self.admin_auth_token)
         
         if response["status"] == 200:
             retailers = response["data"]
