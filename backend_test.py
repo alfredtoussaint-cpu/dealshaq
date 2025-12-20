@@ -2028,7 +2028,7 @@ class BackendTester:
             
             # Test connection
             try:
-                async with websockets.connect(ws_endpoint, ssl=ssl_context, timeout=10) as websocket:
+                async with websockets.connect(ws_endpoint, ssl=ssl_context) as websocket:
                     # Wait for welcome message
                     welcome_msg = await asyncio.wait_for(websocket.recv(), timeout=5)
                     welcome_data = json.loads(welcome_msg)
