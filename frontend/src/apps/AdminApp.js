@@ -58,6 +58,7 @@ export default function AdminApp() {
       <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/dashboard" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
       <Route path="/users" element={<AdminUsers user={user} onLogout={handleLogout} />} />
+      <Route path="/retailers" element={<AdminRetailers user={user} onLogout={handleLogout} />} />
       <Route path="/transactions" element={<AdminTransactions user={user} onLogout={handleLogout} />} />
       <Route path="/items" element={<AdminItems user={user} onLogout={handleLogout} />} />
       <Route path="/charities" element={<AdminCharities user={user} onLogout={handleLogout} />} />
