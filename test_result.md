@@ -634,22 +634,21 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.1"
-  test_sequence: 2
-  run_ui: true
+  version: "1.2"
+  test_sequence: 3
+  run_ui: false
 
 test_plan:
   current_focus:
-    - "WebSocket Authorization and Security"
-    - "RSHD Post Triggers Notification"
-    - "WebSocket Endpoint Configuration"
+    - "Admin Authorization - Non-Admin Access Control"
   stuck_tasks:
-    - "WebSocket Authorization and Security"
-    - "RSHD Post Triggers Notification"
+    - "Admin Authorization - Non-Admin Access Control"
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "testing"
+      message: "🏪 RETAILER MANAGEMENT API TESTING COMPLETED - 81.8% SUCCESS RATE (9/11 tests passed). ✅ WORKING: Admin authentication successful, GET /api/admin/retailers returns 24 retailers with comprehensive stats (store_name, address, email, active_items, total_items, total_orders, total_revenue, consumer_reach), GET /api/admin/retailers/{id} provides detailed retailer info with location/items/orders/consumers data, GET /api/admin/retailers/analytics/overview returns proper analytics structure (total_retailers: 24, active_retailers: 13, top_by_items, registrations_trend), PUT /api/admin/retailers/{id}/status successfully suspends/reactivates retailers with proper status updates. ❌ CRITICAL SECURITY ISSUE: Non-admin users (DAC role) can access admin retailer endpoints and receive 200 responses instead of 403 Forbidden - admin endpoints lack proper role-based authorization. All core retailer management functionality working but requires security fix."
     - agent: "testing"
       message: "🔔 WEBSOCKET NOTIFICATION SYSTEM TESTING COMPLETED - 72.7% SUCCESS RATE (8/11 tests passed). ✅ WORKING: WebSocket status endpoint functional, WebSocket connection established with consumer credentials, notification database structure verified, core authentication and categories endpoints working. ❌ CRITICAL ISSUES: 1) WebSocket authorization failing - accepts invalid/missing tokens (security vulnerability), 2) RSHD posting not creating notifications (0 notifications generated), 3) WebSocket connecting to development service instead of production notification service. ✅ POSITIVE FINDINGS: Backend API structure correct, authentication working for regular endpoints, WebSocket endpoint accessible. ❌ ROOT CAUSE: WebSocket endpoint appears to be connecting to development hot-reload service rather than production notification WebSocket with proper JWT validation and notification broadcasting."
     - agent: "testing"
