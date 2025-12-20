@@ -107,7 +107,7 @@ export default function ConsumerRadar({ user, onLogout }) {
               <h1 className="text-2xl font-bold text-gray-900">Deal Radar</h1>
             </div>
             <p className="text-gray-600 mt-1">
-              Live deals from your {retailers.length} local retailers
+              Sizzling hot deals from your {retailers.length} local retailers
             </p>
           </div>
           <div className="flex gap-2">
