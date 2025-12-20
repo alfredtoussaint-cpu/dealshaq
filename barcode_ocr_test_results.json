@@ -8,14 +8,14 @@
       "success": true,
       "message": "Successfully authenticated as test.retailer@dealshaq.com",
       "details": {},
-      "timestamp": "2025-12-20T02:19:58.123532+00:00"
+      "timestamp": "2025-12-20T02:20:21.838499+00:00"
     },
     {
       "test": "DAC Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:19:58.379847+00:00"
+      "timestamp": "2025-12-20T02:20:22.093799+00:00"
     },
     {
       "test": "Barcode Lookup - Nutella (should return product info)",
@@ -30,7 +30,7 @@
         "weight": 0.88,
         "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.633.400.jpg"
       },
-      "timestamp": "2025-12-20T02:19:59.461031+00:00"
+      "timestamp": "2025-12-20T02:20:22.847459+00:00"
     },
     {
       "test": "Barcode Lookup - Coca-Cola (should return product info)",
@@ -45,7 +45,7 @@
         "weight": 0.07,
         "image_url": "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.983.400.jpg"
       },
-      "timestamp": "2025-12-20T02:20:00.357174+00:00"
+      "timestamp": "2025-12-20T02:20:23.602500+00:00"
     },
     {
       "test": "Invalid Barcode - Invalid barcode (should return 'Product not found')",
@@ -57,7 +57,7 @@
           "detail": "Product not found in database"
         }
       },
-      "timestamp": "2025-12-20T02:20:00.795191+00:00"
+      "timestamp": "2025-12-20T02:20:23.979086+00:00"
     },
     {
       "test": "Invalid Barcode - Empty barcode (should return error)",
@@ -69,21 +69,21 @@
           "detail": "Product not found in database"
         }
       },
-      "timestamp": "2025-12-20T02:20:01.187864+00:00"
+      "timestamp": "2025-12-20T02:20:24.361733+00:00"
     },
     {
       "test": "OCR Price Extraction",
       "success": false,
       "message": "Failed with status 520: {'detail': 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o\\nAvailable Model Group Fallbacks=None'}",
       "details": {},
-      "timestamp": "2025-12-20T02:20:10.091297+00:00"
+      "timestamp": "2025-12-20T02:20:27.601527+00:00"
     },
     {
       "test": "OCR Product Analysis",
       "success": false,
       "message": "Failed with status 520: {'detail': 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o\\nAvailable Model Group Fallbacks=None'}",
       "details": {},
-      "timestamp": "2025-12-20T02:20:14.261618+00:00"
+      "timestamp": "2025-12-20T02:20:30.925169+00:00"
     },
     {
       "test": "Authorization - Barcode Lookup (DAC User)",
@@ -95,7 +95,7 @@
           "detail": "Only DRLP users can use barcode lookup"
         }
       },
-      "timestamp": "2025-12-20T02:20:14.272251+00:00"
+      "timestamp": "2025-12-20T02:20:30.935114+00:00"
     },
     {
       "test": "Authorization - OCR Price Extraction (DAC User)",
@@ -107,7 +107,7 @@
           "detail": "Only DRLP users can use OCR"
         }
       },
-      "timestamp": "2025-12-20T02:20:14.281410+00:00"
+      "timestamp": "2025-12-20T02:20:30.985070+00:00"
     },
     {
       "test": "Authorization - OCR Product Analysis (DAC User)",
@@ -119,7 +119,7 @@
           "detail": "Only DRLP users can use product analysis"
         }
       },
-      "timestamp": "2025-12-20T02:20:14.334606+00:00"
+      "timestamp": "2025-12-20T02:20:31.034266+00:00"
     },
     {
       "test": "Authorization - Barcode Lookup (No Auth)",
@@ -128,7 +128,7 @@
       "details": {
         "endpoint": "/barcode/lookup"
       },
-      "timestamp": "2025-12-20T02:20:14.344471+00:00"
+      "timestamp": "2025-12-20T02:20:31.042231+00:00"
     },
     {
       "test": "Authorization - OCR Price Extraction (No Auth)",
@@ -137,7 +137,7 @@
       "details": {
         "endpoint": "/ocr/extract-price"
       },
-      "timestamp": "2025-12-20T02:20:14.352433+00:00"
+      "timestamp": "2025-12-20T02:20:31.051034+00:00"
     },
     {
       "test": "Authorization - OCR Product Analysis (No Auth)",
@@ -146,7 +146,7 @@
       "details": {
         "endpoint": "/ocr/analyze-product"
       },
-      "timestamp": "2025-12-20T02:20:14.401856+00:00"
+      "timestamp": "2025-12-20T02:20:31.099004+00:00"
     },
     {
       "test": "Category Mapping",
@@ -158,7 +158,7 @@
         "valid_categories_count": 20,
         "raw_categories": "Petit-d\u00e9jeuners,Produits \u00e0 tartiner,Produits \u00e0 tartiner sucr\u00e9s,P\u00e2tes \u00e0 tartiner,P\u00e2tes \u00e0 tartiner aux noisettes"
       },
-      "timestamp": "2025-12-20T02:20:15.168049+00:00"
+      "timestamp": "2025-12-20T02:20:31.911201+00:00"
     }
   ]
 }
