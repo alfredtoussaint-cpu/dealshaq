@@ -118,6 +118,11 @@ export const admin = {
   activity: () => api.get('/admin/activity'),
   charities: () => api.get('/admin/charities'),
   createAdmin: (userData) => api.post('/admin/create-admin', userData),
+  // Retailer Management
+  retailers: () => api.get('/admin/retailers'),
+  retailerDetails: (retailerId) => api.get(`/admin/retailers/${retailerId}`),
+  retailerAnalytics: () => api.get('/admin/retailers/analytics/overview'),
+  updateRetailerStatus: (retailerId, status) => api.put(`/admin/retailers/${retailerId}/status`, { status }),
 };
 
 export const categories = {
