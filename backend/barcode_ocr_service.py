@@ -194,7 +194,7 @@ async def extract_text_from_image(image_base64: str, prompt: str = None) -> Dict
     Extract text/information from image using OpenAI GPT-4 Vision.
     
     Args:
-        image_base64: Base64 encoded image (JPEG, PNG, or WEBP)
+        image_base64: Base64 encoded image (JPEG, PNG, or WEBP) - raw base64 without data URI prefix
         prompt: Custom prompt for extraction (default: extract price)
     
     Returns:
@@ -205,6 +205,24 @@ async def extract_text_from_image(image_base64: str, prompt: str = None) -> Dict
     api_key = os.environ.get('EMERGENT_LLM_KEY')
     if not api_key:
         return {"success": False, "error": "EMERGENT_LLM_KEY not configured"}
+    
+    # Remove data URI prefix if present (e.g., "data:image/jpeg;base64,")
+    if image_base64.startswith('data:'):
+        try:
+            # Extract just the base64 part after the comma
+            image_base64 = image_base64.split(',')[1]
+        except IndexError:
+            return {"success": False, "error": "Invalid data URI format"}
+    
+    # Validate base64 string
+    try:
+        import base64
+        # Test decode to validate
+        decoded = base64.b64decode(image_base64)
+        if len(decoded) < 100:
+            return {"success": False, "error": "Image too small or invalid"}
+    except Exception as e:
+        return {"success": False, "error": f"Invalid base64 encoding: {str(e)}"}
     
     default_prompt = """Analyze this image of a product price tag or receipt.
 Extract the following information:
@@ -229,7 +247,7 @@ Only return the JSON, no other text."""
             system_message="You are a helpful assistant that extracts information from images. Always respond with valid JSON."
         ).with_model("openai", "gpt-4o")
         
-        # Create image content
+        # Create image content with raw base64 (no data URI prefix)
         image_content = ImageContent(image_base64=image_base64)
         
         # Send message with image
