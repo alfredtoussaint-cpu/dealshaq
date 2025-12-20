@@ -190,7 +190,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that error toast appears
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Please enter your email address');
+      expect(mockToastError).toHaveBeenCalledWith('Please enter your email');
     });
 
     // Assert that API was NOT called
