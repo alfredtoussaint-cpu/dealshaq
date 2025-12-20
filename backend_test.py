@@ -2389,8 +2389,8 @@ class BackendTester:
 async def main():
     """Main test runner"""
     async with BackendTester() as tester:
-        # Run barcode/OCR integration tests as requested
-        results = await tester.run_barcode_ocr_tests()
+        # Run WebSocket notification system tests as requested
+        results = await tester.run_all_tests()
         
         # Save results to file
         with open("/app/test_results.json", "w") as f:
