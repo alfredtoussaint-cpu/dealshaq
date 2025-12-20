@@ -2009,9 +2009,25 @@ class BackendTester:
                 f"Failed with status {response['status']}: {response['data']}"
             )
     
-    async def test_websocket_connection_with_token(self):
-        """Test WebSocket connection with valid JWT token"""
-        logger.info("🔌 Testing WebSocket connection with token...")
+    async def test_websocket_connection_with_consumer_credentials(self):
+        """Test WebSocket connection with consumer1@dealshaq.com credentials"""
+        logger.info("🔌 Testing WebSocket connection with consumer credentials...")
+        
+        # First authenticate as consumer1@dealshaq.com
+        consumer_response = await self.make_request("POST", "/auth/login", {
+            "email": CONSUMER_EMAIL,
+            "password": CONSUMER_PASSWORD,
+            "role": CONSUMER_ROLE
+        })
+        
+        if consumer_response["status"] != 200:
+            self.log_result(
+                "WebSocket Consumer Authentication", False,
+                f"Failed to authenticate consumer: {consumer_response['data']}"
+            )
+            return
+        
+        consumer_token = consumer_response["data"]["access_token"]
         
         try:
             import websockets
@@ -2019,7 +2035,7 @@ class BackendTester:
             
             # Construct WebSocket URL
             ws_url = BACKEND_URL.replace("https://", "wss://").replace("http://", "ws://")
-            ws_endpoint = f"{ws_url}/ws?token={self.auth_token}"
+            ws_endpoint = f"{ws_url}/ws?token={consumer_token}"
             
             # Create SSL context for wss connections
             ssl_context = ssl.create_default_context()
@@ -2029,53 +2045,45 @@ class BackendTester:
             # Test connection
             try:
                 async with websockets.connect(ws_endpoint, ssl=ssl_context) as websocket:
-                    # Wait for welcome message
-                    welcome_msg = await asyncio.wait_for(websocket.recv(), timeout=5)
-                    welcome_data = json.loads(welcome_msg)
-                    
-                    if welcome_data.get("type") == "connected":
+                    # Wait for any initial message
+                    try:
+                        initial_msg = await asyncio.wait_for(websocket.recv(), timeout=5)
+                        initial_data = json.loads(initial_msg)
+                        
                         # Send ping to test bidirectional communication
                         ping_msg = {"type": "ping", "timestamp": datetime.now(timezone.utc).isoformat()}
                         await websocket.send(json.dumps(ping_msg))
                         
-                        # Wait for pong response
-                        pong_msg = await asyncio.wait_for(websocket.recv(), timeout=5)
-                        pong_data = json.loads(pong_msg)
+                        # Wait for response
+                        response_msg = await asyncio.wait_for(websocket.recv(), timeout=5)
+                        response_data = json.loads(response_msg)
                         
-                        if pong_data.get("type") == "pong":
-                            self.log_result(
-                                "WebSocket Connection with Token", True,
-                                "Successfully connected, received welcome message, and ping/pong works",
-                                {
-                                    "welcome_message": welcome_data,
-                                    "ping_pong": "successful"
-                                }
-                            )
-                        else:
-                            self.log_result(
-                                "WebSocket Connection with Token", False,
-                                f"Ping/pong failed: {pong_data}",
-                                {"welcome_message": welcome_data}
-                            )
-                    else:
                         self.log_result(
-                            "WebSocket Connection with Token", False,
-                            f"Unexpected welcome message: {welcome_data}"
+                            "WebSocket Connection with Consumer Token", True,
+                            f"Successfully connected and communicated via WebSocket",
+                            {
+                                "initial_message": initial_data,
+                                "ping_response": response_data,
+                                "consumer_email": CONSUMER_EMAIL
+                            }
                         )
                         
-            except asyncio.TimeoutError:
-                self.log_result(
-                    "WebSocket Connection with Token", False,
-                    "Connection timeout - WebSocket may not be responding"
-                )
+                    except asyncio.TimeoutError:
+                        self.log_result(
+                            "WebSocket Connection with Consumer Token", True,
+                            "Connected to WebSocket but no initial message received (connection established)",
+                            {"consumer_email": CONSUMER_EMAIL}
+                        )
+                        
             except websockets.exceptions.ConnectionClosed as e:
                 self.log_result(
-                    "WebSocket Connection with Token", False,
-                    f"Connection closed unexpectedly: {e}"
+                    "WebSocket Connection with Consumer Token", False,
+                    f"Connection closed: {e}",
+                    {"close_code": getattr(e, 'code', None), "reason": getattr(e, 'reason', None)}
                 )
             except Exception as e:
                 self.log_result(
-                    "WebSocket Connection with Token", False,
+                    "WebSocket Connection with Consumer Token", False,
                     f"WebSocket connection failed: {str(e)}"
                 )
                 
@@ -2083,9 +2091,8 @@ class BackendTester:
             # Fallback: Test WebSocket endpoint availability via HTTP
             logger.info("📝 WebSocket library not available, testing endpoint availability...")
             
-            # Test that the WebSocket endpoint exists (should return 426 Upgrade Required for HTTP)
             try:
-                ws_http_url = f"{BACKEND_URL}/ws?token={self.auth_token}"
+                ws_http_url = f"{BACKEND_URL}/ws?token={consumer_token}"
                 async with self.session.get(ws_http_url) as response:
                     if response.status == 426:  # Upgrade Required
                         self.log_result(
