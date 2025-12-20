@@ -1793,6 +1793,18 @@ async def ocr_analyze_product(request: ImageOCRRequest, current_user: Dict = Dep
     
     return result
 
+# ===== WEBSOCKET STATUS ENDPOINT =====
+
+@api_router.get("/ws/status")
+async def websocket_status():
+    """Get WebSocket connection statistics."""
+    from websocket_service import manager
+    return {
+        "total_connections": manager.get_connection_count(),
+        "unique_users": manager.get_user_count(),
+        "status": "active"
+    }
+
 # Include router
 app.include_router(api_router)
 
@@ -1811,16 +1823,6 @@ async def websocket_handler(websocket: WebSocket, token: str = Query(...)):
     """
     from websocket_service import websocket_endpoint
     await websocket_endpoint(websocket, token)
-
-@api_router.get("/ws/status")
-async def websocket_status():
-    """Get WebSocket connection statistics."""
-    from websocket_service import manager
-    return {
-        "total_connections": manager.get_connection_count(),
-        "unique_users": manager.get_user_count(),
-        "status": "active"
-    }
 
 app.add_middleware(
     CORSMiddleware,
