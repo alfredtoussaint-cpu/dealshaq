@@ -73,8 +73,8 @@ describe('RetailerAuth - Forgot Password Flow', () => {
     });
 
     // Check for modal content
-    expect(screen.getByText(/enter your email address and we'll send you password reset instructions/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter your email and we'll send you a password reset link/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe('RetailerAuth - Forgot Password Flow', () => {
 
     // Assert that email is pre-filled in the modal
     await waitFor(() => {
-      const modalEmailInput = screen.getByLabelText(/email address/i);
+      const modalEmailInput = screen.getByLabelText(/^email$/i);
       expect(modalEmailInput).toHaveValue('test@retailer.com');
     });
   });
