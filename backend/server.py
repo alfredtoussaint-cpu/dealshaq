@@ -1792,6 +1792,32 @@ async def ocr_analyze_product(request: ImageOCRRequest, current_user: Dict = Dep
 # Include router
 app.include_router(api_router)
 
+# ===== WEBSOCKET ENDPOINT =====
+
+@app.websocket("/ws")
+async def websocket_handler(websocket: WebSocket, token: str = Query(...)):
+    """
+    WebSocket endpoint for real-time notifications.
+    
+    Connect with: ws://host/ws?token=<jwt_token>
+    
+    Message Types:
+    - Receive: new_rshd, connected, pong, ack, error
+    - Send: ping, mark_read
+    """
+    from websocket_service import websocket_endpoint
+    await websocket_endpoint(websocket, token)
+
+@api_router.get("/ws/status")
+async def websocket_status():
+    """Get WebSocket connection statistics."""
+    from websocket_service import manager
+    return {
+        "total_connections": manager.get_connection_count(),
+        "unique_users": manager.get_user_count(),
+        "status": "active"
+    }
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
