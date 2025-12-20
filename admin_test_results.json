@@ -1,0 +1,202 @@
+{
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "results": [
+    {
+      "test": "Admin Authentication",
+      "success": true,
+      "message": "Successfully authenticated as admin@dealshaq.com",
+      "details": {},
+      "timestamp": "2025-12-20T22:58:32.453708+00:00"
+    },
+    {
+      "test": "Admin Analytics",
+      "success": true,
+      "message": "Analytics data retrieved successfully - 31 days trend, 14 categories, 10 retailers",
+      "details": {
+        "orders_trend_days": 31,
+        "categories_count": 14,
+        "top_retailers_count": 10,
+        "sample_trend": [
+          {
+            "date": "2025-11-20",
+            "orders": 0,
+            "revenue": 0
+          },
+          {
+            "date": "2025-11-21",
+            "orders": 0,
+            "revenue": 0
+          },
+          {
+            "date": "2025-11-22",
+            "orders": 0,
+            "revenue": 0
+          }
+        ],
+        "sample_categories": [
+          {
+            "category": "Fruits",
+            "count": 7
+          },
+          {
+            "category": "Seafood",
+            "count": 3
+          },
+          {
+            "category": "Breakfast & Cereal",
+            "count": 1
+          }
+        ]
+      },
+      "timestamp": "2025-12-20T22:58:32.464523+00:00"
+    },
+    {
+      "test": "Admin User Details",
+      "success": true,
+      "message": "Successfully retrieved detailed info for DAC user",
+      "details": {
+        "user_id": "681a54c1-7993-4955-8584-33ca16fb5ba4",
+        "role": "DAC",
+        "has_role_data": true
+      },
+      "timestamp": "2025-12-20T22:58:32.497464+00:00"
+    },
+    {
+      "test": "Admin User Status Update",
+      "success": true,
+      "message": "Successfully suspended and reactivated user alfred.toussaint@novatp.com",
+      "details": {
+        "user_id": "681a54c1-7993-4955-8584-33ca16fb5ba4",
+        "suspend_response": {
+          "message": "User status updated to suspended"
+        },
+        "activate_response": {
+          "message": "User status updated to active"
+        }
+      },
+      "timestamp": "2025-12-20T22:58:32.528387+00:00"
+    },
+    {
+      "test": "Admin Alerts",
+      "success": true,
+      "message": "Retrieved 14 system alerts with valid structure",
+      "details": {
+        "alerts_count": 14,
+        "alert_types": [
+          "expiring_soon"
+        ],
+        "severities": [
+          "info"
+        ],
+        "sample_alerts": [
+          {
+            "type": "expiring_soon",
+            "severity": "info",
+            "message": "Organic Honeycrisp Apples expires in 1 day(s)",
+            "item_id": "2ecd5938-ec37-4634-85d2-3faed72f61b2",
+            "drlp_name": "Fresh Mart Downtown"
+          },
+          {
+            "type": "expiring_soon",
+            "severity": "info",
+            "message": "Fresh Atlantic Salmon expires in 2 day(s)",
+            "item_id": "5745564a-77af-4bb2-bade-dbc7c724857d",
+            "drlp_name": "Green Grocer SF"
+          }
+        ]
+      },
+      "timestamp": "2025-12-20T22:58:32.538659+00:00"
+    },
+    {
+      "test": "Admin Activity",
+      "success": true,
+      "message": "Retrieved 20 recent activities with valid structure",
+      "details": {
+        "activities_count": 20,
+        "activity_types": [
+          "item"
+        ],
+        "sample_activities": [
+          {
+            "type": "item",
+            "description": "New item: Nature Valley, Granola Bars by Berkeley Organics",
+            "timestamp": "2025-12-20T15:37:00.135816+00:00",
+            "id": "7271fab3-0a82-4fb6-87aa-de9643506299"
+          },
+          {
+            "type": "item",
+            "description": "New item: Frozen Pizza Supreme by Valley Fresh Market",
+            "timestamp": "2025-12-20T15:37:00.135816+00:00",
+            "id": "83338465-625e-4071-a652-c4323b832b4e"
+          }
+        ]
+      },
+      "timestamp": "2025-12-20T22:58:32.549100+00:00"
+    },
+    {
+      "test": "Admin Charities",
+      "success": true,
+      "message": "Retrieved 10 charities with donation statistics",
+      "details": {
+        "charities_count": 10,
+        "total_donations_all": 0,
+        "sample_charities": [
+          {
+            "id": "5b55e24f-35e1-49ca-9f77-8fe9a027e069",
+            "name": "Feeding America",
+            "description": "Fighting hunger across America",
+            "logo_url": "",
+            "donations_dac": 0,
+            "donations_drlp": 0,
+            "donations_roundup": 0,
+            "total_donations": 0
+          },
+          {
+            "id": "4afe715a-3911-49c6-8be6-a66cbb56fc70",
+            "name": "Local Food Bank",
+            "description": "Supporting local communities with food assistance",
+            "logo_url": "",
+            "donations_dac": 0,
+            "donations_drlp": 0,
+            "donations_roundup": 0,
+            "total_donations": 0
+          }
+        ]
+      },
+      "timestamp": "2025-12-20T22:58:32.558747+00:00"
+    },
+    {
+      "test": "Admin Items Status Update",
+      "success": true,
+      "message": "Successfully removed and restored item 'Organic Honeycrisp Apples'",
+      "details": {
+        "item_id": "2ecd5938-ec37-4634-85d2-3faed72f61b2",
+        "item_name": "Organic Honeycrisp Apples",
+        "remove_response": {
+          "message": "Item status updated to admin_removed"
+        },
+        "restore_response": {
+          "message": "Item status updated to available"
+        }
+      },
+      "timestamp": "2025-12-20T22:58:32.629340+00:00"
+    },
+    {
+      "test": "Admin Authorization",
+      "success": true,
+      "message": "All 5 admin endpoints correctly reject non-admin users with 403",
+      "details": {
+        "tested_endpoints": [
+          "/admin/analytics",
+          "/admin/users",
+          "/admin/alerts",
+          "/admin/activity",
+          "/admin/charities"
+        ]
+      },
+      "timestamp": "2025-12-20T22:58:33.010021+00:00"
+    }
+  ]
+}
