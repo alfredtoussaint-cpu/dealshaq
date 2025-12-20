@@ -1,14 +1,14 @@
 {
-  "total": 12,
+  "total": 11,
   "passed": 8,
-  "failed": 4,
+  "failed": 3,
   "results": [
     {
       "test": "Authentication",
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:57:01.800910+00:00"
+      "timestamp": "2025-12-20T02:58:09.238736+00:00"
     },
     {
       "test": "WebSocket Status Endpoint",
@@ -21,28 +21,36 @@
           "status": "active"
         }
       },
-      "timestamp": "2025-12-20T02:57:01.809142+00:00"
+      "timestamp": "2025-12-20T02:58:09.287601+00:00"
     },
     {
-      "test": "WebSocket Connection with Token",
-      "success": false,
-      "message": "Unexpected welcome message: {'type': 'hot'}",
-      "details": {},
-      "timestamp": "2025-12-20T02:57:01.863581+00:00"
+      "test": "WebSocket Connection with Consumer Token",
+      "success": true,
+      "message": "Successfully connected and communicated via WebSocket",
+      "details": {
+        "initial_message": {
+          "type": "hot"
+        },
+        "ping_response": {
+          "type": "liveReload"
+        },
+        "consumer_email": "consumer1@dealshaq.com"
+      },
+      "timestamp": "2025-12-20T02:58:09.600246+00:00"
     },
     {
       "test": "WebSocket Authorization - Invalid Token",
       "success": false,
       "message": "Connection accepted with invalid token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:57:01.910716+00:00"
+      "timestamp": "2025-12-20T02:58:09.644118+00:00"
     },
     {
       "test": "WebSocket Authorization - No Token",
       "success": false,
       "message": "Connection accepted without token (security issue)",
       "details": {},
-      "timestamp": "2025-12-20T02:57:01.937044+00:00"
+      "timestamp": "2025-12-20T02:58:09.668735+00:00"
     },
     {
       "test": "Notification Database Structure",
@@ -51,24 +59,18 @@
       "details": {
         "notifications_count": 0
       },
-      "timestamp": "2025-12-20T02:57:01.953440+00:00"
+      "timestamp": "2025-12-20T02:58:09.683785+00:00"
     },
     {
-      "test": "DRLP Authentication",
-      "success": true,
-      "message": "Successfully authenticated as test.retailer@dealshaq.com",
-      "details": {},
-      "timestamp": "2025-12-20T02:57:02.206899+00:00"
-    },
-    {
-      "test": "RSHD Post Triggers Notification",
+      "test": "RSHD Post Triggers Notification with Retailer Credentials",
       "success": false,
       "message": "No notification found for test item. Total notifications: 0 \u2192 0",
       "details": {
-        "rshd_item": "Test WebSocket Notification Item",
-        "all_notifications": []
+        "retailer_email": "freshvalleymarket@dealshaq.com",
+        "rshd_item": "WebSocket Test Notification Item",
+        "all_recent_notifications": []
       },
-      "timestamp": "2025-12-20T02:57:04.249886+00:00"
+      "timestamp": "2025-12-20T02:58:12.976605+00:00"
     },
     {
       "test": "Categories Endpoint",
@@ -98,7 +100,7 @@
           "Miscellaneous"
         ]
       },
-      "timestamp": "2025-12-20T02:57:04.262257+00:00"
+      "timestamp": "2025-12-20T02:58:13.025221+00:00"
     },
     {
       "test": "Authentication Login Regression",
@@ -107,7 +109,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:57:04.515714+00:00"
+      "timestamp": "2025-12-20T02:58:13.283284+00:00"
     },
     {
       "test": "Authentication Protection Regression",
@@ -118,7 +120,7 @@
           "detail": "Could not validate credentials"
         }
       },
-      "timestamp": "2025-12-20T02:57:04.523816+00:00"
+      "timestamp": "2025-12-20T02:58:13.290931+00:00"
     },
     {
       "test": "Authentication Role Access Regression",
@@ -127,7 +129,7 @@
       "details": {
         "user_role": "DAC"
       },
-      "timestamp": "2025-12-20T02:57:04.534862+00:00"
+      "timestamp": "2025-12-20T02:58:13.304370+00:00"
     }
   ]
 }
