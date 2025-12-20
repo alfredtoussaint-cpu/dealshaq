@@ -384,13 +384,22 @@ export default function RetailerPostItem({ user, onLogout }) {
                 <Camera className="w-5 h-5" />
                 <span>Step 2: Capture Price</span>
               </CardTitle>
-              <CardDescription>Scan price label or enter manually</CardDescription>
+              <CardDescription>Upload price tag image (OCR) or enter manually</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex space-x-2">
+              {/* Hidden file input for price image */}
+              <input
+                type="file"
+                ref={priceImageRef}
+                onChange={handlePriceImageUpload}
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+              />
+              
+              <div className="flex space-x-2 items-center">
                 <Button
                   type="button"
-                  onClick={handlePriceScan}
+                  onClick={() => priceImageRef.current?.click()}
                   disabled={ocrProcessing}
                   variant="outline"
                   className="flex-1"
@@ -398,13 +407,13 @@ export default function RetailerPostItem({ user, onLogout }) {
                 >
                   {ocrProcessing ? (
                     <>
-                      <span className="animate-spin mr-2">⟳</span>
-                      Processing...
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing OCR...
                     </>
                   ) : (
                     <>
                       <Camera className="w-4 h-4 mr-2" />
-                      Scan Price Label
+                      Upload Price Tag Photo
                     </>
                   )}
                 </Button>
