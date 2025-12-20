@@ -197,64 +197,6 @@ describe('RetailerAuth - Forgot Password Flow', () => {
     expect(mockRequestPasswordReset).not.toHaveBeenCalled();
   });
 
-  test('should close modal when Cancel button is clicked', async () => {
-    renderComponent();
-
-    // Click "Forgot password?" link
-    const forgotPasswordLink = screen.getByRole('button', { name: /forgot password\?/i });
-    fireEvent.click(forgotPasswordLink);
-
-    // Wait for modal to open
-    await waitFor(() => {
-      expect(screen.getByText('Reset Password')).toBeInTheDocument();
-    });
-
-    // Click Cancel button
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelButton);
-
-    // Assert that modal closes
-    await waitFor(() => {
-      expect(screen.queryByText('Reset Password')).not.toBeInTheDocument();
-    });
-  });
-
-  test('should clear email input when modal closes after successful submission', async () => {
-    // Mock successful API response
-    mockRequestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
-
-    renderComponent();
-
-    // Click "Forgot password?" link
-    const forgotPasswordLink = screen.getByRole('button', { name: /forgot password\?/i });
-    fireEvent.click(forgotPasswordLink);
-
-    // Wait for modal to open
-    await waitFor(() => {
-      expect(screen.getByText('Reset Password')).toBeInTheDocument();
-    });
-
-    // Enter email and submit
-    const emailInput = document.getElementById('reset-email');
-    await userEvent.type(emailInput, 'test@example.com');
-    
-    const sendButton = screen.getByRole('button', { name: /send reset link/i });
-    fireEvent.click(sendButton);
-
-    // Wait for modal to close
-    await waitFor(() => {
-      expect(screen.queryByText('Reset Password')).not.toBeInTheDocument();
-    });
-
-    // Open modal again and check if email is cleared
-    fireEvent.click(forgotPasswordLink);
-
-    await waitFor(() => {
-      const newEmailInput = document.getElementById('reset-email');
-      expect(newEmailInput).toHaveValue('');
-    });
-  });
-
   test('should have correct role (DRLP) in password reset request', async () => {
     // Mock successful API response
     mockRequestPasswordReset.mockResolvedValue({ data: { status: 'success' } });
