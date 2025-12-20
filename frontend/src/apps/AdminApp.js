@@ -27,11 +27,12 @@ export default function AdminApp() {
     setLoading(false);
   }, []);
 
-  const handleLogin = (token, userData) => {
+  const handleLogin = (responseData) => {
+    const { access_token, user: userData } = responseData;
     if (userData.role !== 'Admin') {
       throw new Error('Invalid user role for Admin App');
     }
-    localStorage.setItem('token', token);
+    localStorage.setItem('token', access_token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     navigate('/admin/dashboard');
