@@ -73,14 +73,22 @@ class TestCategorizationService:
         """Test that organic items are correctly detected"""
         import categorization_service
         result = categorization_service.detect_attributes("Organic Greek Yogurt")
-        assert result.get("is_organic", False) == True
+        # The key is 'organic' not 'is_organic'
+        assert result.get("organic", False) == True
+    
+    def test_gluten_free_attribute_detection(self):
+        """Test that gluten-free items are correctly detected"""
+        import categorization_service
+        result = categorization_service.detect_attributes("Gluten-Free Bread")
+        assert result.get("gluten_free", False) == True
     
     def test_brand_generic_parsing(self):
         """Test brand/generic name parsing"""
         import categorization_service
         result = categorization_service.parse_brand_and_generic("Quaker, Simply Granola")
         assert result.get("brand") == "Quaker"
-        assert "Granola" in result.get("generic_name", "")
+        # The key is 'generic' not 'generic_name'
+        assert "Granola" in result.get("generic", "")
     
     def test_generic_item_parsing(self):
         """Test generic item (no brand) parsing"""
@@ -96,19 +104,20 @@ class TestBarcodeOCRService:
         """Test that barcode_ocr_service can be imported"""
         import barcode_ocr_service
         assert hasattr(barcode_ocr_service, 'lookup_barcode')
-        assert hasattr(barcode_ocr_service, 'map_to_dealshaq_category')
+        # The function is 'map_category' not 'map_to_dealshaq_category'
+        assert hasattr(barcode_ocr_service, 'map_category')
     
     def test_category_mapping_beverages(self):
         """Test that beverage category mapping works"""
         import barcode_ocr_service
-        # Test common beverage keywords
-        result = barcode_ocr_service.map_to_dealshaq_category("beverages,soft drinks,soda")
+        # map_category takes a list of category tags
+        result = barcode_ocr_service.map_category(["beverages", "soft drinks", "soda"])
         assert result == "Beverages"
     
     def test_category_mapping_dairy(self):
         """Test that dairy category mapping works"""
         import barcode_ocr_service
-        result = barcode_ocr_service.map_to_dealshaq_category("dairy,milk,cheese")
+        result = barcode_ocr_service.map_category(["dairy", "milk", "cheese"])
         assert result == "Dairy & Eggs"
 
 
@@ -125,5 +134,4 @@ class TestWebSocketService:
         import websocket_service
         manager = websocket_service.WebSocketManager()
         assert hasattr(manager, 'active_connections')
-        # Initial state should be empty
         assert len(manager.active_connections) == 0
