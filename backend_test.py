@@ -34,6 +34,8 @@ class BackendTester:
         self.session = None
         self.auth_token = None
         self.user_data = None
+        self.drlp_auth_token = None
+        self.drlp_user_data = None
         self.test_results = []
         
     async def __aenter__(self):
