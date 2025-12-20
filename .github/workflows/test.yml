@@ -18,10 +18,13 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
         run: |
           cd frontend
-          yarn install --ignore-engines
+          yarn install
 
       - name: Run Jest tests
         run: |
