@@ -1481,3 +1481,86 @@ agent_communication:
 #====================================================================================================
 # End of Geographic Filtering Implementation
 #====================================================================================================
+
+#====================================================================================================
+# Barcode/OCR Integration Testing - December 2025
+#====================================================================================================
+
+backend:
+  - task: "Barcode Lookup API (Open Food Facts)"
+    implemented: true
+    working: "NA"
+    file: "backend/barcode_ocr_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New implementation - needs testing. POST /api/barcode/lookup endpoint using Open Food Facts API. Initial manual test with Nutella barcode (3017620422003) successful."
+
+  - task: "OCR Price Extraction API (GPT-4 Vision)"
+    implemented: true
+    working: "NA"
+    file: "backend/barcode_ocr_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New implementation - needs testing. POST /api/ocr/extract-price endpoint using OpenAI GPT-4 Vision via Emergent LLM Key."
+
+  - task: "OCR Product Analysis API (GPT-4 Vision)"
+    implemented: true
+    working: "NA"
+    file: "backend/barcode_ocr_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New implementation - needs testing. POST /api/ocr/analyze-product endpoint using OpenAI GPT-4 Vision via Emergent LLM Key."
+
+frontend:
+  - task: "Retailer Post Item - Barcode Lookup UI"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/retailer/RetailerPostItem.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New UI implementation - needs testing. Barcode input field with Lookup button, product info auto-populate."
+
+  - task: "Retailer Post Item - OCR Price Upload UI"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/retailer/RetailerPostItem.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New UI implementation - needs testing. Price tag image upload button with OCR extraction."
+
+  - task: "Retailer Post Item - Product Image Analysis UI"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/components/retailer/RetailerPostItem.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New UI implementation - needs testing. Product image upload button with AI analysis."
+
+agent_communication:
+    - agent: "main"
+      message: "Implemented Barcode/OCR integration for P2. Backend: barcode_ocr_service.py with Open Food Facts API for barcode lookup and GPT-4 Vision for OCR. Frontend: Updated RetailerPostItem.js with barcode input, price image upload, and product image upload. Ready for comprehensive testing."
+
