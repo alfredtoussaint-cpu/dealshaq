@@ -293,7 +293,7 @@ async def analyze_product_image(image_base64: str) -> Dict[str, Any]:
     Analyze a product image to extract product information.
     
     Args:
-        image_base64: Base64 encoded image
+        image_base64: Base64 encoded image - raw base64 without data URI prefix
     
     Returns:
         Dict with product info or error message
@@ -303,6 +303,22 @@ async def analyze_product_image(image_base64: str) -> Dict[str, Any]:
     api_key = os.environ.get('EMERGENT_LLM_KEY')
     if not api_key:
         return {"success": False, "error": "EMERGENT_LLM_KEY not configured"}
+    
+    # Remove data URI prefix if present
+    if image_base64.startswith('data:'):
+        try:
+            image_base64 = image_base64.split(',')[1]
+        except IndexError:
+            return {"success": False, "error": "Invalid data URI format"}
+    
+    # Validate base64 string
+    try:
+        import base64
+        decoded = base64.b64decode(image_base64)
+        if len(decoded) < 100:
+            return {"success": False, "error": "Image too small or invalid"}
+    except Exception as e:
+        return {"success": False, "error": f"Invalid base64 encoding: {str(e)}"}
     
     prompt = """Analyze this product image and extract as much information as possible.
 
