@@ -1222,16 +1222,13 @@ class BackendTester:
         logger.info("🔍 Testing Admin Retailer Details endpoint...")
         
         # First get a retailer ID from the list
-        original_token = self.auth_token
-        self.auth_token = self.admin_auth_token
-        
-        list_response = await self.make_request("GET", "/admin/retailers")
+        list_response = await self.make_request("GET", "/admin/retailers", token=self.admin_auth_token)
         
         if list_response["status"] == 200 and list_response["data"]:
             retailer_id = list_response["data"][0]["id"]
             
             # Get detailed info
-            response = await self.make_request("GET", f"/admin/retailers/{retailer_id}")
+            response = await self.make_request("GET", f"/admin/retailers/{retailer_id}", token=self.admin_auth_token)
             
             if response["status"] == 200:
                 retailer_details = response["data"]
@@ -1271,9 +1268,6 @@ class BackendTester:
                 "Admin Retailer Details", False,
                 "No retailers available to test detailed view"
             )
-        
-        # Restore original token
-        self.auth_token = original_token
 
     async def test_admin_retailer_analytics(self):
         """Test GET /api/admin/retailers/analytics/overview - Get retailer analytics"""
