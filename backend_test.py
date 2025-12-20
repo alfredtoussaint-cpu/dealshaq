@@ -2909,14 +2909,14 @@ class BackendTester:
 async def main():
     """Main test runner"""
     async with BackendTester() as tester:
-        # Run WebSocket notification system tests as requested
-        results = await tester.run_all_tests()
+        # Run Admin Dashboard API tests as requested
+        results = await tester.run_admin_dashboard_tests()
         
         # Save results to file
-        with open("/app/test_results.json", "w") as f:
+        with open("/app/admin_test_results.json", "w") as f:
             json.dump(results, f, indent=2)
         
-        logger.info(f"\n📁 Test results saved to /app/test_results.json")
+        logger.info(f"\n📁 Test results saved to /app/admin_test_results.json")
         
         return results["failed"] == 0
 
