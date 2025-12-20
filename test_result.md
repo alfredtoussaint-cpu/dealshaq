@@ -543,15 +543,18 @@ metadata:
 
 test_plan:
   current_focus:
-    - "DACDRLP-List Manual Add/Remove UI Testing"
-    - "Frontend Authentication Issue Investigation"
+    - "WebSocket Authorization and Security"
+    - "RSHD Post Triggers Notification"
+    - "WebSocket Endpoint Configuration"
   stuck_tasks:
-    - "DACDRLP-List Manual Add/Remove UI Testing"
-    - "GET /api/drlp/locations Pydantic Validation Errors"
+    - "WebSocket Authorization and Security"
+    - "RSHD Post Triggers Notification"
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "testing"
+      message: "🔔 WEBSOCKET NOTIFICATION SYSTEM TESTING COMPLETED - 72.7% SUCCESS RATE (8/11 tests passed). ✅ WORKING: WebSocket status endpoint functional, WebSocket connection established with consumer credentials, notification database structure verified, core authentication and categories endpoints working. ❌ CRITICAL ISSUES: 1) WebSocket authorization failing - accepts invalid/missing tokens (security vulnerability), 2) RSHD posting not creating notifications (0 notifications generated), 3) WebSocket connecting to development service instead of production notification service. ✅ POSITIVE FINDINGS: Backend API structure correct, authentication working for regular endpoints, WebSocket endpoint accessible. ❌ ROOT CAUSE: WebSocket endpoint appears to be connecting to development hot-reload service rather than production notification WebSocket with proper JWT validation and notification broadcasting."
     - agent: "testing"
       message: "COMPREHENSIVE BACKEND TESTING COMPLETED - Enhanced DACFI-List feature testing completed with 94.7% success rate (18/19 tests passed). All core functionality working correctly including item-level favorites with auto-categorization, attribute detection (organic, gluten-free), proper organization by category, duplicate prevention, auto-add threshold settings, and authentication. Minor issues: 1) Original DELETE endpoint had routing issues, resolved with alternative endpoint. 2) Minor categorization edge case with 'Apple Juice' being categorized as 'Fruits' instead of 'Beverages' - acceptable behavior. System ready for production use."
     - agent: "testing"
