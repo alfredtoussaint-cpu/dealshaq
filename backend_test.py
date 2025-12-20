@@ -29,6 +29,16 @@ DRLP_TEST_EMAIL = "test.retailer@dealshaq.com"
 DRLP_TEST_PASSWORD = "TestPassword123"
 DRLP_TEST_ROLE = "DRLP"
 
+# Consumer credentials for WebSocket testing
+CONSUMER_EMAIL = "consumer1@dealshaq.com"
+CONSUMER_PASSWORD = "TestPassword123"
+CONSUMER_ROLE = "DAC"
+
+# Retailer credentials for WebSocket testing
+RETAILER_EMAIL = "freshvalleymarket@dealshaq.com"
+RETAILER_PASSWORD = "TestPassword123"
+RETAILER_ROLE = "DRLP"
+
 class BackendTester:
     def __init__(self):
         self.session = None
