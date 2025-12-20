@@ -2360,6 +2360,498 @@ class BackendTester:
                 f"Failed to post RSHD item: {rshd_response['data']}"
             )
 
+    async def authenticate_admin(self):
+        """Authenticate with admin credentials"""
+        logger.info("🔐 Authenticating with admin credentials...")
+        
+        response = await self.make_request("POST", "/auth/login", {
+            "email": ADMIN_EMAIL,
+            "password": ADMIN_PASSWORD,
+            "role": ADMIN_ROLE
+        })
+        
+        if response["status"] == 200:
+            self.auth_token = response["data"]["access_token"]
+            self.user_data = response["data"]["user"]
+            self.log_result("Admin Authentication", True, f"Successfully authenticated as {ADMIN_EMAIL}")
+            return True
+        else:
+            self.log_result("Admin Authentication", False, f"Failed to authenticate: {response['data']}")
+            return False
+
+    async def test_admin_analytics(self):
+        """Test GET /api/admin/analytics - Enhanced analytics data"""
+        logger.info("📊 Testing admin analytics endpoint...")
+        
+        response = await self.make_request("GET", "/admin/analytics")
+        
+        if response["status"] == 200:
+            data = response["data"]
+            
+            # Check required fields
+            required_fields = ["orders_trend", "category_breakdown", "top_retailers"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if not missing_fields:
+                orders_trend = data.get("orders_trend", [])
+                category_breakdown = data.get("category_breakdown", [])
+                top_retailers = data.get("top_retailers", [])
+                
+                # Validate orders_trend structure (should be 30 days)
+                trend_valid = len(orders_trend) == 31  # 30 days + today
+                
+                self.log_result(
+                    "Admin Analytics", True,
+                    f"Analytics data retrieved successfully - {len(orders_trend)} days trend, {len(category_breakdown)} categories, {len(top_retailers)} retailers",
+                    {
+                        "orders_trend_days": len(orders_trend),
+                        "categories_count": len(category_breakdown),
+                        "top_retailers_count": len(top_retailers),
+                        "sample_trend": orders_trend[:3] if orders_trend else [],
+                        "sample_categories": category_breakdown[:3] if category_breakdown else []
+                    }
+                )
+            else:
+                self.log_result(
+                    "Admin Analytics", False,
+                    f"Missing required fields: {missing_fields}",
+                    {"response": data}
+                )
+        else:
+            self.log_result(
+                "Admin Analytics", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_admin_users_endpoint(self):
+        """Test GET /api/admin/users/{user_id} - Get detailed user information"""
+        logger.info("👥 Testing admin users endpoint...")
+        
+        # First get a user ID to test with
+        users_response = await self.make_request("GET", "/admin/users")
+        
+        if users_response["status"] == 200:
+            users = users_response["data"]
+            if users:
+                # Test with first non-admin user
+                test_user = None
+                for user in users:
+                    if user.get("role") != "Admin":
+                        test_user = user
+                        break
+                
+                if test_user:
+                    user_id = test_user["id"]
+                    response = await self.make_request("GET", f"/admin/users/{user_id}")
+                    
+                    if response["status"] == 200:
+                        user_data = response["data"]
+                        
+                        # Check if user has expected fields
+                        basic_fields = ["id", "email", "name", "role", "created_at"]
+                        has_basic_fields = all(field in user_data for field in basic_fields)
+                        
+                        # Check role-specific data
+                        role_specific_data = False
+                        if user_data.get("role") == "DAC":
+                            role_specific_data = "retailer_list" in user_data and "order_count" in user_data
+                        elif user_data.get("role") == "DRLP":
+                            role_specific_data = "items" in user_data and "item_count" in user_data
+                        else:
+                            role_specific_data = True  # Other roles don't need specific data
+                        
+                        if has_basic_fields and role_specific_data:
+                            self.log_result(
+                                "Admin User Details", True,
+                                f"Successfully retrieved detailed info for {user_data.get('role')} user",
+                                {
+                                    "user_id": user_id,
+                                    "role": user_data.get("role"),
+                                    "has_role_data": role_specific_data
+                                }
+                            )
+                        else:
+                            self.log_result(
+                                "Admin User Details", False,
+                                f"Missing required fields - basic: {has_basic_fields}, role-specific: {role_specific_data}",
+                                {"user_data": user_data}
+                            )
+                    else:
+                        self.log_result(
+                            "Admin User Details", False,
+                            f"Failed to get user details: {response['data']}"
+                        )
+                else:
+                    self.log_result(
+                        "Admin User Details", False,
+                        "No non-admin users found to test with"
+                    )
+            else:
+                self.log_result(
+                    "Admin User Details", False,
+                    "No users found in system"
+                )
+        else:
+            self.log_result(
+                "Admin User Details", False,
+                f"Failed to get users list: {users_response['data']}"
+            )
+
+    async def test_admin_user_status_update(self):
+        """Test PUT /api/admin/users/{user_id}/status - Suspend/activate user"""
+        logger.info("🔒 Testing admin user status update...")
+        
+        # Get a test consumer user (not admin)
+        users_response = await self.make_request("GET", "/admin/users")
+        
+        if users_response["status"] == 200:
+            users = users_response["data"]
+            test_user = None
+            
+            # Find a DAC user to test with
+            for user in users:
+                if user.get("role") == "DAC" and user.get("email") != ADMIN_EMAIL:
+                    test_user = user
+                    break
+            
+            if test_user:
+                user_id = test_user["id"]
+                
+                # Test suspending user
+                suspend_response = await self.make_request("PUT", f"/admin/users/{user_id}/status", {
+                    "status": "suspended"
+                })
+                
+                if suspend_response["status"] == 200:
+                    # Test reactivating user
+                    activate_response = await self.make_request("PUT", f"/admin/users/{user_id}/status", {
+                        "status": "active"
+                    })
+                    
+                    if activate_response["status"] == 200:
+                        self.log_result(
+                            "Admin User Status Update", True,
+                            f"Successfully suspended and reactivated user {test_user.get('email')}",
+                            {
+                                "user_id": user_id,
+                                "suspend_response": suspend_response["data"],
+                                "activate_response": activate_response["data"]
+                            }
+                        )
+                    else:
+                        self.log_result(
+                            "Admin User Status Update", False,
+                            f"Failed to reactivate user: {activate_response['data']}"
+                        )
+                else:
+                    self.log_result(
+                        "Admin User Status Update", False,
+                        f"Failed to suspend user: {suspend_response['data']}"
+                    )
+            else:
+                self.log_result(
+                    "Admin User Status Update", False,
+                    "No suitable DAC user found for testing"
+                )
+        else:
+            self.log_result(
+                "Admin User Status Update", False,
+                f"Failed to get users: {users_response['data']}"
+            )
+
+    async def test_admin_alerts(self):
+        """Test GET /api/admin/alerts - System alerts"""
+        logger.info("🚨 Testing admin alerts endpoint...")
+        
+        response = await self.make_request("GET", "/admin/alerts")
+        
+        if response["status"] == 200:
+            data = response["data"]
+            alerts = data.get("alerts", [])
+            
+            # Check alert structure
+            valid_alerts = True
+            for alert in alerts[:3]:  # Check first 3 alerts
+                required_fields = ["type", "severity", "message"]
+                if not all(field in alert for field in required_fields):
+                    valid_alerts = False
+                    break
+            
+            if valid_alerts:
+                alert_types = list(set(alert.get("type") for alert in alerts))
+                severities = list(set(alert.get("severity") for alert in alerts))
+                
+                self.log_result(
+                    "Admin Alerts", True,
+                    f"Retrieved {len(alerts)} system alerts with valid structure",
+                    {
+                        "alerts_count": len(alerts),
+                        "alert_types": alert_types,
+                        "severities": severities,
+                        "sample_alerts": alerts[:2] if alerts else []
+                    }
+                )
+            else:
+                self.log_result(
+                    "Admin Alerts", False,
+                    "Alerts missing required fields (type, severity, message)",
+                    {"alerts": alerts[:3]}
+                )
+        else:
+            self.log_result(
+                "Admin Alerts", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_admin_activity(self):
+        """Test GET /api/admin/activity - Recent activity log"""
+        logger.info("📋 Testing admin activity endpoint...")
+        
+        response = await self.make_request("GET", "/admin/activity")
+        
+        if response["status"] == 200:
+            data = response["data"]
+            activities = data.get("activities", [])
+            
+            # Check activity structure
+            valid_activities = True
+            activity_types = set()
+            
+            for activity in activities[:3]:  # Check first 3 activities
+                required_fields = ["type", "description", "timestamp"]
+                if not all(field in activity for field in required_fields):
+                    valid_activities = False
+                    break
+                activity_types.add(activity.get("type"))
+            
+            if valid_activities:
+                self.log_result(
+                    "Admin Activity", True,
+                    f"Retrieved {len(activities)} recent activities with valid structure",
+                    {
+                        "activities_count": len(activities),
+                        "activity_types": list(activity_types),
+                        "sample_activities": activities[:2] if activities else []
+                    }
+                )
+            else:
+                self.log_result(
+                    "Admin Activity", False,
+                    "Activities missing required fields (type, description, timestamp)",
+                    {"activities": activities[:3]}
+                )
+        else:
+            self.log_result(
+                "Admin Activity", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_admin_charities(self):
+        """Test GET /api/admin/charities - Charities with donation statistics"""
+        logger.info("💝 Testing admin charities endpoint...")
+        
+        response = await self.make_request("GET", "/admin/charities")
+        
+        if response["status"] == 200:
+            charities = response["data"]
+            
+            # Check charity structure
+            valid_charities = True
+            for charity in charities[:3]:  # Check first 3 charities
+                required_fields = ["id", "name", "donations_dac", "donations_drlp", "donations_roundup", "total_donations"]
+                if not all(field in charity for field in required_fields):
+                    valid_charities = False
+                    break
+            
+            if valid_charities:
+                total_donations = sum(charity.get("total_donations", 0) for charity in charities)
+                
+                self.log_result(
+                    "Admin Charities", True,
+                    f"Retrieved {len(charities)} charities with donation statistics",
+                    {
+                        "charities_count": len(charities),
+                        "total_donations_all": round(total_donations, 2),
+                        "sample_charities": charities[:2] if charities else []
+                    }
+                )
+            else:
+                self.log_result(
+                    "Admin Charities", False,
+                    "Charities missing required donation fields",
+                    {"charities": charities[:3]}
+                )
+        else:
+            self.log_result(
+                "Admin Charities", False,
+                f"Failed with status {response['status']}: {response['data']}"
+            )
+
+    async def test_admin_items_status_update(self):
+        """Test PUT /api/admin/items/{item_id}/status - Remove/restore items"""
+        logger.info("📦 Testing admin items status update...")
+        
+        # Get available items
+        items_response = await self.make_request("GET", "/admin/items")
+        
+        if items_response["status"] == 200:
+            items = items_response["data"]
+            available_items = [item for item in items if item.get("status") == "available"]
+            
+            if available_items:
+                test_item = available_items[0]
+                item_id = test_item["id"]
+                
+                # Test removing item
+                remove_response = await self.make_request("PUT", f"/admin/items/{item_id}/status", {
+                    "status": "admin_removed"
+                })
+                
+                if remove_response["status"] == 200:
+                    # Test restoring item
+                    restore_response = await self.make_request("PUT", f"/admin/items/{item_id}/status", {
+                        "status": "available"
+                    })
+                    
+                    if restore_response["status"] == 200:
+                        self.log_result(
+                            "Admin Items Status Update", True,
+                            f"Successfully removed and restored item '{test_item.get('name')}'",
+                            {
+                                "item_id": item_id,
+                                "item_name": test_item.get("name"),
+                                "remove_response": remove_response["data"],
+                                "restore_response": restore_response["data"]
+                            }
+                        )
+                    else:
+                        self.log_result(
+                            "Admin Items Status Update", False,
+                            f"Failed to restore item: {restore_response['data']}"
+                        )
+                else:
+                    self.log_result(
+                        "Admin Items Status Update", False,
+                        f"Failed to remove item: {remove_response['data']}"
+                    )
+            else:
+                self.log_result(
+                    "Admin Items Status Update", False,
+                    "No available items found for testing"
+                )
+        else:
+            self.log_result(
+                "Admin Items Status Update", False,
+                f"Failed to get items: {items_response['data']}"
+            )
+
+    async def test_admin_authorization(self):
+        """Test that non-admin users get 403 errors for admin endpoints"""
+        logger.info("🔐 Testing admin authorization (non-admin access)...")
+        
+        # Temporarily switch to non-admin credentials
+        original_token = self.auth_token
+        
+        # Authenticate as regular DAC user
+        dac_response = await self.make_request("POST", "/auth/login", {
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
+            "role": TEST_ROLE
+        })
+        
+        if dac_response["status"] == 200:
+            self.auth_token = dac_response["data"]["access_token"]
+            
+            # Test admin endpoints with DAC credentials
+            admin_endpoints = [
+                "/admin/analytics",
+                "/admin/users",
+                "/admin/alerts",
+                "/admin/activity",
+                "/admin/charities"
+            ]
+            
+            forbidden_count = 0
+            for endpoint in admin_endpoints:
+                response = await self.make_request("GET", endpoint)
+                if response["status"] == 403:
+                    forbidden_count += 1
+            
+            # Restore admin token
+            self.auth_token = original_token
+            
+            if forbidden_count == len(admin_endpoints):
+                self.log_result(
+                    "Admin Authorization", True,
+                    f"All {len(admin_endpoints)} admin endpoints correctly reject non-admin users with 403",
+                    {"tested_endpoints": admin_endpoints}
+                )
+            else:
+                self.log_result(
+                    "Admin Authorization", False,
+                    f"Only {forbidden_count}/{len(admin_endpoints)} endpoints properly rejected non-admin access",
+                    {"tested_endpoints": admin_endpoints}
+                )
+        else:
+            # Restore admin token
+            self.auth_token = original_token
+            self.log_result(
+                "Admin Authorization", False,
+                f"Failed to authenticate as DAC user for authorization test: {dac_response['data']}"
+            )
+
+    async def run_admin_dashboard_tests(self):
+        """Run comprehensive Admin Dashboard API tests"""
+        logger.info("🔐 Starting Admin Dashboard API Testing...")
+        logger.info(f"Backend URL: {API_BASE}")
+        logger.info(f"Admin Credentials: {ADMIN_EMAIL}")
+        
+        # Authenticate as admin
+        if not await self.authenticate_admin():
+            logger.error("❌ Admin authentication failed - stopping tests")
+            return
+        
+        # Admin Dashboard API Tests
+        logger.info("📊 Testing Admin Dashboard Endpoints")
+        await self.test_admin_analytics()
+        await self.test_admin_users_endpoint()
+        await self.test_admin_user_status_update()
+        await self.test_admin_alerts()
+        await self.test_admin_activity()
+        await self.test_admin_charities()
+        await self.test_admin_items_status_update()
+        await self.test_admin_authorization()
+        
+        # Summary
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        logger.info(f"\n📊 ADMIN DASHBOARD API TEST SUMMARY")
+        logger.info(f"🔐 Admin Dashboard Endpoints")
+        logger.info(f"Total Tests: {total_tests}")
+        logger.info(f"Passed: {passed_tests} ✅")
+        logger.info(f"Failed: {failed_tests} ❌")
+        logger.info(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if passed_tests == total_tests:
+            logger.info(f"🎉 100% SUCCESS: All admin endpoints working!")
+        else:
+            logger.info(f"⚠️ ISSUES DETECTED: {failed_tests} tests failing")
+        
+        if failed_tests > 0:
+            logger.info(f"\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    logger.info(f"  - {result['test']}: {result['message']}")
+        
+        return {
+            "total": total_tests,
+            "passed": passed_tests,
+            "failed": failed_tests,
+            "results": self.test_results
+        }
+
     async def run_all_tests(self):
         """Run comprehensive WebSocket notification system tests"""
         logger.info("🚀 Starting COMPREHENSIVE WEBSOCKET NOTIFICATION TESTING")
