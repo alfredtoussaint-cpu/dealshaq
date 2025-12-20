@@ -185,7 +185,7 @@ export default function ConsumerRadar({ user, onLogout }) {
           </Card>
         </div>
 
-        {/* Deals Grid */}
+        {/* Deals Grouped by Retailer */}
         {filteredItems.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
@@ -199,70 +199,143 @@ export default function ConsumerRadar({ user, onLogout }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredItems.map((item) => {
-              const discount = getDiscountBadge(item.discount_level);
+          <div className="space-y-8">
+            {/* Group items by retailer */}
+            {(() => {
+              // Group filtered items by drlp_id
+              const groupedByRetailer = filteredItems.reduce((groups, item) => {
+                const key = item.drlp_id;
+                if (!groups[key]) {
+                  groups[key] = {
+                    drlp_id: item.drlp_id,
+                    drlp_name: item.drlp_name || getRetailerName(item.drlp_id),
+                    drlp_address: item.drlp_address || '',
+                    items: []
+                  };
+                }
+                groups[key].items.push(item);
+                return groups;
+              }, {});
+
+              // Get retailer info for any retailers in DACDRLP-List that have no RSHDs
+              const retailersWithDeals = new Set(Object.keys(groupedByRetailer));
+              const retailersWithoutDeals = retailers.filter(r => !retailersWithDeals.has(r.drlp_id));
+
               return (
-                <Card key={item.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                  <div className={`${discount.color} text-white text-center py-1 text-sm font-bold`}>
-                    {discount.text}
-                  </div>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{item.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
-                          <Store className="w-3 h-3" />
-                          {getRetailerName(item.drlp_id)}
-                        </CardDescription>
+                <>
+                  {/* Retailers WITH RSHDs */}
+                  {Object.values(groupedByRetailer).map((retailerGroup) => (
+                    <div key={retailerGroup.drlp_id} className="space-y-4">
+                      {/* Store Header */}
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-emerald-600 text-white p-2 rounded-lg">
+                              <Store className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h2 className="text-lg font-bold text-gray-900">{retailerGroup.drlp_name}</h2>
+                              {retailerGroup.drlp_address && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {retailerGroup.drlp_address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Badge className="bg-emerald-100 text-emerald-700">
+                            {retailerGroup.items.length} {retailerGroup.items.length === 1 ? 'Deal' : 'Deals'}
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge variant="outline">{item.category}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {/* Price */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold text-emerald-600">
-                        ${item.discounted_price?.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-gray-400 line-through">
-                        ${item.original_price?.toFixed(2)}
-                      </span>
-                    </div>
 
-                    {/* Details */}
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Tag className="w-3 h-3" />
-                        {item.quantity} left
-                      </span>
-                      {item.expiry_date && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          Expires: {new Date(item.expiry_date).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
+                      {/* Store's RSHD Items */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-4 border-l-4 border-emerald-200">
+                        {retailerGroup.items.map((item) => {
+                          const discount = getDiscountBadge(item.discount_level);
+                          return (
+                            <Card key={item.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                              <div className={`${discount.color} text-white text-center py-1 text-sm font-bold`}>
+                                {discount.text}
+                              </div>
+                              <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                  <CardTitle className="text-lg">{item.name}</CardTitle>
+                                  <Badge variant="outline">{item.category}</Badge>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="space-y-3">
+                                {/* Price */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl font-bold text-emerald-600">
+                                    ${item.deal_price?.toFixed(2) || item.discounted_price?.toFixed(2)}
+                                  </span>
+                                  <span className="text-sm text-gray-400 line-through">
+                                    ${item.regular_price?.toFixed(2) || item.original_price?.toFixed(2)}
+                                  </span>
+                                </div>
 
-                    {/* Attributes */}
-                    <div className="flex flex-wrap gap-1">
-                      {item.attributes?.organic && (
-                        <Badge className="bg-green-100 text-green-700 text-xs">🌿 Organic</Badge>
-                      )}
-                      {item.attributes?.local && (
-                        <Badge className="bg-blue-100 text-blue-700 text-xs">📍 Local</Badge>
-                      )}
-                    </div>
+                                {/* Details */}
+                                <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <Tag className="w-3 h-3" />
+                                    {item.quantity} left
+                                  </span>
+                                  {item.expiry_date && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      Expires: {new Date(item.expiry_date).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
 
-                    {/* Action */}
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                  </CardContent>
-                </Card>
+                                {/* Attributes */}
+                                <div className="flex flex-wrap gap-1">
+                                  {item.attributes?.organic && (
+                                    <Badge className="bg-green-100 text-green-700 text-xs">🌿 Organic</Badge>
+                                  )}
+                                  {item.attributes?.local && (
+                                    <Badge className="bg-blue-100 text-blue-700 text-xs">📍 Local</Badge>
+                                  )}
+                                </div>
+
+                                {/* Action */}
+                                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                                  <ShoppingCart className="w-4 h-4 mr-2" />
+                                  Add to Cart
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Retailers WITHOUT RSHDs (only show if there are some with deals) */}
+                  {retailersWithoutDeals.length > 0 && Object.keys(groupedByRetailer).length > 0 && (
+                    <div className="space-y-4 mt-8">
+                      <h3 className="text-lg font-semibold text-gray-700">Other Retailers in Your List</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {retailersWithoutDeals.map((retailer) => (
+                          <div key={retailer.drlp_id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="bg-gray-400 text-white p-2 rounded-lg">
+                                <Store className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-gray-900">{retailer.drlp_name}</h4>
+                                <p className="text-sm text-gray-500">No deals posted yet</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               );
-            })}
+            })()}
           </div>
         )}
       </div>
