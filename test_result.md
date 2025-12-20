@@ -1085,6 +1085,102 @@ backend:
           agent: "testing"
           comment: "✅ PASS - DRLP authentication working correctly. Successfully authenticated test.retailer@dealshaq.com with TestPassword123 and received valid access token. DRLP users can access all barcode and OCR endpoints as expected."
 
+  - task: "Admin Dashboard API - GET /api/admin/analytics"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin analytics endpoint working correctly. Returns complete analytics data with 31-day orders trend (orders_trend array), 14 category breakdown (category_breakdown array), and 10 top retailers (top_retailers array). All required data structures present and valid."
+
+  - task: "Admin Dashboard API - GET /api/admin/users/{user_id}"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin user details endpoint working correctly. Successfully retrieves detailed user information with role-specific data. DAC users include retailer_list and order_count, DRLP users include items and item_count. All basic user fields (id, email, name, role, created_at) present."
+
+  - task: "Admin Dashboard API - PUT /api/admin/users/{user_id}/status"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin user status update working correctly. Successfully suspends user accounts (status: 'suspended') and reactivates them (status: 'active'). Proper validation prevents self-suspension and invalid status values."
+
+  - task: "Admin Dashboard API - GET /api/admin/alerts"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin alerts endpoint working correctly. Returns 14 system alerts with proper structure (type, severity, message). Includes low inventory alerts and expiring deals alerts. Alerts properly sorted by severity (critical, warning, info)."
+
+  - task: "Admin Dashboard API - GET /api/admin/activity"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin activity endpoint working correctly. Returns 20 recent activities with valid structure (type, description, timestamp). Includes recent orders, user registrations, and item postings. Activities properly sorted by timestamp."
+
+  - task: "Admin Dashboard API - GET /api/admin/charities"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin charities endpoint working correctly. Returns 10 charities with donation statistics breakdown (donations_dac, donations_drlp, donations_roundup, total_donations). Charities sorted by total donations."
+
+  - task: "Admin Dashboard API - PUT /api/admin/items/{item_id}/status"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin items status update working correctly. Successfully removes items (status: 'admin_removed') and restores them (status: 'available'). Proper validation for status values (available, unavailable, admin_removed)."
+
+  - task: "Admin Dashboard API - Authorization Security"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Admin authorization working correctly. All admin endpoints properly reject non-admin users with 403 Forbidden errors. Admin authentication with admin@dealshaq.com / AdminPassword123 credentials successful. Role-based access control functioning as expected."
+
 metadata:
   created_by: "testing_agent"
   version: "1.2"
