@@ -944,29 +944,47 @@ backend:
           agent: "testing"
           comment: "✅ PASS - Barcode lookup working correctly with Open Food Facts API. Successfully retrieved Nutella (3017620422003) with product name 'Nutella', brand 'Nutella,Ferrero', category 'Breakfast & Cereal', weight 0.88 lbs, and image URL. Coca-Cola (5449000000996) returned 'Coca Cola', brand 'Coca-Cola', category 'Beverages', weight 0.07 lbs. Invalid barcodes (0000000000000, empty string) correctly return 404 with 'Product not found in database' message."
 
+  - task: "Barcode Lookup API - POST /api/barcode/lookup"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Barcode lookup working correctly with Open Food Facts API. Successfully retrieved Nutella (3017620422003) with product name 'Nutella', brand 'Nutella,Ferrero', category 'Breakfast & Cereal', weight 0.88 lbs, and image URL. Invalid barcodes (0000000000000) correctly return 404 with 'Product not found in database' message."
+
   - task: "OCR Price Extraction API - POST /api/ocr/extract-price"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ FAIL - OCR Price Extraction failing with 520 error: 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o'. Issue appears to be with base64 image format validation in GPT-4 Vision API integration. Test used minimal 1x1 pixel JPEG base64 image."
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - OCR Price Extraction FIXED and working correctly! Successfully extracted price '9.99' from test image containing 'Price: $9.99'. GPT-4 Vision API integration now properly handles base64 images created with PIL. Returns proper response structure with extracted.price field."
 
   - task: "OCR Product Analysis API - POST /api/ocr/analyze-product"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ FAIL - OCR Product Analysis failing with same 520 error: 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o'. Same base64 image validation issue as price extraction endpoint."
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - OCR Product Analysis FIXED and working correctly! Successfully analyzed test image with 'ORGANIC MILK 2% Fat - 1 Gallon' and correctly categorized as 'Dairy & Eggs' with organic detection (is_organic: true). GPT-4 Vision API integration now working properly with PIL-generated base64 images."
 
   - task: "Barcode/OCR Authorization - DRLP Only Access"
     implemented: true
