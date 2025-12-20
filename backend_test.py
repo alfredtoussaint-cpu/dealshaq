@@ -39,6 +39,11 @@ RETAILER_EMAIL = "freshvalleymarket@dealshaq.com"
 RETAILER_PASSWORD = "TestPassword123"
 RETAILER_ROLE = "DRLP"
 
+# Admin credentials for Admin Dashboard testing
+ADMIN_EMAIL = "admin@dealshaq.com"
+ADMIN_PASSWORD = "AdminPassword123"
+ADMIN_ROLE = "Admin"
+
 class BackendTester:
     def __init__(self):
         self.session = None
