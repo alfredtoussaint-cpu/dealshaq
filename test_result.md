@@ -925,7 +925,202 @@ test_plan:
 - **Note:** Created new test user as provided credentials had authentication issues
 
 #====================================================================================================
-# End of Brand/Generic Feature Testing Results
+# BARCODE & OCR INTEGRATION TESTING RESULTS - December 20, 2025
+# Testing Agent: Comprehensive Barcode and OCR Verification
+#====================================================================================================
+
+user_problem_statement: "Test the new Barcode and OCR integration for DealShaq Retailer app. Test Credentials: Retailer: test.retailer@dealshaq.com / TestPassword123 (role: DRLP). Backend API Endpoints to Test: 1. Barcode Lookup API (POST /api/barcode/lookup), 2. OCR Price Extraction API (POST /api/ocr/extract-price), 3. OCR Product Analysis API (POST /api/ocr/analyze-product), 4. Authorization Tests, 5. Category Mapping Test"
+
+backend:
+  - task: "Barcode Lookup API - POST /api/barcode/lookup"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Barcode lookup working correctly with Open Food Facts API. Successfully retrieved Nutella (3017620422003) with product name 'Nutella', brand 'Nutella,Ferrero', category 'Breakfast & Cereal', weight 0.88 lbs, and image URL. Coca-Cola (5449000000996) returned 'Coca Cola', brand 'Coca-Cola', category 'Beverages', weight 0.07 lbs. Invalid barcodes (0000000000000, empty string) correctly return 404 with 'Product not found in database' message."
+
+  - task: "OCR Price Extraction API - POST /api/ocr/extract-price"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ FAIL - OCR Price Extraction failing with 520 error: 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o'. Issue appears to be with base64 image format validation in GPT-4 Vision API integration. Test used minimal 1x1 pixel JPEG base64 image."
+
+  - task: "OCR Product Analysis API - POST /api/ocr/analyze-product"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ FAIL - OCR Product Analysis failing with same 520 error: 'Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o'. Same base64 image validation issue as price extraction endpoint."
+
+  - task: "Barcode/OCR Authorization - DRLP Only Access"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Authorization working correctly. DAC users properly rejected with 403 Forbidden for all endpoints (/barcode/lookup, /ocr/extract-price, /ocr/analyze-product) with appropriate error messages ('Only DRLP users can use barcode lookup', 'Only DRLP users can use OCR', 'Only DRLP users can use product analysis'). Minor: Unauthenticated requests return 403 instead of expected 401, but authentication is properly enforced."
+
+  - task: "Category Mapping - Open Food Facts to DealShaq Categories"
+    implemented: true
+    working: true
+    file: "backend/barcode_ocr_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Category mapping working correctly. Nutella (3017620422003) successfully mapped from Open Food Facts categories ('Petit-déjeuners,Produits à tartiner,Produits à tartiner sucrés,Pâtes à tartiner,Pâtes à tartiner aux noisettes') to DealShaq category 'Breakfast & Cereal'. Mapping logic correctly converts French/international categories to one of DealShaq's 20 valid categories."
+
+  - task: "DRLP Authentication for Barcode/OCR"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - DRLP authentication working correctly. Successfully authenticated test.retailer@dealshaq.com with TestPassword123 and received valid access token. DRLP users can access all barcode and OCR endpoints as expected."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.2"
+  test_sequence: 3
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "OCR Price Extraction API - POST /api/ocr/extract-price"
+    - "OCR Product Analysis API - POST /api/ocr/analyze-product"
+  stuck_tasks:
+    - "OCR Price Extraction API - POST /api/ocr/extract-price"
+    - "OCR Product Analysis API - POST /api/ocr/analyze-product"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: "✅ BARCODE & OCR INTEGRATION TESTING COMPLETED - 66.7% SUCCESS RATE (10/15 tests passed). ✅ WORKING: Barcode lookup fully functional with Open Food Facts API integration - successfully retrieves product info for valid barcodes (Nutella, Coca-Cola), properly handles invalid barcodes with 404 errors, category mapping works correctly (Open Food Facts → DealShaq categories). Authorization properly restricts access to DRLP users only. ❌ CRITICAL ISSUES: Both OCR endpoints (price extraction and product analysis) failing with GPT-4 Vision API integration error - 'Invalid base64 image_url' suggests base64 format validation issue in emergentintegrations/litellm. ⚠️ MINOR: Unauthenticated requests return 403 instead of 401 (acceptable - authentication still enforced). RECOMMENDATION: Main agent should investigate OCR base64 image handling and GPT-4 Vision API integration."
+
+#====================================================================================================
+# BARCODE & OCR INTEGRATION TEST SUMMARY
+# Date: December 20, 2025
+# Testing Agent: Comprehensive Backend Verification
+#====================================================================================================
+
+## Test Summary - BARCODE & OCR INTEGRATION
+- **Total Tests:** 15
+- **Passed:** 10 (66.7%)
+- **Failed:** 5 (33.3%)
+- **Overall Status:** ⚠️ PARTIAL SUCCESS - BARCODE WORKING, OCR NEEDS FIX
+
+## DETAILED TEST RESULTS
+
+### ✅ WORKING FEATURES (10/15 PASSED)
+
+**1. Barcode Lookup API (4/4 tests passed)**
+- ✅ Nutella (3017620422003): Successfully retrieved product info
+  - Product: "Nutella", Brand: "Nutella,Ferrero", Category: "Breakfast & Cereal"
+  - Weight: 0.88 lbs, Image URL provided, Organic: false
+- ✅ Coca-Cola (5449000000996): Successfully retrieved product info  
+  - Product: "Coca Cola", Brand: "Coca-Cola", Category: "Beverages"
+  - Weight: 0.07 lbs, Image URL provided, Organic: false
+- ✅ Invalid barcode (0000000000000): Correctly returned 404 "Product not found in database"
+- ✅ Empty barcode (""): Correctly returned 404 "Product not found in database"
+
+**2. Authorization & Authentication (4/4 tests passed)**
+- ✅ DRLP Authentication: test.retailer@dealshaq.com successfully authenticated
+- ✅ DAC User Rejection: All endpoints correctly reject DAC users with 403 Forbidden
+  - Barcode lookup: "Only DRLP users can use barcode lookup"
+  - OCR price: "Only DRLP users can use OCR"  
+  - OCR analysis: "Only DRLP users can use product analysis"
+- ✅ Role-based Access Control: DRLP users can access all endpoints
+
+**3. Category Mapping (1/1 test passed)**
+- ✅ Open Food Facts → DealShaq Categories: Working correctly
+  - Nutella mapped from French categories to "Breakfast & Cereal"
+  - Raw categories: "Petit-déjeuners,Produits à tartiner,Produits à tartiner sucrés,Pâtes à tartiner,Pâtes à tartiner aux noisettes"
+  - Successfully mapped to one of DealShaq's 20 valid categories
+
+**4. DAC Authentication (1/1 test passed)**
+- ✅ DAC User Authentication: test.brand.generic@example.com successfully authenticated for authorization testing
+
+### ❌ FAILING FEATURES (5/15 FAILED)
+
+**1. OCR Price Extraction (1/1 test failed)**
+- ❌ POST /api/ocr/extract-price: 520 error
+- Error: "Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Invalid base64 image_url.. Received Model Group=gpt-4o"
+- Issue: Base64 image format validation in GPT-4 Vision API integration
+
+**2. OCR Product Analysis (1/1 test failed)**  
+- ❌ POST /api/ocr/analyze-product: 520 error
+- Same error as price extraction - base64 image validation issue
+
+**3. Authorization Edge Cases (3/3 tests failed - Minor)**
+- ❌ Unauthenticated requests return 403 instead of expected 401
+- Impact: Low - authentication is still properly enforced
+- Status: Acceptable behavior
+
+## PRODUCTION READINESS ASSESSMENT
+
+### ✅ READY FOR PRODUCTION
+- **Barcode Lookup:** 100% functional with Open Food Facts API
+- **Category Mapping:** Working correctly (international → DealShaq categories)
+- **Authorization:** Proper DRLP-only access control
+- **Authentication:** DRLP credentials working correctly
+- **Error Handling:** Appropriate responses for invalid barcodes
+
+### ❌ NEEDS IMMEDIATE ATTENTION
+- **OCR Integration:** Both endpoints failing due to GPT-4 Vision API issue
+- **Root Cause:** Base64 image format validation in emergentintegrations/litellm
+- **Impact:** High - OCR functionality completely non-functional
+
+### 📋 RECOMMENDATIONS
+
+**For Main Agent:**
+1. 🔍 **URGENT:** Investigate OCR base64 image handling
+   - Check emergentintegrations library documentation for proper base64 format
+   - Verify GPT-4 Vision API integration in barcode_ocr_service.py
+   - Test with different base64 image formats (PNG vs JPEG)
+   
+2. ✅ **Barcode feature is production-ready** - can be deployed immediately
+   
+3. ⚠️ **OCR feature requires fix** before deployment
+
+**Test Credentials Used:**
+- **DRLP:** test.retailer@dealshaq.com / TestPassword123 ✅ Working
+- **DAC:** test.brand.generic@example.com / TestPassword123 ✅ Working
+
+**Files Tested:**
+- **Backend API:** /app/backend/server.py
+- **Barcode/OCR Service:** /app/backend/barcode_ocr_service.py  
+- **Test Suite:** /app/barcode_ocr_test.py
+- **Environment:** Production URL (https://shop-radar-app.preview.emergentagent.com)
+
+#====================================================================================================
+# End of Barcode & OCR Integration Testing Results
 #====================================================================================================
 
 #====================================================================================================
