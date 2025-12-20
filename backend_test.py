@@ -1329,12 +1329,8 @@ class BackendTester:
         """Test PUT /api/admin/retailers/{retailer_id}/status - Suspend retailer"""
         logger.info("⏸️ Testing Admin Retailer Status - Suspend...")
         
-        # Use admin token
-        original_token = self.auth_token
-        self.auth_token = self.admin_auth_token
-        
         # First get a retailer ID
-        list_response = await self.make_request("GET", "/admin/retailers")
+        list_response = await self.make_request("GET", "/admin/retailers", token=self.admin_auth_token)
         
         if list_response["status"] == 200 and list_response["data"]:
             retailer_id = list_response["data"][0]["id"]
@@ -1342,7 +1338,7 @@ class BackendTester:
             # Suspend the retailer
             response = await self.make_request("PUT", f"/admin/retailers/{retailer_id}/status", {
                 "status": "suspended"
-            })
+            }, token=self.admin_auth_token)
             
             if response["status"] == 200:
                 self.log_result(
@@ -1352,7 +1348,7 @@ class BackendTester:
                 )
                 
                 # Verify items are marked as retailer_suspended
-                items_response = await self.make_request("GET", "/admin/items")
+                items_response = await self.make_request("GET", "/admin/items", token=self.admin_auth_token)
                 if items_response["status"] == 200:
                     # Check if any items from this retailer are marked as retailer_suspended
                     # This is a conceptual check since we'd need to filter by retailer
@@ -1374,8 +1370,6 @@ class BackendTester:
                 "No retailers available to test suspension"
             )
         
-        # Restore original token
-        self.auth_token = original_token
         return None
 
     async def test_admin_retailer_status_reactivate(self, retailer_id: str = None):
