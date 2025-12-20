@@ -8,14 +8,14 @@
       "success": true,
       "message": "Successfully authenticated as test.brand.generic@example.com",
       "details": {},
-      "timestamp": "2025-12-20T02:26:22.305599+00:00"
+      "timestamp": "2025-12-20T02:55:51.930051+00:00"
     },
     {
       "test": "DRLP Authentication",
       "success": true,
       "message": "Successfully authenticated as test.retailer@dealshaq.com",
       "details": {},
-      "timestamp": "2025-12-20T02:26:22.557662+00:00"
+      "timestamp": "2025-12-20T02:55:52.187327+00:00"
     },
     {
       "test": "Barcode Lookup - Valid Nutella",
@@ -43,7 +43,7 @@
         "category": "Breakfast & Cereal",
         "weight": 0.88
       },
-      "timestamp": "2025-12-20T02:26:23.327335+00:00"
+      "timestamp": "2025-12-20T02:55:53.200927+00:00"
     },
     {
       "test": "Barcode Lookup - Invalid Barcode",
@@ -54,7 +54,7 @@
           "detail": "Product not found in database"
         }
       },
-      "timestamp": "2025-12-20T02:26:23.709338+00:00"
+      "timestamp": "2025-12-20T02:55:53.625784+00:00"
     },
     {
       "test": "OCR Price Extraction",
@@ -68,7 +68,7 @@
           "discount_percentage": null
         }
       },
-      "timestamp": "2025-12-20T02:26:25.932846+00:00"
+      "timestamp": "2025-12-20T02:55:56.605965+00:00"
     },
     {
       "test": "OCR Product Analysis",
@@ -81,12 +81,12 @@
           "category": "Dairy & Eggs",
           "weight": "1 Gallon",
           "is_organic": true,
-          "description": "Organic milk with 2% fat content."
+          "description": "Organic milk with 2% fat content"
         },
         "organic": null,
         "name": null
       },
-      "timestamp": "2025-12-20T02:26:28.342752+00:00"
+      "timestamp": "2025-12-20T02:55:59.104962+00:00"
     },
     {
       "test": "DAC Authorization - /barcode/lookup",
@@ -95,7 +95,7 @@
       "details": {
         "endpoint": "/barcode/lookup"
       },
-      "timestamp": "2025-12-20T02:26:28.356630+00:00"
+      "timestamp": "2025-12-20T02:55:59.159759+00:00"
     },
     {
       "test": "DAC Authorization - /ocr/extract-price",
@@ -104,7 +104,7 @@
       "details": {
         "endpoint": "/ocr/extract-price"
       },
-      "timestamp": "2025-12-20T02:26:28.369712+00:00"
+      "timestamp": "2025-12-20T02:55:59.169780+00:00"
     },
     {
       "test": "DAC Authorization - /ocr/analyze-product",
@@ -113,7 +113,7 @@
       "details": {
         "endpoint": "/ocr/analyze-product"
       },
-      "timestamp": "2025-12-20T02:26:28.381099+00:00"
+      "timestamp": "2025-12-20T02:55:59.184289+00:00"
     },
     {
       "test": "Unauthenticated Access - /barcode/lookup",
@@ -125,7 +125,7 @@
           "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-20T02:26:28.393132+00:00"
+      "timestamp": "2025-12-20T02:55:59.196607+00:00"
     },
     {
       "test": "Unauthenticated Access - /ocr/extract-price",
@@ -137,7 +137,7 @@
           "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-20T02:26:28.400517+00:00"
+      "timestamp": "2025-12-20T02:55:59.246747+00:00"
     },
     {
       "test": "Unauthenticated Access - /ocr/analyze-product",
@@ -149,7 +149,7 @@
           "detail": "Not authenticated"
         }
       },
-      "timestamp": "2025-12-20T02:26:28.408350+00:00"
+      "timestamp": "2025-12-20T02:55:59.255018+00:00"
     }
   ]
 }
