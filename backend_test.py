@@ -2369,10 +2369,10 @@ class BackendTester:
         # PRIORITY 1: WebSocket Notification System Tests
         logger.info("🔔 PRIORITY 1: WebSocket Notification System")
         await self.test_websocket_status_endpoint()
-        await self.test_websocket_connection_with_token()
+        await self.test_websocket_connection_with_consumer_credentials()
         await self.test_websocket_authorization()
         await self.test_notification_database_verification()
-        await self.test_rshd_post_triggers_notification()
+        await self.test_rshd_post_triggers_notification_with_retailer_credentials()
         
         # PRIORITY 2: Core Backend Functionality (Regression)
         logger.info("🔄 PRIORITY 2: Core Backend Functionality")
