@@ -2017,6 +2017,261 @@ async def get_charities_with_stats(current_user: Dict = Depends(get_current_user
     
     return result
 
+# ===== RETAILER MANAGEMENT ENDPOINTS =====
+
+@api_router.get("/admin/retailers")
+async def get_all_retailers(current_user: Dict = Depends(get_current_user)):
+    """Get all retailers with comprehensive stats"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all DRLP users
+    retailers = await db.users.find({"role": "DRLP"}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    
+    # Get all items for counting
+    all_items = await db.rshd_items.find({}, {"_id": 0, "drlp_id": 1, "status": 1}).to_list(10000)
+    
+    # Get all orders for sales data
+    all_orders = await db.orders.find({}, {"_id": 0, "drlp_id": 1, "total": 1, "items": 1}).to_list(10000)
+    
+    # Get all DACDRLP lists to count consumer reach
+    all_dac_lists = await db.dacdrlp_list.find({}, {"_id": 0, "retailers": 1}).to_list(10000)
+    
+    # Get all locations
+    all_locations = await db.drlp_locations.find({}, {"_id": 0}).to_list(1000)
+    location_map = {}
+    for loc in all_locations:
+        drlp_id = loc.get("drlp_id") or loc.get("user_id")
+        if drlp_id:
+            location_map[drlp_id] = loc
+    
+    # Calculate stats per retailer
+    result = []
+    for retailer in retailers:
+        retailer_id = retailer["id"]
+        
+        # Count items
+        active_items = sum(1 for i in all_items if i.get("drlp_id") == retailer_id and i.get("status") == "available")
+        total_items = sum(1 for i in all_items if i.get("drlp_id") == retailer_id)
+        
+        # Count orders and revenue
+        retailer_orders = [o for o in all_orders if o.get("drlp_id") == retailer_id]
+        total_orders = len(retailer_orders)
+        total_revenue = sum(o.get("total", 0) for o in retailer_orders)
+        
+        # Count consumer reach (how many DACs have this retailer in their list)
+        consumer_reach = 0
+        for dac_list in all_dac_lists:
+            for r in dac_list.get("retailers", []):
+                if r.get("drlp_id") == retailer_id and not r.get("manually_removed", False):
+                    consumer_reach += 1
+                    break
+        
+        # Get location info
+        location = location_map.get(retailer_id, {})
+        
+        result.append({
+            **retailer,
+            "store_name": location.get("name") or location.get("drlp_name") or retailer.get("name"),
+            "address": location.get("address", "Not set"),
+            "location": location.get("location"),
+            "operating_hours": location.get("operating_hours"),
+            "active_items": active_items,
+            "total_items": total_items,
+            "total_orders": total_orders,
+            "total_revenue": round(total_revenue, 2),
+            "consumer_reach": consumer_reach,
+        })
+    
+    # Sort by active items (most active first)
+    result.sort(key=lambda x: x["active_items"], reverse=True)
+    
+    return result
+
+@api_router.get("/admin/retailers/{retailer_id}")
+async def get_retailer_details(retailer_id: str, current_user: Dict = Depends(get_current_user)):
+    """Get detailed information for a specific retailer"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get retailer user
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"}, {"_id": 0, "password_hash": 0})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    # Get location info
+    location = await db.drlp_locations.find_one(
+        {"$or": [{"drlp_id": retailer_id}, {"user_id": retailer_id}]}, 
+        {"_id": 0}
+    )
+    
+    # Get all items
+    items = await db.rshd_items.find({"drlp_id": retailer_id}, {"_id": 0}).to_list(1000)
+    
+    # Get orders
+    orders = await db.orders.find({"drlp_id": retailer_id}, {"_id": 0}).to_list(1000)
+    
+    # Calculate stats
+    active_items = [i for i in items if i.get("status") == "available"]
+    total_revenue = sum(o.get("total", 0) for o in orders)
+    items_sold = sum(len(o.get("items", [])) for o in orders)
+    
+    # Count consumer reach
+    consumer_reach = await db.dacdrlp_list.count_documents({
+        "retailers": {
+            "$elemMatch": {
+                "drlp_id": retailer_id,
+                "manually_removed": {"$ne": True}
+            }
+        }
+    })
+    
+    # Get consumers who have this retailer in their list
+    dac_lists = await db.dacdrlp_list.find({
+        "retailers": {
+            "$elemMatch": {
+                "drlp_id": retailer_id,
+                "manually_removed": {"$ne": True}
+            }
+        }
+    }, {"_id": 0, "dac_id": 1}).to_list(100)
+    
+    consumer_ids = [d["dac_id"] for d in dac_lists]
+    consumers = await db.users.find(
+        {"id": {"$in": consumer_ids}}, 
+        {"_id": 0, "id": 1, "name": 1, "email": 1}
+    ).to_list(100)
+    
+    return {
+        **retailer,
+        "location": location,
+        "items": items,
+        "active_items_count": len(active_items),
+        "total_items_count": len(items),
+        "orders": orders[-10:],  # Last 10 orders
+        "total_orders": len(orders),
+        "total_revenue": round(total_revenue, 2),
+        "items_sold": items_sold,
+        "consumer_reach": consumer_reach,
+        "consumers": consumers[:20],  # First 20 consumers
+    }
+
+@api_router.get("/admin/retailers/analytics/overview")
+async def get_retailer_analytics(current_user: Dict = Depends(get_current_user)):
+    """Get retailer analytics for admin dashboard"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from datetime import timedelta
+    from collections import defaultdict
+    
+    now = datetime.now(timezone.utc)
+    
+    # Get all retailers
+    retailers = await db.users.find({"role": "DRLP"}, {"_id": 0, "id": 1, "name": 1, "created_at": 1}).to_list(1000)
+    
+    # Get all items
+    items = await db.rshd_items.find({}, {"_id": 0, "drlp_id": 1, "drlp_name": 1, "status": 1}).to_list(10000)
+    
+    # Get all orders
+    orders = await db.orders.find({}, {"_id": 0, "drlp_id": 1, "total": 1, "created_at": 1}).to_list(10000)
+    
+    # Top retailers by items posted
+    items_by_retailer = defaultdict(lambda: {"name": "", "count": 0})
+    for item in items:
+        if item.get("status") == "available":
+            drlp_id = item.get("drlp_id", "")
+            items_by_retailer[drlp_id]["count"] += 1
+            items_by_retailer[drlp_id]["name"] = item.get("drlp_name", "Unknown")
+    
+    top_by_items = sorted(
+        [{"drlp_id": k, "name": v["name"], "items": v["count"]} for k, v in items_by_retailer.items()],
+        key=lambda x: x["items"],
+        reverse=True
+    )[:10]
+    
+    # Top retailers by sales
+    sales_by_retailer = defaultdict(lambda: {"name": "", "revenue": 0, "orders": 0})
+    for order in orders:
+        drlp_id = order.get("drlp_id", "")
+        if drlp_id:
+            sales_by_retailer[drlp_id]["revenue"] += order.get("total", 0)
+            sales_by_retailer[drlp_id]["orders"] += 1
+    
+    # Get retailer names
+    for retailer in retailers:
+        if retailer["id"] in sales_by_retailer:
+            sales_by_retailer[retailer["id"]]["name"] = retailer.get("name", "Unknown")
+    
+    top_by_sales = sorted(
+        [{"drlp_id": k, "name": v["name"], "revenue": round(v["revenue"], 2), "orders": v["orders"]} 
+         for k, v in sales_by_retailer.items() if v["revenue"] > 0],
+        key=lambda x: x["revenue"],
+        reverse=True
+    )[:10]
+    
+    # New retailer registrations over last 30 days
+    registrations_by_day = defaultdict(int)
+    for retailer in retailers:
+        try:
+            created = datetime.fromisoformat(retailer.get("created_at", "").replace("Z", "+00:00"))
+            if (now - created).days <= 30:
+                day_key = created.strftime("%Y-%m-%d")
+                registrations_by_day[day_key] += 1
+        except:
+            pass
+    
+    registrations_trend = []
+    for i in range(30, -1, -1):
+        day = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        registrations_trend.append({
+            "date": day,
+            "count": registrations_by_day[day]
+        })
+    
+    return {
+        "total_retailers": len(retailers),
+        "active_retailers": len([r for r in items_by_retailer.values() if r["count"] > 0]),
+        "top_by_items": top_by_items,
+        "top_by_sales": top_by_sales,
+        "registrations_trend": registrations_trend
+    }
+
+@api_router.put("/admin/retailers/{retailer_id}/status")
+async def update_retailer_status(retailer_id: str, status: Dict, current_user: Dict = Depends(get_current_user)):
+    """Suspend or activate a retailer account"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    new_status = status.get("status", "active")
+    if new_status not in ["active", "suspended"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Use 'active' or 'suspended'")
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {"account_status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # If suspended, also mark all their items as unavailable
+    if new_status == "suspended":
+        await db.rshd_items.update_many(
+            {"drlp_id": retailer_id, "status": "available"},
+            {"$set": {"status": "retailer_suspended"}}
+        )
+    elif new_status == "active":
+        # Restore items that were suspended due to retailer suspension
+        await db.rshd_items.update_many(
+            {"drlp_id": retailer_id, "status": "retailer_suspended"},
+            {"$set": {"status": "available"}}
+        )
+    
+    logger.info(f"Retailer {retailer_id} status changed to {new_status} by admin {current_user['email']}")
+    return {"message": f"Retailer status updated to {new_status}"}
+
 
 
 # ===== BARCODE & OCR ROUTES =====
