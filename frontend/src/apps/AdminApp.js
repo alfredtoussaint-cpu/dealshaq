@@ -6,6 +6,7 @@ import AdminUsers from '../components/admin/AdminUsers';
 import AdminTransactions from '../components/admin/AdminTransactions';
 import AdminItems from '../components/admin/AdminItems';
 import AdminCharities from '../components/admin/AdminCharities';
+import AdminRetailers from '../components/admin/AdminRetailers';
 
 export default function AdminApp() {
   const [user, setUser] = useState(null);
