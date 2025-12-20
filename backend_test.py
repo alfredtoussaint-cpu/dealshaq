@@ -2121,7 +2121,7 @@ class BackendTester:
             ssl_context.verify_mode = ssl.CERT_NONE
             
             try:
-                async with websockets.connect(invalid_ws_endpoint, ssl=ssl_context, timeout=5) as websocket:
+                async with websockets.connect(invalid_ws_endpoint, ssl=ssl_context) as websocket:
                     # Should not reach here - connection should be rejected
                     self.log_result(
                         "WebSocket Authorization - Invalid Token", False,
@@ -2150,7 +2150,7 @@ class BackendTester:
             no_token_endpoint = f"{ws_url}/ws"
             
             try:
-                async with websockets.connect(no_token_endpoint, ssl=ssl_context, timeout=5) as websocket:
+                async with websockets.connect(no_token_endpoint, ssl=ssl_context) as websocket:
                     self.log_result(
                         "WebSocket Authorization - No Token", False,
                         "Connection accepted without token (security issue)"
