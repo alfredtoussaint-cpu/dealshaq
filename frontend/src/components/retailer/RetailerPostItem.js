@@ -204,44 +204,20 @@ export default function RetailerPostItem({ user, onLogout }) {
   };
 
   // Legacy mock scan (kept for fallback/demo)
-    // Simulate barcode scanning
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock product data (in real implementation, call backend API)
-    const mockProducts = [
-      { name: 'Organic Honeycrisp Apples 5lb', category: 'Fruits', barcode: '012345678901', weight: 5.0 },
-      { name: 'Grass-Fed Ground Beef 1lb', category: 'Meat & Poultry', barcode: '098765432109', weight: 1.0 },
-      { name: 'Greek Yogurt 32oz', category: 'Dairy & Eggs', barcode: '555666777888', weight: 2.0 },
-    ];
-    const product = mockProducts[Math.floor(Math.random() * mockProducts.length)];
-    
-    setFormData({
-      ...formData,
-      name: product.name,
-      category: product.category,
-      barcode: product.barcode,
-      weight: product.weight.toString(),
-    });
-    setScanning(false);
-    toast.success('Barcode scanned! Product info auto-populated');
+  const handleBarcodeScan = async () => {
+    // This is now replaced by handleBarcodeLookup
+    // Keeping for backwards compatibility with any existing UI elements
+    handleBarcodeLookup();
   };
 
-  // Mock OCR price scan function
   const handlePriceScan = async () => {
-    setOcrProcessing(true);
-    // Simulate OCR processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock extracted price (in real implementation, call OCR API)
-    const mockPrice = (Math.random() * 20 + 5).toFixed(2);
-    
-    setFormData({
-      ...formData,
-      regular_price: mockPrice,
-    });
-    setOcrProcessing(false);
-    toast.success(`Price extracted: $${mockPrice}`);
+    // This is now replaced by handlePriceImageUpload
+    // Trigger file input click for price image upload
+    if (priceImageRef.current) {
+      priceImageRef.current.click();
+    }
   };
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
