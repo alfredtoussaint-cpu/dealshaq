@@ -1030,11 +1030,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "OCR Price Extraction API - POST /api/ocr/extract-price"
-    - "OCR Product Analysis API - POST /api/ocr/analyze-product"
-  stuck_tasks:
-    - "OCR Price Extraction API - POST /api/ocr/extract-price"
-    - "OCR Product Analysis API - POST /api/ocr/analyze-product"
+    - "All Barcode/OCR integration tests completed successfully"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
