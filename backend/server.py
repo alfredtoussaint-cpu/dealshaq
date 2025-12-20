@@ -2088,6 +2088,87 @@ async def get_all_retailers(current_user: Dict = Depends(get_current_user)):
     
     return result
 
+@api_router.get("/admin/retailers/analytics/overview")
+async def get_retailer_analytics(current_user: Dict = Depends(get_current_user)):
+    """Get retailer analytics for admin dashboard"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    from datetime import timedelta
+    from collections import defaultdict
+    
+    now = datetime.now(timezone.utc)
+    
+    # Get all retailers
+    retailers = await db.users.find({"role": "DRLP"}, {"_id": 0, "id": 1, "name": 1, "created_at": 1}).to_list(1000)
+    
+    # Get all items
+    items = await db.rshd_items.find({}, {"_id": 0, "drlp_id": 1, "drlp_name": 1, "status": 1}).to_list(10000)
+    
+    # Get all orders
+    orders = await db.orders.find({}, {"_id": 0, "drlp_id": 1, "total": 1, "created_at": 1}).to_list(10000)
+    
+    # Top retailers by items posted
+    items_by_retailer = defaultdict(lambda: {"name": "", "count": 0})
+    for item in items:
+        if item.get("status") == "available":
+            drlp_id = item.get("drlp_id", "")
+            items_by_retailer[drlp_id]["count"] += 1
+            items_by_retailer[drlp_id]["name"] = item.get("drlp_name", "Unknown")
+    
+    top_by_items = sorted(
+        [{"drlp_id": k, "name": v["name"], "items": v["count"]} for k, v in items_by_retailer.items()],
+        key=lambda x: x["items"],
+        reverse=True
+    )[:10]
+    
+    # Top retailers by sales
+    sales_by_retailer = defaultdict(lambda: {"name": "", "revenue": 0, "orders": 0})
+    for order in orders:
+        drlp_id = order.get("drlp_id", "")
+        if drlp_id:
+            sales_by_retailer[drlp_id]["revenue"] += order.get("total", 0)
+            sales_by_retailer[drlp_id]["orders"] += 1
+    
+    # Get retailer names
+    for retailer in retailers:
+        if retailer["id"] in sales_by_retailer:
+            sales_by_retailer[retailer["id"]]["name"] = retailer.get("name", "Unknown")
+    
+    top_by_sales = sorted(
+        [{"drlp_id": k, "name": v["name"], "revenue": round(v["revenue"], 2), "orders": v["orders"]} 
+         for k, v in sales_by_retailer.items() if v["revenue"] > 0],
+        key=lambda x: x["revenue"],
+        reverse=True
+    )[:10]
+    
+    # New retailer registrations over last 30 days
+    registrations_by_day = defaultdict(int)
+    for retailer in retailers:
+        try:
+            created = datetime.fromisoformat(retailer.get("created_at", "").replace("Z", "+00:00"))
+            if (now - created).days <= 30:
+                day_key = created.strftime("%Y-%m-%d")
+                registrations_by_day[day_key] += 1
+        except:
+            pass
+    
+    registrations_trend = []
+    for i in range(30, -1, -1):
+        day = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        registrations_trend.append({
+            "date": day,
+            "count": registrations_by_day[day]
+        })
+    
+    return {
+        "total_retailers": len(retailers),
+        "active_retailers": len([r for r in items_by_retailer.values() if r["count"] > 0]),
+        "top_by_items": top_by_items,
+        "top_by_sales": top_by_sales,
+        "registrations_trend": registrations_trend
+    }
+
 @api_router.get("/admin/retailers/{retailer_id}")
 async def get_retailer_details(retailer_id: str, current_user: Dict = Depends(get_current_user)):
     """Get detailed information for a specific retailer"""
