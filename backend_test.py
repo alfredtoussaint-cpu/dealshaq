@@ -24,6 +24,11 @@ TEST_EMAIL = "test.brand.generic@example.com"
 TEST_PASSWORD = "TestPassword123"
 TEST_ROLE = "DAC"
 
+# DRLP Test credentials for barcode/OCR testing
+DRLP_TEST_EMAIL = "test.retailer@dealshaq.com"
+DRLP_TEST_PASSWORD = "TestPassword123"
+DRLP_TEST_ROLE = "DRLP"
+
 class BackendTester:
     def __init__(self):
         self.session = None
