@@ -79,13 +79,15 @@ class BackendTester:
         if details:
             logger.info(f"    Details: {details}")
     
-    async def make_request(self, method: str, endpoint: str, data: dict = None, headers: dict = None):
+    async def make_request(self, method: str, endpoint: str, data: dict = None, headers: dict = None, token: str = None):
         """Make HTTP request with error handling"""
         url = f"{API_BASE}{endpoint}"
         request_headers = {"Content-Type": "application/json"}
         
-        if self.auth_token:
-            request_headers["Authorization"] = f"Bearer {self.auth_token}"
+        # Use provided token or default to self.auth_token
+        auth_token = token or self.auth_token
+        if auth_token:
+            request_headers["Authorization"] = f"Bearer {auth_token}"
         
         if headers:
             request_headers.update(headers)
