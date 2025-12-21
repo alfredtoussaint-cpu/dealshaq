@@ -595,6 +595,12 @@ async def register(user_data: UserCreate):
         user_dict["favorite_items"] = []
         user_dict["auto_favorite_threshold"] = 0  # Default: Never
     
+    # Initialize store_status for DRLP users (Sandbox feature)
+    if user_data.role == "DRLP":
+        user_dict["store_status"] = STORE_STATUS_PENDING_APPROVAL
+        user_dict["store_logo"] = None
+        user_dict["store_hours"] = None
+    
     del user_dict["password"]
     
     await db.users.insert_one(user_dict)
