@@ -2062,6 +2062,278 @@ async def get_charities_with_stats(current_user: Dict = Depends(get_current_user
     
     return result
 
+# ===== DRLP SANDBOX & ONBOARDING ENDPOINTS =====
+
+@api_router.get("/retailers/launch-readiness")
+async def get_launch_readiness(current_user: Dict = Depends(get_current_user)):
+    """Get launch readiness checklist for the current DRLP"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can check launch readiness")
+    
+    retailer_id = current_user["id"]
+    
+    # Get retailer details
+    retailer = await db.users.find_one({"id": retailer_id}, {"_id": 0, "password_hash": 0})
+    
+    # Get location info
+    location = await db.drlp_locations.find_one(
+        {"$or": [{"drlp_id": retailer_id}, {"user_id": retailer_id}]},
+        {"_id": 0}
+    )
+    
+    # Get items count (minimum 2 RSHDs with quantity >= 5)
+    items = await db.rshd_items.find(
+        {"drlp_id": retailer_id, "status": "available", "quantity": {"$gte": 5}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Build checklist
+    checklist = {
+        "profile_complete": bool(retailer.get("name")),
+        "location_set": bool(location and location.get("address")),
+        "store_hours_configured": bool(retailer.get("store_hours")),
+        "logo_uploaded": bool(retailer.get("store_logo")),
+        "minimum_items_posted": len(items) >= 2,  # At least 2 RSHDs with qty >= 5
+        "items_count": len(items),
+        "items_required": 2,
+    }
+    
+    # Calculate overall readiness
+    required_checks = ["store_hours_configured", "logo_uploaded"]
+    all_required_met = all(checklist.get(check, False) for check in required_checks)
+    
+    checklist["ready_to_go_live"] = all_required_met and checklist["minimum_items_posted"]
+    checklist["store_status"] = retailer.get("store_status", STORE_STATUS_LIVE)  # Legacy retailers are live
+    
+    return checklist
+
+@api_router.put("/retailers/request-go-live")
+async def request_go_live(current_user: Dict = Depends(get_current_user)):
+    """Request to transition from sandbox to live status"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can request to go live")
+    
+    retailer_id = current_user["id"]
+    retailer = await db.users.find_one({"id": retailer_id}, {"_id": 0})
+    
+    current_status = retailer.get("store_status", STORE_STATUS_LIVE)
+    
+    if current_status == STORE_STATUS_LIVE:
+        raise HTTPException(status_code=400, detail="Store is already live")
+    
+    if current_status == STORE_STATUS_PENDING_LIVE:
+        raise HTTPException(status_code=400, detail="Go-live request already pending")
+    
+    if current_status == STORE_STATUS_PENDING_APPROVAL:
+        raise HTTPException(status_code=400, detail="Registration approval is still pending")
+    
+    if current_status == STORE_STATUS_SUSPENDED:
+        raise HTTPException(status_code=400, detail="Store is suspended. Contact admin.")
+    
+    # Verify launch readiness
+    location = await db.drlp_locations.find_one(
+        {"$or": [{"drlp_id": retailer_id}, {"user_id": retailer_id}]},
+        {"_id": 0}
+    )
+    items = await db.rshd_items.find(
+        {"drlp_id": retailer_id, "status": "available", "quantity": {"$gte": 5}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    has_store_hours = bool(retailer.get("store_hours"))
+    has_logo = bool(retailer.get("store_logo"))
+    has_min_items = len(items) >= 2
+    
+    if not has_store_hours:
+        raise HTTPException(status_code=400, detail="Store hours must be configured before going live")
+    if not has_logo:
+        raise HTTPException(status_code=400, detail="Store logo must be uploaded before going live")
+    if not has_min_items:
+        raise HTTPException(status_code=400, detail="At least 2 items with quantity >= 5 must be posted before going live")
+    
+    # Update status to pending_live
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {
+            "store_status": STORE_STATUS_PENDING_LIVE,
+            "go_live_requested_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Retailer {retailer_id} requested to go live")
+    return {"message": "Go-live request submitted. Awaiting admin approval.", "status": STORE_STATUS_PENDING_LIVE}
+
+@api_router.put("/retailers/profile")
+async def update_retailer_profile(profile_data: Dict, current_user: Dict = Depends(get_current_user)):
+    """Update retailer profile including store hours and logo"""
+    if current_user["role"] != "DRLP":
+        raise HTTPException(status_code=403, detail="Only DRLP users can update their profile")
+    
+    retailer_id = current_user["id"]
+    
+    # Allowed fields to update
+    allowed_fields = ["store_hours", "store_logo", "business_phone", "business_address", "business_type", "name"]
+    update_data = {k: v for k, v in profile_data.items() if k in allowed_fields}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Profile updated successfully"}
+
+# ===== ADMIN SANDBOX APPROVAL ENDPOINTS =====
+
+@api_router.get("/admin/pending-approvals")
+async def get_pending_approvals(current_user: Dict = Depends(get_current_user)):
+    """Get all pending DRLP approvals (registration and go-live)"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get pending registration approvals
+    pending_registration = await db.users.find(
+        {"role": "DRLP", "store_status": STORE_STATUS_PENDING_APPROVAL},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    
+    # Get pending go-live requests
+    pending_go_live = await db.users.find(
+        {"role": "DRLP", "store_status": STORE_STATUS_PENDING_LIVE},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    
+    # Add items count for go-live requests
+    for retailer in pending_go_live:
+        items_count = await db.rshd_items.count_documents(
+            {"drlp_id": retailer["id"], "status": "available", "quantity": {"$gte": 5}}
+        )
+        retailer["items_count"] = items_count
+    
+    return {
+        "pending_registration": pending_registration,
+        "pending_go_live": pending_go_live,
+        "total_pending": len(pending_registration) + len(pending_go_live)
+    }
+
+@api_router.put("/admin/retailers/{retailer_id}/approve-registration")
+async def approve_registration(retailer_id: str, current_user: Dict = Depends(get_current_user)):
+    """Approve a DRLP registration - moves them to sandbox mode"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    if retailer.get("store_status") != STORE_STATUS_PENDING_APPROVAL:
+        raise HTTPException(status_code=400, detail="Retailer is not pending registration approval")
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {
+            "store_status": STORE_STATUS_SANDBOX,
+            "registration_approved_at": datetime.now(timezone.utc).isoformat(),
+            "registration_approved_by": current_user["id"]
+        }}
+    )
+    
+    logger.info(f"Retailer {retailer_id} registration approved by admin {current_user['email']}")
+    return {"message": "Registration approved. Retailer is now in sandbox mode.", "status": STORE_STATUS_SANDBOX}
+
+@api_router.put("/admin/retailers/{retailer_id}/reject-registration")
+async def reject_registration(retailer_id: str, rejection_data: Dict, current_user: Dict = Depends(get_current_user)):
+    """Reject a DRLP registration"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    reason = rejection_data.get("reason", "Application did not meet requirements")
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {
+            "store_status": "rejected",
+            "rejection_reason": reason,
+            "rejected_at": datetime.now(timezone.utc).isoformat(),
+            "rejected_by": current_user["id"]
+        }}
+    )
+    
+    logger.info(f"Retailer {retailer_id} registration rejected by admin {current_user['email']}: {reason}")
+    return {"message": "Registration rejected", "reason": reason}
+
+@api_router.put("/admin/retailers/{retailer_id}/approve-go-live")
+async def approve_go_live(retailer_id: str, current_user: Dict = Depends(get_current_user)):
+    """Approve a DRLP go-live request - makes them visible to consumers"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    if retailer.get("store_status") != STORE_STATUS_PENDING_LIVE:
+        raise HTTPException(status_code=400, detail="Retailer has not requested to go live")
+    
+    # Verify they still meet requirements
+    items_count = await db.rshd_items.count_documents(
+        {"drlp_id": retailer_id, "status": "available", "quantity": {"$gte": 5}}
+    )
+    
+    if items_count < 2:
+        raise HTTPException(status_code=400, detail="Retailer no longer meets minimum item requirements")
+    
+    if not retailer.get("store_hours"):
+        raise HTTPException(status_code=400, detail="Store hours not configured")
+    
+    if not retailer.get("store_logo"):
+        raise HTTPException(status_code=400, detail="Store logo not uploaded")
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {
+            "store_status": STORE_STATUS_LIVE,
+            "went_live_at": datetime.now(timezone.utc).isoformat(),
+            "go_live_approved_by": current_user["id"]
+        }}
+    )
+    
+    logger.info(f"Retailer {retailer_id} approved to go live by admin {current_user['email']}")
+    return {"message": "Retailer is now live and visible to consumers!", "status": STORE_STATUS_LIVE}
+
+@api_router.put("/admin/retailers/{retailer_id}/reject-go-live")
+async def reject_go_live(retailer_id: str, rejection_data: Dict, current_user: Dict = Depends(get_current_user)):
+    """Reject a DRLP go-live request - returns them to sandbox"""
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    retailer = await db.users.find_one({"id": retailer_id, "role": "DRLP"})
+    if not retailer:
+        raise HTTPException(status_code=404, detail="Retailer not found")
+    
+    reason = rejection_data.get("reason", "Go-live request did not meet requirements")
+    
+    await db.users.update_one(
+        {"id": retailer_id},
+        {"$set": {
+            "store_status": STORE_STATUS_SANDBOX,
+            "go_live_rejection_reason": reason,
+            "go_live_rejected_at": datetime.now(timezone.utc).isoformat(),
+            "go_live_rejected_by": current_user["id"]
+        }}
+    )
+    
+    logger.info(f"Retailer {retailer_id} go-live rejected by admin {current_user['email']}: {reason}")
+    return {"message": "Go-live request rejected. Retailer returned to sandbox.", "reason": reason}
+
 # ===== RETAILER MANAGEMENT ENDPOINTS =====
 
 @api_router.get("/admin/retailers")
