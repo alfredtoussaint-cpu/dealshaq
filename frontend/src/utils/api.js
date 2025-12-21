@@ -123,6 +123,19 @@ export const admin = {
   retailerDetails: (retailerId) => api.get(`/admin/retailers/${retailerId}`),
   retailerAnalytics: () => api.get('/admin/retailers/analytics/overview'),
   updateRetailerStatus: (retailerId, status) => api.put(`/admin/retailers/${retailerId}/status`, { status }),
+  // Sandbox/Onboarding Approvals
+  pendingApprovals: () => api.get('/admin/pending-approvals'),
+  approveRegistration: (retailerId) => api.put(`/admin/retailers/${retailerId}/approve-registration`),
+  rejectRegistration: (retailerId, reason) => api.put(`/admin/retailers/${retailerId}/reject-registration`, { reason }),
+  approveGoLive: (retailerId) => api.put(`/admin/retailers/${retailerId}/approve-go-live`),
+  rejectGoLive: (retailerId, reason) => api.put(`/admin/retailers/${retailerId}/reject-go-live`, { reason }),
+};
+
+// Retailer (DRLP) APIs
+export const retailer = {
+  launchReadiness: () => api.get('/retailers/launch-readiness'),
+  requestGoLive: () => api.put('/retailers/request-go-live'),
+  updateProfile: (profileData) => api.put('/retailers/profile', profileData),
 };
 
 export const categories = {
