@@ -1133,6 +1133,26 @@ async def get_rshd_items(category: Optional[str] = None, current_user: Dict = De
         query["category"] = category
     
     items = await db.rshd_items.find(query, {"_id": 0}).sort("posted_at", -1).to_list(1000)
+    
+    # For DAC users, filter out items from non-live retailers (sandbox feature)
+    if current_user["role"] == "DAC":
+        # Get all live retailer IDs
+        live_retailers = await db.users.find(
+            {"role": "DRLP", "store_status": STORE_STATUS_LIVE},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        live_retailer_ids = set(r["id"] for r in live_retailers)
+        
+        # Also include retailers without store_status (legacy data - treat as live)
+        legacy_retailers = await db.users.find(
+            {"role": "DRLP", "store_status": {"$exists": False}},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        live_retailer_ids.update(r["id"] for r in legacy_retailers)
+        
+        # Filter items to only include those from live retailers
+        items = [item for item in items if item.get("drlp_id") in live_retailer_ids]
+    
     return items
 
 @api_router.get("/rshd/my-items", response_model=List[RSHDItem])
