@@ -55,6 +55,21 @@ logger = logging.getLogger(__name__)
 
 # ===== MODELS =====
 
+# Store Status Constants for DRLPs
+STORE_STATUS_PENDING_APPROVAL = "pending_approval"  # Just registered, awaiting admin review
+STORE_STATUS_SANDBOX = "sandbox"  # Approved, testing mode - hidden from consumers
+STORE_STATUS_PENDING_LIVE = "pending_live"  # Requested to go live, awaiting approval
+STORE_STATUS_LIVE = "live"  # Fully operational, visible to consumers
+STORE_STATUS_SUSPENDED = "suspended"  # Admin suspended
+
+VALID_STORE_STATUSES = [
+    STORE_STATUS_PENDING_APPROVAL,
+    STORE_STATUS_SANDBOX,
+    STORE_STATUS_PENDING_LIVE,
+    STORE_STATUS_LIVE,
+    STORE_STATUS_SUSPENDED
+]
+
 # Auth Models
 class UserCreate(BaseModel):
     email: EmailStr
@@ -64,6 +79,10 @@ class UserCreate(BaseModel):
     charity_id: Optional[str] = None
     delivery_location: Optional[Dict[str, Any]] = None  # {address, coordinates: {lat, lng}} - DACSAI center
     dacsai_rad: Optional[float] = 5.0  # DACSAI-Rad: 0.1 - 9.9 miles (defines DACSAI size)
+    # DRLP-specific fields
+    business_phone: Optional[str] = None
+    business_address: Optional[str] = None
+    business_type: Optional[str] = None  # Grocery, Convenience, Specialty, etc.
 
 class UserLogin(BaseModel):
     email: EmailStr
