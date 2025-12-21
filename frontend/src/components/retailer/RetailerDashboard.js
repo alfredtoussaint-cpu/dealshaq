@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import RetailerLayout from './RetailerLayout';
+import SandboxBanner from './SandboxBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { rshd, orders as ordersApi } from '../../utils/api';
@@ -37,6 +38,9 @@ export default function RetailerDashboard({ user, onLogout }) {
   return (
     <RetailerLayout user={user} onLogout={onLogout}>
       <div className="space-y-6">
+        {/* Sandbox Banner - shows status and checklist for non-live stores */}
+        <SandboxBanner user={user} onStatusChange={loadStats} />
+
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white shadow-lg">
           <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             Welcome, {user.name}!
