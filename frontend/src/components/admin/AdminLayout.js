@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Home, Users, Receipt, LogOut, Package, Heart, Store } from 'lucide-react';
+import { Home, Users, Receipt, LogOut, Package, Heart, Store, ClipboardCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../Logo';
 
@@ -9,6 +9,7 @@ export default function AdminLayout({ children, user, onLogout }) {
 
   const navItems = [
     { path: '/admin/dashboard', icon: Home, label: 'Dashboard', testId: 'admin-nav-dashboard' },
+    { path: '/admin/approvals', icon: ClipboardCheck, label: 'Approvals', testId: 'admin-nav-approvals' },
     { path: '/admin/users', icon: Users, label: 'Users', testId: 'admin-nav-users' },
     { path: '/admin/retailers', icon: Store, label: 'Retailers', testId: 'admin-nav-retailers' },
     { path: '/admin/items', icon: Package, label: 'Items', testId: 'admin-nav-items' },
